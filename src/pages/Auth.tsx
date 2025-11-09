@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/contexts/AuthContext';
@@ -165,17 +164,16 @@ export default function Auth() {
   };
 
   return (
-    <Layout>
-      <div className="min-h-screen flex">
-        {/* Left Side - Benefits Carousel (hidden on mobile) */}
-        <motion.div 
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6 }}
-          className="hidden lg:block lg:w-2/5 relative overflow-hidden"
-        >
-          <BenefitsCarousel />
-        </motion.div>
+    <div className="min-h-screen flex">
+      {/* Left Side - Benefits Carousel (hidden on mobile) */}
+      <motion.div 
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.6 }}
+        className="hidden lg:block lg:w-2/5 relative overflow-hidden"
+      >
+        <BenefitsCarousel />
+      </motion.div>
 
         {/* Right Side - Auth Form */}
         <div className="flex-1 flex items-center justify-center p-4 lg:p-8 relative overflow-hidden">
@@ -394,13 +392,12 @@ export default function Auth() {
             </div>
           </motion.div>
         </div>
-      </div>
 
       {/* Forgot Password Modal */}
       <ForgotPasswordModal 
         isOpen={showForgotPassword} 
         onClose={() => setShowForgotPassword(false)} 
       />
-    </Layout>
+    </div>
   );
 }
