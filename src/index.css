@@ -1,0 +1,210 @@
+/* Studio Design System - Foundational CSS
+  ---------------------------------------
+  This file defines all the design tokens as CSS custom properties,
+  based on the "Studio Design System.md" documentation.
+*/
+
+/* 1. Import Tailwind's base, components, and utilities.
+     This must come first.
+*/
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Gilroy Font Family */
+@font-face {
+  font-family: 'Gilroy';
+  src: url('/fonts/Gilroy-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Gilroy';
+  src: url('/fonts/Gilroy-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Gilroy';
+  src: url('/fonts/Gilroy-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Gilroy';
+  src: url('/fonts/Gilroy-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Gilroy';
+  src: url('/fonts/Gilroy-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Gilroy';
+  src: url('/fonts/Gilroy-ExtraBold.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* 2. Define all design tokens (custom properties) at the base layer.
+*/
+@layer base {
+  /* Font Definitions 
+    NOTE: You must import/load the 'Gilroy' font family separately 
+    (e.g., via @font-face or a font service) for it to work.
+  */
+  :root {
+    --font-sans: 'Gilroy', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif';
+    --font-mono: 'SF Mono', 'Menlo', 'monospace';
+  }
+
+  /* Light Mode Colors (Default)
+  */
+  :root {
+    /* Core Palette */
+    --primary: 140 30% 30%;
+    --primary-foreground: 40 30% 98%;
+    --primary-glow: 140 30% 40%;
+    --accent: 150 29% 19%;
+    --accent-foreground: 40 30% 98%;
+    --accent-glow: 150 29% 25%;
+
+    /* Backgrounds & Foregrounds */
+    --background: 40 30% 98%;
+    --foreground: 0 0% 10%;
+
+    /* Semantic Colors */
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10%;
+    --secondary: 40 20% 94%;
+    --secondary-foreground: 0 0% 20%;
+    --muted: 40 10% 90%;
+    --muted-foreground: 0 0% 45%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Borders & Rings */
+    --border: 40 10% 85%;
+    --input: 40 10% 85%;
+    --ring: 140 30% 30%;
+
+    /* Gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(140 30% 30%) 0%, hsl(140 30% 40%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(140 25% 60%) 0%, hsl(140 25% 70%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(40 30% 98%) 0%, hsl(40 20% 96%) 100%);
+
+    /* Shadows & Elevation */
+    --shadow-card: 0 4px 20px -4px hsl(40 10% 50% / 0.1);
+    --shadow-lg: 0 10px 40px -10px hsl(40 10% 40% / 0.2);
+
+    /* Transitions */
+    --transition-base: all 0.2s ease-out;
+
+    /* Border Radius */
+    --radius: 0.5rem; /* 8px */
+
+    /* Sidebar tokens */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  /* Dark Mode Colors
+    Applied when the .dark class is present on the <html> tag
+  */
+  .dark {
+    /* Core Palette */
+    --primary: 140 35% 45%;
+    --primary-foreground: 40 30% 98%;
+    --primary-glow: 140 35% 55%;
+    --accent: 150 29% 19%;
+    --accent-foreground: 40 30% 98%;
+    --accent-glow: 150 29% 25%;
+
+    /* Backgrounds & Foregrounds */
+    --background: 0 0% 10%;
+    --foreground: 40 30% 98%;
+
+    /* Semantic Colors */
+    --card: 0 0% 15%;
+    --card-foreground: 40 30% 98%;
+    --popover: 0 0% 15%;
+    --popover-foreground: 40 30% 98%;
+    --secondary: 0 0% 20%;
+    --secondary-foreground: 40 30% 98%;
+    --muted: 0 0% 20%;
+    --muted-foreground: 40 10% 65%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Borders & Rings */
+    --border: 0 0% 25%;
+    --input: 0 0% 25%;
+    --ring: 140 35% 45%;
+
+    /* Gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(140 30% 25%) 0%, hsl(140 30% 35%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(140 30% 50%) 0%, hsl(140 30% 60%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 10%) 0%, hsl(0 0% 15%) 100%);
+
+    /* Shadows & Elevation */
+    --shadow-card: 0 4px 20px -4px hsl(0 0% 0% / 0.3);
+    --shadow-lg: 0 10px 40px -10px hsl(0 0% 0% / 0.5);
+
+    /* Sidebar tokens */
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+/*
+  3. Apply base styles to the body
+*/
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 80px; /* Height of fixed header */
+  }
+
+  body {
+    @apply bg-background text-foreground font-gilroy;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Apply mono font for elements with .font-mono */
+  .font-mono {
+    font-family: var(--font-mono);
+  }
+}
