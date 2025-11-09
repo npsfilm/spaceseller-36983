@@ -14,16 +14,344 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      addresses: {
+        Row: {
+          additional_info: string | null
+          address_type: Database["public"]["Enums"]["address_type"]
+          created_at: string | null
+          hausnummer: string | null
+          id: string
+          land: string
+          order_id: string | null
+          plz: string
+          stadt: string
+          strasse: string
+          user_id: string
+        }
+        Insert: {
+          additional_info?: string | null
+          address_type: Database["public"]["Enums"]["address_type"]
+          created_at?: string | null
+          hausnummer?: string | null
+          id?: string
+          land?: string
+          order_id?: string | null
+          plz: string
+          stadt: string
+          strasse: string
+          user_id: string
+        }
+        Update: {
+          additional_info?: string | null
+          address_type?: Database["public"]["Enums"]["address_type"]
+          created_at?: string | null
+          hausnummer?: string | null
+          id?: string
+          land?: string
+          order_id?: string | null
+          plz?: string
+          stadt?: string
+          strasse?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "addresses_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "addresses_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_deliverables: {
+        Row: {
+          delivered_at: string | null
+          file_name: string
+          file_path: string
+          id: string
+          order_id: string
+        }
+        Insert: {
+          delivered_at?: string | null
+          file_name: string
+          file_path: string
+          id?: string
+          order_id: string
+        }
+        Update: {
+          delivered_at?: string | null
+          file_name?: string
+          file_path?: string
+          id?: string
+          order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_deliverables_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_items: {
+        Row: {
+          created_at: string | null
+          id: string
+          item_notes: string | null
+          order_id: string
+          quantity: number
+          service_id: string
+          total_price: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          item_notes?: string | null
+          order_id: string
+          quantity?: number
+          service_id: string
+          total_price: number
+          unit_price: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          item_notes?: string | null
+          order_id?: string
+          quantity?: number
+          service_id?: string
+          total_price?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_uploads: {
+        Row: {
+          file_name: string
+          file_path: string
+          file_size: number
+          file_type: string
+          id: string
+          order_id: string
+          uploaded_at: string | null
+          user_id: string
+        }
+        Insert: {
+          file_name: string
+          file_path: string
+          file_size: number
+          file_type: string
+          id?: string
+          order_id: string
+          uploaded_at?: string | null
+          user_id: string
+        }
+        Update: {
+          file_name?: string
+          file_path?: string
+          file_size?: number
+          file_type?: string
+          id?: string
+          order_id?: string
+          uploaded_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_uploads_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_uploads_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          created_at: string | null
+          delivery_deadline: string | null
+          id: string
+          order_number: string
+          special_instructions: string | null
+          status: Database["public"]["Enums"]["order_status"]
+          total_amount: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          delivery_deadline?: string | null
+          id?: string
+          order_number: string
+          special_instructions?: string | null
+          status?: Database["public"]["Enums"]["order_status"]
+          total_amount?: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          delivery_deadline?: string | null
+          id?: string
+          order_number?: string
+          special_instructions?: string | null
+          status?: Database["public"]["Enums"]["order_status"]
+          total_amount?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          aufmerksam_geworden_durch: string | null
+          branche: string | null
+          created_at: string | null
+          email: string
+          firma: string | null
+          id: string
+          land: string | null
+          nachname: string | null
+          onboarding_completed: boolean | null
+          plz: string | null
+          stadt: string | null
+          strasse: string | null
+          telefon: string | null
+          updated_at: string | null
+          vorname: string | null
+        }
+        Insert: {
+          aufmerksam_geworden_durch?: string | null
+          branche?: string | null
+          created_at?: string | null
+          email: string
+          firma?: string | null
+          id: string
+          land?: string | null
+          nachname?: string | null
+          onboarding_completed?: boolean | null
+          plz?: string | null
+          stadt?: string | null
+          strasse?: string | null
+          telefon?: string | null
+          updated_at?: string | null
+          vorname?: string | null
+        }
+        Update: {
+          aufmerksam_geworden_durch?: string | null
+          branche?: string | null
+          created_at?: string | null
+          email?: string
+          firma?: string | null
+          id?: string
+          land?: string | null
+          nachname?: string | null
+          onboarding_completed?: boolean | null
+          plz?: string | null
+          stadt?: string | null
+          strasse?: string | null
+          telefon?: string | null
+          updated_at?: string | null
+          vorname?: string | null
+        }
+        Relationships: []
+      }
+      services: {
+        Row: {
+          base_price: number
+          category: string
+          created_at: string | null
+          description: string | null
+          features: Json | null
+          id: string
+          is_active: boolean | null
+          name: string
+          unit: string
+          updated_at: string | null
+        }
+        Insert: {
+          base_price: number
+          category: string
+          created_at?: string | null
+          description?: string | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          unit: string
+          updated_at?: string | null
+        }
+        Update: {
+          base_price?: number
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          unit?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_order_number: { Args: never; Returns: string }
     }
     Enums: {
-      [_ in never]: never
+      address_type: "shooting_location" | "billing_address"
+      order_status:
+        | "draft"
+        | "submitted"
+        | "in_progress"
+        | "completed"
+        | "delivered"
+        | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +478,16 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      address_type: ["shooting_location", "billing_address"],
+      order_status: [
+        "draft",
+        "submitted",
+        "in_progress",
+        "completed",
+        "delivered",
+        "cancelled",
+      ],
+    },
   },
 } as const
