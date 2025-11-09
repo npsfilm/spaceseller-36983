@@ -95,8 +95,17 @@ function OnboardingContent() {
 
     setLoading(true);
     try {
+      // Only include fields that exist in the profiles table
       const finalData = {
-        ...formData,
+        vorname: formData.vorname,
+        nachname: formData.nachname,
+        telefon: formData.telefon,
+        firma: formData.firma,
+        branche: formData.branche,
+        strasse: formData.strasse,
+        plz: formData.plz,
+        stadt: formData.stadt,
+        land: formData.land,
         aufmerksam_geworden_durch: formData.aufmerksam_geworden_durch === 'Sonstiges' 
           ? formData.aufmerksam_sonstiges 
           : formData.aufmerksam_geworden_durch,
