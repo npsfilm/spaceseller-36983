@@ -26,6 +26,8 @@ import Order from "./pages/Order";
 import OrderConfirmation from "./pages/OrderConfirmation";
 import MyOrders from "./pages/MyOrders";
 import Settings from "./pages/Settings";
+import Admin from "./pages/Admin";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -57,6 +59,7 @@ const App = () => (
           <Route path="/order/confirmation/:orderId" element={<OrderConfirmation />} />
           <Route path="/my-orders" element={<MyOrders />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/admin" element={<ProtectedRoute requireOnboarding requireAdmin><Admin /></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
             </Routes>

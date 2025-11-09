@@ -3,15 +3,17 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useBannerContext } from "@/contexts/BannerContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { DesktopNav } from "@/components/navigation/DesktopNav";
 import { MobileNav } from "@/components/navigation/MobileNav";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { User, Settings as SettingsIcon, Package, LogOut } from "lucide-react";
+import { User, Settings as SettingsIcon, Package, LogOut, Shield } from "lucide-react";
 
 export const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { isBannerVisible } = useBannerContext();
   const { user, signOut } = useAuth();
+  const { isAdmin } = useIsAdmin();
 
 
   return (
@@ -62,6 +64,17 @@ export const Header = () => {
                         Einstellungen
                       </Link>
                     </DropdownMenuItem>
+                    {isAdmin && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                          <Link to="/admin" className="cursor-pointer">
+                            <Shield className="mr-2 h-4 w-4" />
+                            Admin Dashboard
+                          </Link>
+                        </DropdownMenuItem>
+                      </>
+                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => signOut()} className="cursor-pointer text-destructive">
                       <LogOut className="mr-2 h-4 w-4" />

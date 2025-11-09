@@ -3,16 +3,19 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useState } from 'react';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requireOnboarding?: boolean;
+  requireAdmin?: boolean;
 }
 
-export const ProtectedRoute = ({ children, requireOnboarding = false }: ProtectedRouteProps) => {
+export const ProtectedRoute = ({ children, requireOnboarding = false, requireAdmin = false }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(null);
+  const { isAdmin, loading: adminLoading } = useIsAdmin();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -40,7 +43,13 @@ export const ProtectedRoute = ({ children, requireOnboarding = false }: Protecte
     }
   }, [user, requireOnboarding, navigate]);
 
-  if (loading || (requireOnboarding && onboardingComplete === null)) {
+  useEffect(() => {
+    if (requireAdmin && !adminLoading && !isAdmin && user) {
+      navigate('/');
+    }
+  }, [requireAdmin, adminLoading, isAdmin, user, navigate]);
+
+  if (loading || (requireOnboarding && onboardingComplete === null) || (requireAdmin && adminLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -49,6 +58,10 @@ export const ProtectedRoute = ({ children, requireOnboarding = false }: Protecte
   }
 
   if (!user) {
+    return null;
+  }
+
+  if (requireAdmin && !isAdmin) {
     return null;
   }
 
