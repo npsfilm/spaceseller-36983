@@ -17,6 +17,7 @@ import OrderConfirmation from "./pages/OrderConfirmation";
 import MyOrders from "./pages/MyOrders";
 import Settings from "./pages/Settings";
 import Admin from "./pages/Admin";
+import Dashboard from "./pages/Dashboard";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/" element={<Home />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/onboarding" element={<Onboarding />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/order" element={<Order />} />
             <Route path="/order/confirmation/:orderId" element={<OrderConfirmation />} />
             <Route path="/my-orders" element={<MyOrders />} />
