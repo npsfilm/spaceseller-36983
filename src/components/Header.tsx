@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { useBannerContext } from "@/contexts/BannerContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { DesktopNav } from "@/components/navigation/DesktopNav";
@@ -11,13 +10,11 @@ import { User, Settings as SettingsIcon, Package, LogOut, Shield } from "lucide-
 
 export const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { isBannerVisible } = useBannerContext();
   const { user, signOut } = useAuth();
   const { isAdmin } = useIsAdmin();
 
-
   return (
-    <header className={`fixed left-0 right-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border transition-all duration-300 ${isBannerVisible ? 'top-12' : 'top-0'}`}>
+    <header className="fixed top-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}

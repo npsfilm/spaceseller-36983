@@ -6,16 +6,12 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { Separator } from "@/components/ui/separator";
-import { servicesNav, locationsNav, legalNav } from "@/lib/navigation";
-import { Menu } from "lucide-react";
+import { legalNav } from "@/lib/navigation";
+import { Menu, User, Package, Settings as SettingsIcon, LogOut, Shield } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 interface MobileNavProps {
   isOpen: boolean;
@@ -23,8 +19,16 @@ interface MobileNavProps {
 }
 
 export const MobileNav = ({ isOpen, onOpenChange }: MobileNavProps) => {
+  const { user, signOut } = useAuth();
+  const { isAdmin } = useIsAdmin();
+  
   const handleNavClick = () => {
     onOpenChange(false);
+  };
+
+  const handleSignOut = () => {
+    signOut();
+    handleNavClick();
   };
 
   return (
@@ -36,80 +40,82 @@ export const MobileNav = ({ isOpen, onOpenChange }: MobileNavProps) => {
       </SheetTrigger>
       <SheetContent side="right" className="w-[300px] overflow-y-auto">
         <SheetHeader>
-          <SheetTitle className="text-left">Navigation</SheetTitle>
+          <SheetTitle className="text-left">Menü</SheetTitle>
         </SheetHeader>
 
         <div className="mt-6 flex flex-col gap-2">
-          {/* Services Section */}
-          <Accordion type="single" collapsible className="w-full">
-            <AccordionItem value="services" className="border-none">
-              <AccordionTrigger className="py-2 hover:no-underline">
-                <span className="text-base font-semibold">Dienstleistungen</span>
-              </AccordionTrigger>
-              <AccordionContent>
-                <div className="flex flex-col gap-1 ml-2">
-                  {servicesNav.map((item) => (
-                    <Link
-                      key={item.href}
-                      to={item.href}
-                      onClick={handleNavClick}
-                      className="flex items-center gap-3 rounded-md p-3 text-sm font-medium hover:bg-accent transition-colors"
-                    >
-                      {item.icon && <item.icon className="w-4 h-4 text-primary" />}
-                      {item.title}
-                    </Link>
-                  ))}
-                </div>
-              </AccordionContent>
-            </AccordionItem>
+          {user ? (
+            <>
+              {/* User Info */}
+              <div className="px-3 py-2 bg-muted rounded-md">
+                <p className="text-sm font-medium">Angemeldet als</p>
+                <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+              </div>
 
-            {/* Locations Section */}
-            <AccordionItem value="locations" className="border-none">
-              <AccordionTrigger className="py-2 hover:no-underline">
-                <span className="text-base font-semibold">Standorte</span>
-              </AccordionTrigger>
-              <AccordionContent>
-                <div className="flex flex-col gap-1 ml-2">
-                  {locationsNav.map((item) => (
-                    <Link
-                      key={item.href}
-                      to={item.href}
-                      onClick={handleNavClick}
-                      className="flex items-center gap-3 rounded-md p-3 text-sm font-medium hover:bg-accent transition-colors"
-                    >
-                      {item.icon && <item.icon className="w-4 h-4 text-primary" />}
-                      {item.title}
-                    </Link>
-                  ))}
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
+              <Separator className="my-2" />
 
-          {/* Direct Link */}
-          <Link
-            to="/Immobilienmakler"
-            onClick={handleNavClick}
-            className="rounded-md p-3 text-base font-semibold hover:bg-accent transition-colors"
-          >
-            Für Makler
-          </Link>
+              {/* User Actions */}
+              <Link
+                to="/order"
+                onClick={handleNavClick}
+                className="flex items-center gap-3 rounded-md p-3 text-sm font-medium hover:bg-accent transition-colors"
+              >
+                Neue Bestellung
+              </Link>
 
-          <Separator className="my-4" />
+              <Link
+                to="/my-orders"
+                onClick={handleNavClick}
+                className="flex items-center gap-3 rounded-md p-3 text-sm font-medium hover:bg-accent transition-colors"
+              >
+                <Package className="w-4 h-4" />
+                Meine Bestellungen
+              </Link>
 
-          {/* Auth/Order Actions */}
-          <div className="flex flex-col gap-2">
-            <a href="https://app.spaceseller.de" target="_blank" rel="noopener noreferrer" onClick={handleNavClick}>
-              <Button variant="outline" className="w-full">
-                Anmelden
-              </Button>
-            </a>
-            <a href="https://app.spaceseller.de" target="_blank" rel="noopener noreferrer" onClick={handleNavClick}>
-              <Button variant="cta" className="w-full">
-                Bilder hochladen
-              </Button>
-            </a>
-          </div>
+              <Link
+                to="/settings"
+                onClick={handleNavClick}
+                className="flex items-center gap-3 rounded-md p-3 text-sm font-medium hover:bg-accent transition-colors"
+              >
+                <SettingsIcon className="w-4 h-4" />
+                Einstellungen
+              </Link>
+
+              {isAdmin && (
+                <Link
+                  to="/admin"
+                  onClick={handleNavClick}
+                  className="flex items-center gap-3 rounded-md p-3 text-sm font-medium hover:bg-accent transition-colors"
+                >
+                  <Shield className="w-4 h-4" />
+                  Admin Dashboard
+                </Link>
+              )}
+
+              <Separator className="my-2" />
+
+              <button
+                onClick={handleSignOut}
+                className="flex items-center gap-3 rounded-md p-3 text-sm font-medium hover:bg-accent transition-colors text-destructive text-left w-full"
+              >
+                <LogOut className="w-4 h-4" />
+                Abmelden
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/auth" onClick={handleNavClick}>
+                <Button variant="outline" className="w-full">
+                  Anmelden
+                </Button>
+              </Link>
+              <Link to="/auth" onClick={handleNavClick}>
+                <Button variant="cta" className="w-full">
+                  Bilder hochladen
+                </Button>
+              </Link>
+            </>
+          )}
 
           {/* Legal Links */}
           <Separator className="my-4" />
