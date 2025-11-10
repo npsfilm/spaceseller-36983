@@ -1,9 +1,8 @@
 import { motion } from 'framer-motion';
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { PackageCard } from '../components/PackageCard';
 import { CompactServiceCard } from '../components/CompactServiceCard';
-import { ArrowRight, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
 import type { Service, ServiceConfig } from '../OrderWizard';
 
 interface ServiceSelectionStepProps {
@@ -23,8 +22,6 @@ export const ServiceSelectionStep = ({
   category,
   onBackToCategories
 }: ServiceSelectionStepProps) => {
-  const [showCustom, setShowCustom] = useState(false);
-
   // Filter services by selected category
   const categoryServices = services.filter(s => s.category === category);
   
@@ -210,73 +207,55 @@ export const ServiceSelectionStep = ({
         </div>
       </motion.section>
 
-      {/* Divider with Custom Option Toggle */}
+      {/* Decorative Divider */}
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.4 }}
-        className="text-center py-8"
+        className="relative py-8"
       >
-        <Button
-          variant="ghost"
-          size="lg"
-          onClick={() => setShowCustom(!showCustom)}
-          className="gap-2 text-muted-foreground hover:text-foreground"
-        >
-          {showCustom ? (
-            <>
-              <ChevronUp className="h-5 w-5" />
-              Services verbergen
-            </>
-          ) : (
-            <>
-              Oder wählen Sie einzelne Services
-              <ChevronDown className="h-5 w-5" />
-            </>
-          )}
-        </Button>
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-border"></div>
+        </div>
+        <div className="relative flex justify-center">
+          <span className="bg-background px-4 text-sm text-muted-foreground font-medium">
+            ODER
+          </span>
+        </div>
       </motion.div>
 
-      {/* Custom Service Selection - SECONDARY (Collapsible) */}
-      {showCustom && (
-        <motion.section
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          exit={{ opacity: 0, height: 0 }}
-          transition={{ duration: 0.3 }}
-          className="space-y-8"
-        >
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold mb-2">Individuelle Auswahl</h2>
-            <p className="text-muted-foreground">Wählen Sie nur die Services, die Sie benötigen</p>
-          </div>
+      {/* Individual Service Selection - Always Visible */}
+      <motion.section
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        className="space-y-8 bg-muted/30 rounded-lg p-8"
+      >
+        <div className="text-center mb-8">
+          <h2 className="text-2xl font-bold mb-2">Alle verfügbaren Services</h2>
+          <p className="text-muted-foreground">Wählen Sie nur die Services, die Sie benötigen</p>
+        </div>
 
-          {/* Individual Services for Selected Category */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-4"
-          >
-            <div className="flex items-center gap-3 border-b border-border pb-3">
-              <h3 className="text-xl font-bold">Alle Services</h3>
-              <span className="text-sm text-muted-foreground">
-                ({categoryServices.length} verfügbar)
-              </span>
-            </div>
-            
-            <div className="grid md:grid-cols-2 gap-4">
-              {categoryServices.map((service) => (
-                <CompactServiceCard
-                  key={service.id}
-                  service={service}
-                  isSelected={!!selectedServices[service.id]}
-                  onToggle={handleServiceToggle}
-                />
-              ))}
-            </div>
-          </motion.div>
-        </motion.section>
-      )}
+        <div className="space-y-4">
+          <div className="flex items-center gap-3 border-b border-border pb-3">
+            <h3 className="text-xl font-bold">Alle Services</h3>
+            <span className="text-sm text-muted-foreground">
+              ({categoryServices.length} verfügbar)
+            </span>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-4">
+            {categoryServices.map((service) => (
+              <CompactServiceCard
+                key={service.id}
+                service={service}
+                isSelected={!!selectedServices[service.id]}
+                onToggle={handleServiceToggle}
+              />
+            ))}
+          </div>
+        </div>
+      </motion.section>
 
       {/* Navigation */}
       <motion.div
