@@ -36,7 +36,7 @@ export const PricingCalculator = ({ selectedServices, services, total, step, tra
             </div>
             <div className="hidden sm:block">
               <p className="text-sm font-medium text-muted-foreground">Services</p>
-              <p className="text-xs text-muted-foreground">Schritt {step} von 5</p>
+              <p className="text-xs text-muted-foreground">Schritt {step} von 6</p>
             </div>
           </div>
 

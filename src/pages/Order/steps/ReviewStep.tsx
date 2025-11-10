@@ -42,6 +42,22 @@ export const ReviewStep = ({
     return sum + (config.turnaround === 'express' ? 50 : 0);
   }, 0);
 
+  // Calculate upgrades total
+  const upgradesTotal = orderState.selectedUpgrades.reduce((sum, upgrade) => {
+    return sum + (upgrade.price * upgrade.quantity);
+  }, 0);
+
+  // Calculate virtual staging total
+  let virtualStagingTotal = 0;
+  if (orderState.virtualStagingCount > 0) {
+    const BASE_PRICE = 49;
+    let discount = 0;
+    if (orderState.virtualStagingCount >= 5) discount = 0.15;
+    else if (orderState.virtualStagingCount >= 3) discount = 0.10;
+    const pricePerImage = BASE_PRICE * (1 - discount);
+    virtualStagingTotal = pricePerImage * orderState.virtualStagingCount;
+  }
+
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
       {/* Header */}
@@ -172,9 +188,29 @@ export const ReviewStep = ({
             {/* Pricing */}
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Zwischensumme</span>
+                <span className="text-muted-foreground">Services</span>
                 <span className="font-semibold">€{subtotal.toFixed(2)}</span>
               </div>
+              {upgradesTotal > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Upgrades</span>
+                  <span className="font-semibold">€{upgradesTotal.toFixed(2)}</span>
+                </div>
+              )}
+              {virtualStagingTotal > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">
+                    Virtual Staging ({orderState.virtualStagingCount}x)
+                  </span>
+                  <span className="font-semibold">€{virtualStagingTotal.toFixed(2)}</span>
+                </div>
+              )}
+              {orderState.travelCost > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Anfahrt</span>
+                  <span className="font-semibold">€{orderState.travelCost.toFixed(2)}</span>
+                </div>
+              )}
               {expressCharges > 0 && (
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Express-Zuschlag</span>

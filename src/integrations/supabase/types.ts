@@ -151,6 +151,51 @@ export type Database = {
           },
         ]
       }
+      order_upgrades: {
+        Row: {
+          created_at: string | null
+          id: string
+          order_id: string
+          quantity: number
+          total_price: number
+          unit_price: number
+          upgrade_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          order_id: string
+          quantity?: number
+          total_price: number
+          unit_price: number
+          upgrade_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          order_id?: string
+          quantity?: number
+          total_price?: number
+          unit_price?: number
+          upgrade_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_upgrades_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_upgrades_upgrade_id_fkey"
+            columns: ["upgrade_id"]
+            isOneToOne: false
+            referencedRelation: "upgrades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_uploads: {
         Row: {
           file_name: string
@@ -331,6 +376,48 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           name?: string
+          unit?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      upgrades: {
+        Row: {
+          base_price: number
+          category: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          pricing_config: Json | null
+          pricing_type: string
+          unit: string
+          updated_at: string | null
+        }
+        Insert: {
+          base_price: number
+          category: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          pricing_config?: Json | null
+          pricing_type?: string
+          unit: string
+          updated_at?: string | null
+        }
+        Update: {
+          base_price?: number
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          pricing_config?: Json | null
+          pricing_type?: string
           unit?: string
           updated_at?: string | null
         }

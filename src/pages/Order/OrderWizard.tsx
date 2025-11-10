@@ -9,6 +9,7 @@ import { ProgressIndicator } from './components/ProgressIndicator';
 import { CategorySelectionStep } from './steps/CategorySelectionStep';
 import { LocationCheckStep } from './steps/LocationCheckStep';
 import { ServiceSelectionStep } from './steps/ServiceSelectionStep';
+import { UpgradesStep } from './steps/UpgradesStep';
 import { ConfigurationStep } from './steps/ConfigurationStep';
 import { PropertyDetailsStep } from './steps/PropertyDetailsStep';
 import { FileUploadStep } from './steps/FileUploadStep';
@@ -33,10 +34,18 @@ export interface ServiceConfig {
   notes?: string;
 }
 
+export interface SelectedUpgrade {
+  upgradeId: string;
+  quantity: number;
+  price: number;
+}
+
 export interface OrderState {
   step: number;
   selectedCategory: string | null;
   selectedServices: Record<string, ServiceConfig>;
+  selectedUpgrades: SelectedUpgrade[];
+  virtualStagingCount: number;
   address: {
     strasse: string;
     hausnummer: string;
@@ -54,10 +63,11 @@ export interface OrderState {
 
 const STEPS = [
   { number: 1, title: 'Services', description: 'Wählen Sie Services' },
-  { number: 2, title: 'Konfiguration', description: 'Details angeben' },
-  { number: 3, title: 'Adresse', description: 'Objektdetails' },
-  { number: 4, title: 'Upload', description: 'Bilder hochladen' },
-  { number: 5, title: 'Prüfung', description: 'Bestellung prüfen' }
+  { number: 2, title: 'Upgrades', description: 'Optionale Extras' },
+  { number: 3, title: 'Konfiguration', description: 'Details angeben' },
+  { number: 4, title: 'Adresse', description: 'Objektdetails' },
+  { number: 5, title: 'Upload', description: 'Bilder hochladen' },
+  { number: 6, title: 'Prüfung', description: 'Bestellung prüfen' }
 ];
 
 export const OrderWizard = () => {
@@ -66,6 +76,8 @@ export const OrderWizard = () => {
     step: 1,
     selectedCategory: null,
     selectedServices: {},
+    selectedUpgrades: [],
+    virtualStagingCount: 0,
     address: {
       strasse: '',
       hausnummer: '',
@@ -131,6 +143,7 @@ export const OrderWizard = () => {
   };
 
   const calculateTotal = () => {
+    // Service costs
     const servicesTotal = Object.values(orderState.selectedServices).reduce((total, config) => {
       const service = services.find(s => s.id === config.serviceId);
       const basePrice = (service?.base_price || 0) * config.quantity;
@@ -138,11 +151,27 @@ export const OrderWizard = () => {
       return total + basePrice + expressCharge;
     }, 0);
     
-    return servicesTotal + orderState.travelCost;
+    // Upgrades costs
+    const upgradesTotal = orderState.selectedUpgrades.reduce((total, upgrade) => {
+      return total + (upgrade.price * upgrade.quantity);
+    }, 0);
+
+    // Virtual staging with tiered discounts
+    let virtualStagingTotal = 0;
+    if (orderState.virtualStagingCount > 0) {
+      const BASE_PRICE = 49;
+      let discount = 0;
+      if (orderState.virtualStagingCount >= 5) discount = 0.15;
+      else if (orderState.virtualStagingCount >= 3) discount = 0.10;
+      const pricePerImage = BASE_PRICE * (1 - discount);
+      virtualStagingTotal = pricePerImage * orderState.virtualStagingCount;
+    }
+    
+    return servicesTotal + upgradesTotal + virtualStagingTotal + orderState.travelCost;
   };
 
   const nextStep = () => {
-    setOrderState(prev => ({ ...prev, step: Math.min(prev.step + 1, 5) }));
+    setOrderState(prev => ({ ...prev, step: Math.min(prev.step + 1, 6) }));
   };
 
   const prevStep = () => {
@@ -169,6 +198,14 @@ export const OrderWizard = () => {
 
   const updateSpecialInstructions = (instructions: string) => {
     setOrderState(prev => ({ ...prev, specialInstructions: instructions }));
+  };
+
+  const updateUpgrades = (upgrades: SelectedUpgrade[]) => {
+    setOrderState(prev => ({ ...prev, selectedUpgrades: upgrades }));
+  };
+
+  const updateVirtualStagingCount = (count: number) => {
+    setOrderState(prev => ({ ...prev, virtualStagingCount: count }));
   };
 
   const selectCategory = (category: string) => {
@@ -231,6 +268,45 @@ export const OrderWizard = () => {
       });
 
       await supabase.from('order_items').insert(orderItems);
+
+      // Create order upgrades
+      if (orderState.selectedUpgrades.length > 0) {
+        const orderUpgrades = orderState.selectedUpgrades.map(upgrade => ({
+          order_id: orderState.draftOrderId,
+          upgrade_id: upgrade.upgradeId,
+          quantity: upgrade.quantity,
+          unit_price: upgrade.price,
+          total_price: upgrade.price * upgrade.quantity
+        }));
+        await supabase.from('order_upgrades').insert(orderUpgrades);
+      }
+
+      // Add virtual staging as upgrade if selected
+      if (orderState.virtualStagingCount > 0) {
+        const BASE_PRICE = 49;
+        let discount = 0;
+        if (orderState.virtualStagingCount >= 5) discount = 0.15;
+        else if (orderState.virtualStagingCount >= 3) discount = 0.10;
+        const pricePerImage = BASE_PRICE * (1 - discount);
+        const totalPrice = pricePerImage * orderState.virtualStagingCount;
+
+        // Get virtual staging upgrade ID
+        const { data: stagingUpgrade } = await supabase
+          .from('upgrades')
+          .select('id')
+          .eq('name', 'Virtual Staging')
+          .single();
+
+        if (stagingUpgrade) {
+          await supabase.from('order_upgrades').insert({
+            order_id: orderState.draftOrderId,
+            upgrade_id: stagingUpgrade.id,
+            quantity: orderState.virtualStagingCount,
+            unit_price: pricePerImage,
+            total_price: totalPrice
+          });
+        }
+      }
 
       // Save address if provided
       const hasPhotography = Object.values(orderState.selectedServices).some(config => {
@@ -344,6 +420,17 @@ export const OrderWizard = () => {
                   />
                 )}
                 {orderState.step === 2 && (
+                  <UpgradesStep
+                    selectedUpgrades={orderState.selectedUpgrades}
+                    onUpdateUpgrades={updateUpgrades}
+                    virtualStagingCount={orderState.virtualStagingCount}
+                    onUpdateVirtualStagingCount={updateVirtualStagingCount}
+                    onNext={nextStep}
+                    onBack={prevStep}
+                    category={orderState.selectedCategory || ''}
+                  />
+                )}
+                {orderState.step === 3 && (
                   <ConfigurationStep
                     services={services}
                     selectedServices={orderState.selectedServices}
@@ -352,7 +439,7 @@ export const OrderWizard = () => {
                     onBack={prevStep}
                   />
                 )}
-                {orderState.step === 3 && (
+                {orderState.step === 4 && (
                   <PropertyDetailsStep
                     address={orderState.address}
                     onUpdateAddress={updateAddress}
@@ -364,7 +451,7 @@ export const OrderWizard = () => {
                     })}
                   />
                 )}
-                {orderState.step === 4 && (
+                {orderState.step === 5 && (
                   <FileUploadStep
                     orderId={orderState.draftOrderId || ''}
                     uploads={orderState.uploads}
@@ -377,7 +464,7 @@ export const OrderWizard = () => {
                     })}
                   />
                 )}
-                {orderState.step === 5 && (
+                {orderState.step === 6 && (
                   <ReviewStep
                     services={services}
                     orderState={orderState}

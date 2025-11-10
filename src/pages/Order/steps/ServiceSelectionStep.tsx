@@ -59,22 +59,34 @@ export const ServiceSelectionStep = ({
     onUpdateServices(updated);
   };
 
-  // Category-specific packages
+  // Category-specific packages - now showing actual photography packages
   const getCategoryPackages = () => {
     switch (category) {
       case 'photography':
+        // Group services by type
+        const immobilienServices = photographyServices.filter(s => s.name.includes('Immobilienshooting'));
+        const drohnenServices = photographyServices.filter(s => s.name.includes('Drohnenshooting'));
+        const kombiServices = photographyServices.filter(s => s.name.includes('Kombi-Paket'));
+        
         return [
           {
-            name: 'Basis Fotografie',
-            description: 'Perfekt für den Start',
-            services: photographyServices.slice(0, 2),
+            name: 'Immobilienshooting',
+            description: 'Professionelle Innen- und Außenaufnahmen',
+            services: immobilienServices,
             badge: 'Beliebt',
-            savings: 10
+            savings: 0
           },
           {
-            name: 'Premium + Drohne',
-            description: 'Komplettpaket mit Luftaufnahmen',
-            services: photographyServices,
+            name: 'Drohnenshooting',
+            description: 'Beeindruckende Luftaufnahmen',
+            services: drohnenServices,
+            badge: 'Premium',
+            savings: 0
+          },
+          {
+            name: 'Kombi-Paket',
+            description: 'Immobilien + Drohne zum Sparpreis',
+            services: kombiServices,
             badge: 'Beste Wahl',
             savings: 15
           }
@@ -82,52 +94,31 @@ export const ServiceSelectionStep = ({
       case 'editing':
         return [
           {
-            name: 'Basis Retusche',
-            description: 'Professionelle Bildoptimierung',
-            services: editingServices.slice(0, 1),
+            name: 'Bildbearbeitung',
+            description: 'Professionelle Nachbearbeitung',
+            services: editingServices,
             badge: 'Standard',
             savings: 0
-          },
-          {
-            name: 'Premium Bearbeitung',
-            description: 'Umfassende Bildverbesserung',
-            services: editingServices,
-            badge: 'Empfohlen',
-            savings: 12
           }
         ];
       case 'virtual_staging':
         return [
           {
-            name: 'Einzelraum',
-            description: '1 Raum digital möbliert',
-            services: virtualStagingServices.slice(0, 1),
-            badge: 'Schnellstart',
-            savings: 0
-          },
-          {
-            name: 'Mehrere Räume',
-            description: 'Bis zu 5 Räume',
+            name: 'Virtual Staging',
+            description: 'Digitale Möblierung mit Mengenrabatt',
             services: virtualStagingServices,
-            badge: 'Spart Zeit',
-            savings: 10
+            badge: 'Flexibel',
+            savings: 0
           }
         ];
       case 'floor_plan':
         return [
           {
-            name: '2D Grundriss',
-            description: 'Klassischer Grundriss',
-            services: floorPlanServices.filter(s => s.name.includes('2D')),
-            badge: 'Standard',
+            name: 'Grundrisse',
+            description: '2D oder 3D Grundrisse',
+            services: floorPlanServices,
+            badge: 'Professionell',
             savings: 0
-          },
-          {
-            name: '3D Grundriss',
-            description: 'Interaktive Darstellung',
-            services: floorPlanServices.filter(s => s.name.includes('3D')),
-            badge: 'Modern',
-            savings: 8
           }
         ];
       default:
