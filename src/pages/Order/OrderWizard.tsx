@@ -156,15 +156,14 @@ export const OrderWizard = () => {
       return total + (upgrade.price * upgrade.quantity);
     }, 0);
 
-    // Virtual staging with tiered discounts
+    // Virtual staging with package pricing
     let virtualStagingTotal = 0;
     if (orderState.virtualStagingCount > 0) {
-      const BASE_PRICE = 49;
-      let discount = 0;
-      if (orderState.virtualStagingCount >= 5) discount = 0.15;
-      else if (orderState.virtualStagingCount >= 3) discount = 0.10;
-      const pricePerImage = BASE_PRICE * (1 - discount);
-      virtualStagingTotal = pricePerImage * orderState.virtualStagingCount;
+      const count = orderState.virtualStagingCount;
+      if (count === 1) virtualStagingTotal = 89;
+      else if (count === 3) virtualStagingTotal = 249;
+      else if (count >= 5) virtualStagingTotal = 399;
+      else virtualStagingTotal = 89 * count;
     }
     
     return servicesTotal + upgradesTotal + virtualStagingTotal + orderState.travelCost;
@@ -283,12 +282,24 @@ export const OrderWizard = () => {
 
       // Add virtual staging as upgrade if selected
       if (orderState.virtualStagingCount > 0) {
-        const BASE_PRICE = 49;
-        let discount = 0;
-        if (orderState.virtualStagingCount >= 5) discount = 0.15;
-        else if (orderState.virtualStagingCount >= 3) discount = 0.10;
-        const pricePerImage = BASE_PRICE * (1 - discount);
-        const totalPrice = pricePerImage * orderState.virtualStagingCount;
+        const count = orderState.virtualStagingCount;
+        let totalPrice = 0;
+        let pricePerImage = 0;
+        
+        // Use package pricing
+        if (count === 1) {
+          totalPrice = 89;
+          pricePerImage = 89;
+        } else if (count === 3) {
+          totalPrice = 249;
+          pricePerImage = 83; // 249/3
+        } else if (count >= 5) {
+          totalPrice = 399;
+          pricePerImage = 79.80; // 399/5
+        } else {
+          pricePerImage = 89;
+          totalPrice = 89 * count;
+        }
 
         // Get virtual staging upgrade ID
         const { data: stagingUpgrade } = await supabase

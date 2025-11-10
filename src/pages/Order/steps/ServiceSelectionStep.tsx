@@ -63,34 +63,48 @@ export const ServiceSelectionStep = ({
   const getCategoryPackages = () => {
     switch (category) {
       case 'photography':
-        // Group services by type
-        const immobilienServices = photographyServices.filter(s => s.name.includes('Immobilienshooting'));
-        const drohnenServices = photographyServices.filter(s => s.name.includes('Drohnenshooting'));
-        const kombiServices = photographyServices.filter(s => s.name.includes('Kombi-Paket'));
+        // Group services by type using new naming convention
+        const immobilienServices = photographyServices.filter(s => s.name.includes('Bilder Paket'));
+        const drohnenServices = photographyServices.filter(s => s.name.includes('Sky'));
+        const kombiServices = photographyServices.filter(s => s.name.includes('Kombi'));
         
-        return [
-          {
-            name: 'Immobilienshooting',
+        const packages = [];
+        
+        // Immobilienshooting group
+        if (immobilienServices.length > 0) {
+          packages.push({
+            name: '📸 Immobilienshooting',
             description: 'Professionelle Innen- und Außenaufnahmen',
             services: immobilienServices,
-            badge: 'Beliebt',
+            badge: '⭐ Beliebt',
             savings: 0
-          },
-          {
-            name: 'Drohnenshooting',
+          });
+        }
+        
+        // Drohnenshooting group
+        if (drohnenServices.length > 0) {
+          packages.push({
+            name: '🚁 Drohnenshooting',
             description: 'Beeindruckende Luftaufnahmen',
             services: drohnenServices,
             badge: 'Premium',
             savings: 0
-          },
-          {
-            name: 'Kombi-Paket',
+          });
+        }
+        
+        // Kombi-Paket group with savings calculation
+        if (kombiServices.length > 0) {
+          packages.push({
+            name: '🎯 Kombi-Paket',
             description: 'Immobilien + Drohne zum Sparpreis',
             services: kombiServices,
-            badge: 'Beste Wahl',
-            savings: 15
-          }
-        ];
+            badge: '⭐ Beste Wahl',
+            savings: 0, // Savings are built into the price
+            showSavings: true // Flag to show regular price
+          });
+        }
+        
+        return packages;
       case 'editing':
         return [
           {

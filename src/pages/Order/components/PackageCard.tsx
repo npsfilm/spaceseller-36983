@@ -11,14 +11,36 @@ interface PackageCardProps {
     services: Service[];
     badge: string;
     savings: number;
+    showSavings?: boolean;
+    regularPrice?: number;
   };
   onSelect: () => void;
   delay?: number;
 }
 
 export const PackageCard = ({ package: pkg, onSelect, delay = 0 }: PackageCardProps) => {
-  const totalPrice = pkg.services.reduce((sum, service) => sum + service.base_price, 0);
-  const discountedPrice = totalPrice * (1 - pkg.savings / 100);
+  // For normal packages, show total of all services
+  // For Kombi packages with showSavings, use the actual package prices
+  const actualPrice = pkg.services.reduce((sum, service) => sum + service.base_price, 0);
+  
+  // Kombi-Paket regular prices (what you'd pay separately)
+  const kombiRegularPrices: Record<string, number> = {
+    'Kombi 15': 578,
+    'Kombi 20': 678,
+    'Kombi 30': 889
+  };
+  
+  let displayPrice = actualPrice;
+  let regularPrice = null;
+  let savingsAmount = 0;
+  
+  // Check if any service in the package is a Kombi package
+  const kombiService = pkg.services.find(s => s.name.includes('Kombi'));
+  if (kombiService && pkg.showSavings) {
+    displayPrice = kombiService.base_price;
+    regularPrice = kombiRegularPrices[kombiService.name] || displayPrice;
+    savingsAmount = regularPrice - displayPrice;
+  }
 
   // Simplify to 3 key benefits
   const benefits = pkg.services.slice(0, 3).map(s => s.name);
@@ -62,13 +84,23 @@ export const PackageCard = ({ package: pkg, onSelect, delay = 0 }: PackageCardPr
           {/* Pricing */}
           <div className="pt-6 border-t border-border">
             <div className="text-center space-y-2">
-              <div className="flex items-center justify-center gap-3">
-                <span className="text-3xl font-bold text-foreground">€{discountedPrice.toFixed(0)}</span>
-                <span className="text-xl text-muted-foreground line-through">€{totalPrice.toFixed(0)}</span>
-              </div>
-              <p className="text-base font-semibold text-accent">
-                Sie sparen {pkg.savings}%
-              </p>
+              {regularPrice && savingsAmount > 0 ? (
+                // Kombi package with savings
+                <>
+                  <div className="flex items-center justify-center gap-3">
+                    <span className="text-3xl font-bold text-foreground">€{displayPrice.toFixed(0)}</span>
+                    <span className="text-xl text-muted-foreground line-through">€{regularPrice.toFixed(0)}</span>
+                  </div>
+                  <p className="text-base font-semibold text-accent">
+                    Sie sparen €{savingsAmount.toFixed(0)}
+                  </p>
+                </>
+              ) : (
+                // Regular package
+                <div className="flex items-center justify-center gap-3">
+                  <span className="text-3xl font-bold text-foreground">ab €{displayPrice.toFixed(0)}</span>
+                </div>
+              )}
             </div>
           </div>
 

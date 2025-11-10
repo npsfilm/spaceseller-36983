@@ -88,22 +88,30 @@ export const UpgradesStep = ({
     return selectedUpgrades.some(u => u.upgradeId === upgradeId);
   };
 
-  // Virtual Staging Price Calculator
+  // Virtual Staging Price Calculator with package pricing
   const calculateStagingPrice = (count: number): number => {
     if (count === 0) return 0;
     
-    const BASE_PRICE = 49;
-    let discount = 0;
+    // Package pricing (more accurate than discount calculation)
+    if (count === 1) return 89;
+    if (count === 3) return 249;
+    if (count >= 5) return 399;
     
-    if (count >= 5) discount = 0.15;
-    else if (count >= 3) discount = 0.10;
-    
-    const pricePerImage = BASE_PRICE * (1 - discount);
-    return pricePerImage * count;
+    // For 2 or 4 images, use base price
+    const BASE_PRICE = 89;
+    return BASE_PRICE * count;
   };
 
   const stagingTotal = calculateStagingPrice(virtualStagingCount);
-  const stagingDiscount = virtualStagingCount >= 5 ? 15 : virtualStagingCount >= 3 ? 10 : 0;
+  
+  // Calculate discount percentage for display
+  const getDiscountInfo = (count: number) => {
+    if (count === 3) return { discount: 7, saved: (89 * 3) - 249 };
+    if (count >= 5) return { discount: 10, saved: (89 * 5) - 399 };
+    return { discount: 0, saved: 0 };
+  };
+  
+  const discountInfo = getDiscountInfo(virtualStagingCount);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -143,10 +151,10 @@ export const UpgradesStep = ({
             <div className="space-y-6">
               <div className="flex items-center gap-3 mb-4">
                 <Sparkles className="h-6 w-6 text-primary" />
-                <h2 className="text-2xl font-bold">Virtual Staging</h2>
-                {stagingDiscount > 0 && (
+                <h2 className="text-2xl font-bold">Virtual Staging ⭐</h2>
+                {discountInfo.discount > 0 && (
                   <Badge variant="secondary" className="ml-auto">
-                    {stagingDiscount}% Mengenrabatt!
+                    {discountInfo.discount}% Mengenrabatt!
                   </Badge>
                 )}
               </div>
@@ -166,9 +174,9 @@ export const UpgradesStep = ({
                     className="text-lg h-14"
                   />
                   <div className="text-sm text-muted-foreground space-y-1">
-                    <p>• Basis: €49 pro Raum</p>
-                    <p>• Ab 3 Räume: 10% Rabatt</p>
-                    <p>• Ab 5 Räume: 15% Rabatt</p>
+                    <p>• 1 Bild: €89</p>
+                    <p>• 3 Bilder: €249 (~7% Rabatt)</p>
+                    <p>• 5 Bilder: €399 (~10% Rabatt)</p>
                   </div>
                 </div>
 
@@ -178,9 +186,9 @@ export const UpgradesStep = ({
                     <p className="text-4xl font-bold text-primary">
                       €{stagingTotal.toFixed(2)}
                     </p>
-                    {stagingDiscount > 0 && (
+                    {discountInfo.discount > 0 && (
                       <p className="text-sm text-accent font-medium">
-                        Sie sparen {stagingDiscount}% = €{((virtualStagingCount * 49) - stagingTotal).toFixed(2)}
+                        Sie sparen ca. {discountInfo.discount}% = €{discountInfo.saved.toFixed(2)}
                       </p>
                     )}
                     {virtualStagingCount > 0 && (

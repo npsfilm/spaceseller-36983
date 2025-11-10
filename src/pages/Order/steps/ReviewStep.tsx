@@ -47,15 +47,15 @@ export const ReviewStep = ({
     return sum + (upgrade.price * upgrade.quantity);
   }, 0);
 
-  // Calculate virtual staging total
+  // Calculate virtual staging total with package pricing
   let virtualStagingTotal = 0;
   if (orderState.virtualStagingCount > 0) {
-    const BASE_PRICE = 49;
-    let discount = 0;
-    if (orderState.virtualStagingCount >= 5) discount = 0.15;
-    else if (orderState.virtualStagingCount >= 3) discount = 0.10;
-    const pricePerImage = BASE_PRICE * (1 - discount);
-    virtualStagingTotal = pricePerImage * orderState.virtualStagingCount;
+    const count = orderState.virtualStagingCount;
+    // Use package pricing
+    if (count === 1) virtualStagingTotal = 89;
+    else if (count === 3) virtualStagingTotal = 249;
+    else if (count >= 5) virtualStagingTotal = 399;
+    else virtualStagingTotal = 89 * count; // For 2 or 4 images
   }
 
   return (
@@ -211,6 +211,12 @@ export const ReviewStep = ({
                   <span className="font-semibold">€{orderState.travelCost.toFixed(2)}</span>
                 </div>
               )}
+              {orderState.travelCost === 0 && orderState.selectedCategory === 'photography' && (
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Anfahrt</span>
+                  <span className="text-accent">Kostenlos</span>
+                </div>
+              )}
               {expressCharges > 0 && (
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Express-Zuschlag</span>
@@ -222,6 +228,11 @@ export const ReviewStep = ({
                 <span>Gesamt</span>
                 <span className="text-accent">€{total.toFixed(2)}</span>
               </div>
+              {orderState.selectedCategory === 'photography' && (
+                <p className="text-xs text-muted-foreground italic text-center">
+                  Anfahrt unter 20€ kostenfrei
+                </p>
+              )}
             </div>
 
             <Separator />
