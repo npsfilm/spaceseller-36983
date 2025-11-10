@@ -9,7 +9,7 @@
 
 export const MAPBOX_CONFIG = {
   // Replace 'YOUR_MAPBOX_PUBLIC_TOKEN_HERE' with your actual Mapbox public token
-  accessToken: import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || 'YOUR_MAPBOX_PUBLIC_TOKEN_HERE',
+  accessToken: import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || 'pk.eyJ1IjoidGhlb2xkYXZlbmdlciIsImEiOiJja2k3N2x3dXo0dXc1MnBrejJydnk0Nmk0In0.y91TjGaxiVvnAX4VTIotug',
   
   // Base address for calculating travel costs
   baseAddress: "Zum Fuchsloch 22, 86551 Aichach",
