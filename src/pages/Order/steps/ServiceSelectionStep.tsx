@@ -11,16 +11,24 @@ interface ServiceSelectionStepProps {
   selectedServices: Record<string, ServiceConfig>;
   onUpdateServices: (services: Record<string, ServiceConfig>) => void;
   onNext: () => void;
+  category: string;
+  onBackToCategories: () => void;
 }
 
 export const ServiceSelectionStep = ({
   services,
   selectedServices,
   onUpdateServices,
-  onNext
+  onNext,
+  category,
+  onBackToCategories
 }: ServiceSelectionStepProps) => {
   const [showCustom, setShowCustom] = useState(false);
 
+  // Filter services by selected category
+  const categoryServices = services.filter(s => s.category === category);
+  
+  // For packages, we'll use category-specific logic
   const photographyServices = services.filter(s => s.category === 'photography');
   const editingServices = services.filter(s => s.category === 'editing');
   const virtualStagingServices = services.filter(s => s.category === 'virtual_staging');
@@ -54,30 +62,91 @@ export const ServiceSelectionStep = ({
     onUpdateServices(updated);
   };
 
-  // Simplified to 2 packages only
-  const popularPackages = [
-    {
-      name: 'Basis Paket',
-      description: 'Perfekt für den Start',
-      services: photographyServices.slice(0, 1).concat(editingServices.slice(0, 1)),
-      badge: 'Beliebt',
-      savings: 10
-    },
-    {
-      name: 'Premium Paket',
-      description: 'Komplette Immobilienpräsentation',
-      services: photographyServices.slice(0, 2).concat(editingServices.slice(0, 2), virtualStagingServices.slice(0, 1)),
-      badge: 'Beste Wahl',
-      savings: 15
+  // Category-specific packages
+  const getCategoryPackages = () => {
+    switch (category) {
+      case 'photography':
+        return [
+          {
+            name: 'Basis Fotografie',
+            description: 'Perfekt für den Start',
+            services: photographyServices.slice(0, 2),
+            badge: 'Beliebt',
+            savings: 10
+          },
+          {
+            name: 'Premium + Drohne',
+            description: 'Komplettpaket mit Luftaufnahmen',
+            services: photographyServices,
+            badge: 'Beste Wahl',
+            savings: 15
+          }
+        ];
+      case 'editing':
+        return [
+          {
+            name: 'Basis Retusche',
+            description: 'Professionelle Bildoptimierung',
+            services: editingServices.slice(0, 1),
+            badge: 'Standard',
+            savings: 0
+          },
+          {
+            name: 'Premium Bearbeitung',
+            description: 'Umfassende Bildverbesserung',
+            services: editingServices,
+            badge: 'Empfohlen',
+            savings: 12
+          }
+        ];
+      case 'virtual_staging':
+        return [
+          {
+            name: 'Einzelraum',
+            description: '1 Raum digital möbliert',
+            services: virtualStagingServices.slice(0, 1),
+            badge: 'Schnellstart',
+            savings: 0
+          },
+          {
+            name: 'Mehrere Räume',
+            description: 'Bis zu 5 Räume',
+            services: virtualStagingServices,
+            badge: 'Spart Zeit',
+            savings: 10
+          }
+        ];
+      case 'floor_plan':
+        return [
+          {
+            name: '2D Grundriss',
+            description: 'Klassischer Grundriss',
+            services: floorPlanServices.filter(s => s.name.includes('2D')),
+            badge: 'Standard',
+            savings: 0
+          },
+          {
+            name: '3D Grundriss',
+            description: 'Interaktive Darstellung',
+            services: floorPlanServices.filter(s => s.name.includes('3D')),
+            badge: 'Modern',
+            savings: 8
+          }
+        ];
+      default:
+        return [];
     }
-  ];
+  };
 
-  const serviceCategories = [
-    { name: 'Fotografie', icon: '📸', services: photographyServices },
-    { name: 'Bearbeitung', icon: '✨', services: editingServices },
-    { name: 'Virtual Staging', icon: '🏠', services: virtualStagingServices },
-    { name: 'Grundrisse', icon: '📐', services: floorPlanServices }
-  ];
+  const popularPackages = getCategoryPackages();
+
+  // Category titles for display
+  const categoryTitles: Record<string, string> = {
+    photography: 'Fotografie Services',
+    editing: 'Bildbearbeitung Services',
+    virtual_staging: 'Virtual Staging Services',
+    floor_plan: 'Grundriss Services'
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -98,17 +167,24 @@ export const ServiceSelectionStep = ({
 
   return (
     <div className="space-y-8">
-      {/* Header */}
+      {/* Header with Back Button */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center"
+        className="text-center space-y-4"
       >
+        <Button
+          variant="ghost"
+          onClick={onBackToCategories}
+          className="gap-2"
+        >
+          ← Zurück zur Kategorieauswahl
+        </Button>
         <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent">
-          Was möchten Sie heute bestellen?
+          {categoryTitles[category]}
         </h1>
         <p className="text-lg text-muted-foreground">
-          Wählen Sie ein Paket oder stellen Sie Ihre eigene Auswahl zusammen
+          Wählen Sie ein Paket oder einzelne Services
         </p>
       </motion.div>
 
@@ -175,35 +251,30 @@ export const ServiceSelectionStep = ({
             <p className="text-muted-foreground">Wählen Sie nur die Services, die Sie benötigen</p>
           </div>
 
-          {/* Service Categories - Simple Headers, No Tabs */}
-          {serviceCategories.map((category, catIndex) => (
-            <motion.div
-              key={category.name}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: catIndex * 0.1 }}
-              className="space-y-4"
-            >
-              <div className="flex items-center gap-3 border-b border-border pb-3">
-                <span className="text-2xl">{category.icon}</span>
-                <h3 className="text-xl font-bold">{category.name}</h3>
-                <span className="text-sm text-muted-foreground">
-                  ({category.services.length} Services)
-                </span>
-              </div>
-              
-              <div className="grid md:grid-cols-2 gap-4">
-                {category.services.map((service) => (
-                  <CompactServiceCard
-                    key={service.id}
-                    service={service}
-                    isSelected={!!selectedServices[service.id]}
-                    onToggle={handleServiceToggle}
-                  />
-                ))}
-              </div>
-            </motion.div>
-          ))}
+          {/* Individual Services for Selected Category */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-4"
+          >
+            <div className="flex items-center gap-3 border-b border-border pb-3">
+              <h3 className="text-xl font-bold">Alle Services</h3>
+              <span className="text-sm text-muted-foreground">
+                ({categoryServices.length} verfügbar)
+              </span>
+            </div>
+            
+            <div className="grid md:grid-cols-2 gap-4">
+              {categoryServices.map((service) => (
+                <CompactServiceCard
+                  key={service.id}
+                  service={service}
+                  isSelected={!!selectedServices[service.id]}
+                  onToggle={handleServiceToggle}
+                />
+              ))}
+            </div>
+          </motion.div>
         </motion.section>
       )}
 

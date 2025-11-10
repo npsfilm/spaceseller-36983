@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { ProgressIndicator } from './components/ProgressIndicator';
+import { CategorySelectionStep } from './steps/CategorySelectionStep';
 import { ServiceSelectionStep } from './steps/ServiceSelectionStep';
 import { ConfigurationStep } from './steps/ConfigurationStep';
 import { PropertyDetailsStep } from './steps/PropertyDetailsStep';
@@ -33,6 +34,7 @@ export interface ServiceConfig {
 
 export interface OrderState {
   step: number;
+  selectedCategory: string | null;
   selectedServices: Record<string, ServiceConfig>;
   address: {
     strasse: string;
@@ -58,6 +60,7 @@ export const OrderWizard = () => {
   const [services, setServices] = useState<Service[]>([]);
   const [orderState, setOrderState] = useState<OrderState>({
     step: 1,
+    selectedCategory: null,
     selectedServices: {},
     address: {
       strasse: '',
@@ -157,6 +160,14 @@ export const OrderWizard = () => {
 
   const updateSpecialInstructions = (instructions: string) => {
     setOrderState(prev => ({ ...prev, specialInstructions: instructions }));
+  };
+
+  const selectCategory = (category: string) => {
+    setOrderState(prev => ({ ...prev, selectedCategory: category }));
+  };
+
+  const backToCategories = () => {
+    setOrderState(prev => ({ ...prev, selectedCategory: null }));
   };
 
   const submitOrder = async () => {
@@ -267,12 +278,20 @@ export const OrderWizard = () => {
                   opacity: { duration: 0.2 }
                 }}
               >
-                {orderState.step === 1 && (
+                {orderState.step === 1 && !orderState.selectedCategory && (
+                  <CategorySelectionStep
+                    services={services}
+                    onSelectCategory={selectCategory}
+                  />
+                )}
+                {orderState.step === 1 && orderState.selectedCategory && (
                   <ServiceSelectionStep
                     services={services}
                     selectedServices={orderState.selectedServices}
                     onUpdateServices={updateSelectedServices}
                     onNext={nextStep}
+                    category={orderState.selectedCategory}
+                    onBackToCategories={backToCategories}
                   />
                 )}
                 {orderState.step === 2 && (
