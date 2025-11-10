@@ -32,10 +32,6 @@ export const LocationCheckStep = ({
   onLocationValidated,
   onBack 
 }: LocationCheckStepProps) => {
-  console.log('🗺️ LocationCheckStep RENDERING');
-  console.log('📍 Current address:', address);
-  console.log('✅ Street field should be visible at lines 177-184');
-  
   const [isValidating, setIsValidating] = useState(false);
   const [validationResult, setValidationResult] = useState<{
     valid: boolean;
@@ -164,16 +160,6 @@ export const LocationCheckStep = ({
       exit={{ opacity: 0, y: -20 }}
       className="space-y-8"
     >
-      {/* DEBUG INFO */}
-      <div className="bg-yellow-100 border-2 border-yellow-400 p-4 rounded-lg mb-4 text-xs font-mono">
-        <div className="font-bold mb-2">🐛 DEBUG INFO:</div>
-        <div>Street (strasse): "{address.strasse}"</div>
-        <div>House Nr (hausnummer): "{address.hausnummer}"</div>
-        <div>PLZ: "{address.plz}"</div>
-        <div>City (stadt): "{address.stadt}"</div>
-        <div className="mt-2 text-green-700">✅ This component IS rendering. If you see this, the issue is NOT a rendering problem.</div>
-      </div>
-
       <div className="text-center space-y-2">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
           <MapPin className="h-8 w-8 text-primary" />

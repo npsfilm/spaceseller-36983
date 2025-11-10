@@ -401,7 +401,7 @@ export const OrderWizard = () => {
                     onSelectCategory={selectCategory}
                   />
                 )}
-                {orderState.step === 1 && orderState.selectedCategory === 'Fotografie' && !orderState.locationValidated && (
+                {orderState.step === 1 && orderState.selectedCategory === 'photography' && !orderState.locationValidated && (
                   <LocationCheckStep
                     address={orderState.address}
                     onUpdateAddress={handleUpdateAddressField}
@@ -409,14 +409,14 @@ export const OrderWizard = () => {
                     onBack={backToCategories}
                   />
                 )}
-                {orderState.step === 1 && orderState.selectedCategory && (orderState.selectedCategory !== 'Fotografie' || orderState.locationValidated) && (
+                {orderState.step === 1 && orderState.selectedCategory && (orderState.selectedCategory !== 'photography' || orderState.locationValidated) && (
                   <ServiceSelectionStep
                     services={services}
                     selectedServices={orderState.selectedServices}
                     onUpdateServices={updateSelectedServices}
                     onNext={nextStep}
                     category={orderState.selectedCategory}
-                    onBackToCategories={orderState.selectedCategory === 'Fotografie' ? backToLocationCheck : backToCategories}
+                    onBackToCategories={orderState.selectedCategory === 'photography' ? backToLocationCheck : backToCategories}
                   />
                 )}
                 {orderState.step === 2 && (
