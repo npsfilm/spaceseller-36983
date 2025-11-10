@@ -45,42 +45,25 @@ export const CategorySelectionStep = ({
   ];
 
   return (
-    <div className="relative min-h-screen py-12">
-      {/* Background Decoration */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
-      </div>
-      
-      <div className="relative space-y-16">
+    <div className="min-h-screen py-16 px-4">
+      <div className="space-y-12 max-w-5xl mx-auto">
         {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="text-center max-w-4xl mx-auto px-4"
+          transition={{ duration: 0.4 }}
+          className="text-center space-y-3"
         >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.1, duration: 0.5 }}
-          >
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-primary via-primary-glow to-accent bg-clip-text text-transparent drop-shadow-sm">
-              Was benötigen Sie?
-            </h1>
-          </motion.div>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="text-xl md:text-2xl text-muted-foreground/90 leading-relaxed"
-          >
+          <h1 className="text-4xl md:text-5xl font-bold text-foreground">
+            Was benötigen Sie?
+          </h1>
+          <p className="text-lg text-muted-foreground">
             Wählen Sie die Kategorie, die am besten zu Ihrem Projekt passt
-          </motion.p>
+          </p>
         </motion.div>
 
         {/* Category Grid */}
-        <div className="grid md:grid-cols-2 gap-8 lg:gap-10 max-w-6xl mx-auto px-4">
+        <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
           {categories.map((category, index) => {
             const startingPrice = Math.min(...category.services.map(s => s.base_price));
             return (
@@ -92,7 +75,7 @@ export const CategorySelectionStep = ({
                 serviceCount={category.services.length}
                 startingPrice={startingPrice}
                 onClick={() => onSelectCategory(category.id)}
-                delay={index * 0.15}
+                delay={index * 0.1}
               />
             );
           })}
