@@ -2,15 +2,17 @@ import { motion } from "framer-motion";
 import { Suspense, lazy } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
-// Lazy load heavy components
+// Lazy load components
 const DashboardStats = lazy(() => import("@/components/dashboard/DashboardStats"));
 const QuickActions = lazy(() => import("@/components/dashboard/QuickActions"));
-const OrderStatusBoard = lazy(() => import("@/components/dashboard/OrderStatusBoard"));
-const ActivityFeed = lazy(() => import("@/components/dashboard/ActivityFeed"));
-const OrdersOverTimeChart = lazy(() => import("@/components/dashboard/OrdersOverTimeChart"));
-const ServiceDistributionChart = lazy(() => import("@/components/dashboard/ServiceDistributionChart"));
+const ActiveOrdersSection = lazy(() => import("@/components/dashboard/ActiveOrdersSection"));
 const RecentOrdersTable = lazy(() => import("@/components/dashboard/RecentOrdersTable"));
+const OnboardingChecklist = lazy(() => import("@/components/dashboard/OnboardingChecklist"));
+const EmptyState = lazy(() => import("@/components/dashboard/EmptyState"));
 
 const staggerContainer = {
   animate: {
@@ -27,6 +29,38 @@ const fadeInUp = {
 };
 
 const DashboardContent = () => {
+  const { user } = useAuth();
+
+  const { data: orderCount, isLoading } = useQuery({
+    queryKey: ['order-count', user?.id],
+    queryFn: async () => {
+      if (!user) return 0;
+
+      const { count, error } = await supabase
+        .from('orders')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .neq('status', 'draft');
+
+      if (error) throw error;
+      return count || 0;
+    },
+    enabled: !!user
+  });
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <Skeleton className="h-96 w-full" />
+        </div>
+      </div>
+    );
+  }
+
+  const hasNoOrders = orderCount === 0;
+  const isNewUser = orderCount !== undefined && orderCount < 3;
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -42,7 +76,10 @@ const DashboardContent = () => {
               Dashboard
             </h1>
             <p className="text-muted-foreground">
-              Willkommen zurück! Hier ist ein Überblick über Ihre Aktivitäten.
+              {hasNoOrders 
+                ? "Willkommen! Beginnen Sie mit Ihrer ersten Bestellung."
+                : "Willkommen zurück! Hier ist ein Überblick über Ihre Aktivitäten."
+              }
             </p>
           </motion.div>
 
@@ -60,40 +97,49 @@ const DashboardContent = () => {
             </Suspense>
           </motion.div>
 
-          {/* Order Status Board */}
-          <motion.div variants={fadeInUp}>
-            <Suspense fallback={<Skeleton className="h-96 w-full" />}>
-              <OrderStatusBoard />
-            </Suspense>
-          </motion.div>
+          {/* Conditional Content Based on Order Count */}
+          {hasNoOrders ? (
+            <>
+              {/* Onboarding Checklist */}
+              <motion.div variants={fadeInUp}>
+                <Suspense fallback={<Skeleton className="h-96 w-full" />}>
+                  <OnboardingChecklist />
+                </Suspense>
+              </motion.div>
 
-          {/* Charts Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <motion.div variants={fadeInUp}>
-              <Suspense fallback={<Skeleton className="h-80 w-full" />}>
-                <OrdersOverTimeChart />
-              </Suspense>
-            </motion.div>
-            <motion.div variants={fadeInUp}>
-              <Suspense fallback={<Skeleton className="h-80 w-full" />}>
-                <ServiceDistributionChart />
-              </Suspense>
-            </motion.div>
-          </div>
+              {/* Empty State */}
+              <motion.div variants={fadeInUp}>
+                <Suspense fallback={<Skeleton className="h-96 w-full" />}>
+                  <EmptyState />
+                </Suspense>
+              </motion.div>
+            </>
+          ) : (
+            <>
+              {/* Active Orders Section */}
+              <motion.div variants={fadeInUp}>
+                <Suspense fallback={<Skeleton className="h-96 w-full" />}>
+                  <ActiveOrdersSection />
+                </Suspense>
+              </motion.div>
 
-          {/* Recent Activity & Orders */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <motion.div variants={fadeInUp} className="lg:col-span-2">
-              <Suspense fallback={<Skeleton className="h-96 w-full" />}>
-                <RecentOrdersTable />
-              </Suspense>
-            </motion.div>
-            <motion.div variants={fadeInUp}>
-              <Suspense fallback={<Skeleton className="h-96 w-full" />}>
-                <ActivityFeed />
-              </Suspense>
-            </motion.div>
-          </div>
+              {/* Recent Orders Table */}
+              <motion.div variants={fadeInUp}>
+                <Suspense fallback={<Skeleton className="h-96 w-full" />}>
+                  <RecentOrdersTable />
+                </Suspense>
+              </motion.div>
+
+              {/* Show Onboarding for New Users */}
+              {isNewUser && (
+                <motion.div variants={fadeInUp}>
+                  <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+                    <OnboardingChecklist />
+                  </Suspense>
+                </motion.div>
+              )}
+            </>
+          )}
         </motion.div>
       </div>
     </div>

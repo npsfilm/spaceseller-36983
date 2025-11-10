@@ -49,7 +49,7 @@ export default function RecentOrdersTable() {
         .eq('user_id', user.id)
         .neq('status', 'draft')
         .order('created_at', { ascending: false })
-        .limit(5);
+        .limit(3);
 
       if (error) throw error;
       return data;

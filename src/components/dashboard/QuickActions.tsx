@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Package, Upload, Settings } from "lucide-react";
+import { PlusCircle, Package, Upload, MessageCircle } from "lucide-react";
 import { motion } from "framer-motion";
 
 const actions = [
@@ -17,10 +17,16 @@ const actions = [
     gradient: "from-chart-1 to-chart-2"
   },
   {
-    label: "Einstellungen",
-    icon: Settings,
-    href: "/settings",
+    label: "Dateien hochladen",
+    icon: Upload,
+    href: "/order",
     gradient: "from-chart-3 to-chart-4"
+  },
+  {
+    label: "Support kontaktieren",
+    icon: MessageCircle,
+    href: "mailto:support@beispiel.de",
+    gradient: "from-chart-4 to-chart-5"
   }
 ];
 
