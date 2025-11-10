@@ -35,9 +35,6 @@ export const LocationCheckStep = ({
     message: string;
   } | null>(null);
 
-  const geocodingClient = mbxGeocoding({ accessToken: MAPBOX_CONFIG.accessToken });
-  const directionsClient = mbxDirections({ accessToken: MAPBOX_CONFIG.accessToken });
-
   const handleChange = (field: string, value: string) => {
     onUpdateAddress(field, value);
     setValidationResult(null);
@@ -68,9 +65,23 @@ export const LocationCheckStep = ({
       return;
     }
 
+    // Check if Mapbox token is configured
+    if (!MAPBOX_CONFIG.accessToken || MAPBOX_CONFIG.accessToken === 'YOUR_MAPBOX_PUBLIC_TOKEN_HERE') {
+      setValidationResult({
+        valid: false,
+        travelCost: 0,
+        distance: 0,
+        message: 'Mapbox Token nicht konfiguriert. Bitte fügen Sie Ihren Mapbox Token in src/config/mapbox.ts hinzu.'
+      });
+      return;
+    }
+
     setIsValidating(true);
     
     try {
+      // Lazy initialize Mapbox clients
+      const geocodingClient = mbxGeocoding({ accessToken: MAPBOX_CONFIG.accessToken });
+      const directionsClient = mbxDirections({ accessToken: MAPBOX_CONFIG.accessToken });
       const destinationAddress = `${address.strasse} ${address.hausnummer || ''}, ${address.plz} ${address.stadt}, Deutschland`.trim();
       
       // Geocode base address
