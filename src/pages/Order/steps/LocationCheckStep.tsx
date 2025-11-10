@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import mbxGeocoding from '@mapbox/mapbox-sdk/services/geocoding';
 import mbxDirections from '@mapbox/mapbox-sdk/services/directions';
+import { MAPBOX_CONFIG } from '@/config/mapbox';
 
 interface LocationCheckStepProps {
   address: {
@@ -19,12 +20,6 @@ interface LocationCheckStepProps {
   onLocationValidated: (travelCost: number, distance: number) => void;
   onBack: () => void;
 }
-
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
-const BASE_ADDRESS = "Zum Fuchsloch 22, 86551 Aichach";
-const COST_PER_KM = 0.65;
-const COST_PER_KM_OVER_200 = 0.85;
-const FREE_TRAVEL_THRESHOLD = 20;
 
 export const LocationCheckStep = ({ 
   address, 
@@ -40,8 +35,8 @@ export const LocationCheckStep = ({
     message: string;
   } | null>(null);
 
-  const geocodingClient = mbxGeocoding({ accessToken: MAPBOX_TOKEN });
-  const directionsClient = mbxDirections({ accessToken: MAPBOX_TOKEN });
+  const geocodingClient = mbxGeocoding({ accessToken: MAPBOX_CONFIG.accessToken });
+  const directionsClient = mbxDirections({ accessToken: MAPBOX_CONFIG.accessToken });
 
   const handleChange = (field: string, value: string) => {
     onUpdateAddress(field, value);
@@ -52,16 +47,16 @@ export const LocationCheckStep = ({
     let cost: number;
     
     if (distanceKm <= 200) {
-      cost = distanceKm * COST_PER_KM;
+      cost = distanceKm * MAPBOX_CONFIG.costPerKm;
     } else {
-      cost = (200 * COST_PER_KM) + ((distanceKm - 200) * COST_PER_KM_OVER_200);
+      cost = (200 * MAPBOX_CONFIG.costPerKm) + ((distanceKm - 200) * MAPBOX_CONFIG.costPerKmOver200);
     }
     
     // Round up to nearest 5 euros
     cost = Math.ceil(cost / 5) * 5;
     
     // Free if under threshold
-    if (cost < FREE_TRAVEL_THRESHOLD) {
+    if (cost < MAPBOX_CONFIG.freeTravelThreshold) {
       return 0;
     }
     
@@ -80,7 +75,7 @@ export const LocationCheckStep = ({
       
       // Geocode base address
       const baseResponse = await geocodingClient.forwardGeocode({
-        query: BASE_ADDRESS,
+        query: MAPBOX_CONFIG.baseAddress,
         limit: 1
       }).send();
       
