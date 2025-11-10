@@ -1,9 +1,9 @@
 import { motion } from 'framer-motion';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { EnhancedServiceCard } from '../components/EnhancedServiceCard';
 import { PackageCard } from '../components/PackageCard';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { CompactServiceCard } from '../components/CompactServiceCard';
+import { ArrowRight, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
 import type { Service, ServiceConfig } from '../OrderWizard';
 
 interface ServiceSelectionStepProps {
@@ -19,6 +19,8 @@ export const ServiceSelectionStep = ({
   onUpdateServices,
   onNext
 }: ServiceSelectionStepProps) => {
+  const [showCustom, setShowCustom] = useState(false);
+
   const photographyServices = services.filter(s => s.category === 'photography');
   const editingServices = services.filter(s => s.category === 'editing');
   const virtualStagingServices = services.filter(s => s.category === 'virtual_staging');
@@ -52,10 +54,11 @@ export const ServiceSelectionStep = ({
     onUpdateServices(updated);
   };
 
+  // Simplified to 2 packages only
   const popularPackages = [
     {
-      name: 'Starter Paket',
-      description: 'Perfekt für Einsteiger',
+      name: 'Basis Paket',
+      description: 'Perfekt für den Start',
       services: photographyServices.slice(0, 1).concat(editingServices.slice(0, 1)),
       badge: 'Beliebt',
       savings: 10
@@ -66,14 +69,14 @@ export const ServiceSelectionStep = ({
       services: photographyServices.slice(0, 2).concat(editingServices.slice(0, 2), virtualStagingServices.slice(0, 1)),
       badge: 'Beste Wahl',
       savings: 15
-    },
-    {
-      name: 'Komplett Paket',
-      description: 'Alles für den perfekten Auftritt',
-      services: photographyServices.concat(editingServices, virtualStagingServices, floorPlanServices),
-      badge: 'Top-Preis',
-      savings: 20
     }
+  ];
+
+  const serviceCategories = [
+    { name: 'Fotografie', icon: '📸', services: photographyServices },
+    { name: 'Bearbeitung', icon: '✨', services: editingServices },
+    { name: 'Virtual Staging', icon: '🏠', services: virtualStagingServices },
+    { name: 'Grundrisse', icon: '📐', services: floorPlanServices }
   ];
 
   const containerVariants = {
@@ -105,21 +108,21 @@ export const ServiceSelectionStep = ({
           Was möchten Sie heute bestellen?
         </h1>
         <p className="text-lg text-muted-foreground">
-          Wählen Sie die Services, die Sie benötigen
+          Wählen Sie ein Paket oder stellen Sie Ihre eigene Auswahl zusammen
         </p>
       </motion.div>
 
-      {/* Package Recommendations */}
+      {/* Package Recommendations - PROMINENT */}
       <motion.section
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
       >
-        <div className="flex items-center gap-3 mb-6">
+        <div className="flex items-center gap-3 mb-8 justify-center">
           <Sparkles className="h-6 w-6 text-accent" />
-          <h2 className="text-2xl font-bold">Beliebte Kombinationen</h2>
+          <h2 className="text-2xl font-bold">Schnellauswahl - Beliebte Pakete</h2>
         </div>
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {popularPackages.map((pkg, index) => (
             <PackageCard
               key={pkg.name}
@@ -131,114 +134,78 @@ export const ServiceSelectionStep = ({
         </div>
       </motion.section>
 
-      {/* Service Categories */}
-      <section>
-        <Tabs defaultValue="all" className="w-full">
-          <TabsList className="grid w-full max-w-2xl mx-auto grid-cols-5">
-            <TabsTrigger value="all">Alle</TabsTrigger>
-            <TabsTrigger value="photography">Fotografie</TabsTrigger>
-            <TabsTrigger value="editing">Bearbeitung</TabsTrigger>
-            <TabsTrigger value="staging">Staging</TabsTrigger>
-            <TabsTrigger value="floorplan">Grundrisse</TabsTrigger>
-          </TabsList>
+      {/* Divider with Custom Option Toggle */}
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.4 }}
+        className="text-center py-8"
+      >
+        <Button
+          variant="ghost"
+          size="lg"
+          onClick={() => setShowCustom(!showCustom)}
+          className="gap-2 text-muted-foreground hover:text-foreground"
+        >
+          {showCustom ? (
+            <>
+              <ChevronUp className="h-5 w-5" />
+              Services verbergen
+            </>
+          ) : (
+            <>
+              Oder wählen Sie einzelne Services
+              <ChevronDown className="h-5 w-5" />
+            </>
+          )}
+        </Button>
+      </motion.div>
 
-          <TabsContent value="all" className="mt-8">
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
-            >
-              {services.map((service, index) => (
-                <motion.div key={service.id} variants={itemVariants}>
-                  <EnhancedServiceCard
-                    service={service}
-                    isSelected={!!selectedServices[service.id]}
-                    onToggle={handleServiceToggle}
-                    isPopular={index === 5 || index === 8}
-                  />
-                </motion.div>
-              ))}
-            </motion.div>
-          </TabsContent>
+      {/* Custom Service Selection - SECONDARY (Collapsible) */}
+      {showCustom && (
+        <motion.section
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          transition={{ duration: 0.3 }}
+          className="space-y-8"
+        >
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold mb-2">Individuelle Auswahl</h2>
+            <p className="text-muted-foreground">Wählen Sie nur die Services, die Sie benötigen</p>
+          </div>
 
-          <TabsContent value="photography" className="mt-8">
+          {/* Service Categories - Simple Headers, No Tabs */}
+          {serviceCategories.map((category, catIndex) => (
             <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+              key={category.name}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: catIndex * 0.1 }}
+              className="space-y-4"
             >
-              {photographyServices.map((service) => (
-                <motion.div key={service.id} variants={itemVariants}>
-                  <EnhancedServiceCard
-                    service={service}
-                    isSelected={!!selectedServices[service.id]}
-                    onToggle={handleServiceToggle}
-                  />
-                </motion.div>
-              ))}
-            </motion.div>
-          </TabsContent>
-
-          <TabsContent value="editing" className="mt-8">
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
-            >
-              {editingServices.map((service) => (
-                <motion.div key={service.id} variants={itemVariants}>
-                  <EnhancedServiceCard
-                    service={service}
-                    isSelected={!!selectedServices[service.id]}
-                    onToggle={handleServiceToggle}
-                  />
-                </motion.div>
-              ))}
-            </motion.div>
-          </TabsContent>
-
-          <TabsContent value="staging" className="mt-8">
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
-            >
-              {virtualStagingServices.map((service) => (
-                <motion.div key={service.id} variants={itemVariants}>
-                  <EnhancedServiceCard
+              <div className="flex items-center gap-3 border-b border-border pb-3">
+                <span className="text-2xl">{category.icon}</span>
+                <h3 className="text-xl font-bold">{category.name}</h3>
+                <span className="text-sm text-muted-foreground">
+                  ({category.services.length} Services)
+                </span>
+              </div>
+              
+              <div className="grid md:grid-cols-2 gap-4">
+                {category.services.map((service) => (
+                  <CompactServiceCard
+                    key={service.id}
                     service={service}
                     isSelected={!!selectedServices[service.id]}
                     onToggle={handleServiceToggle}
                   />
-                </motion.div>
-              ))}
+                ))}
+              </div>
             </motion.div>
-          </TabsContent>
-
-          <TabsContent value="floorplan" className="mt-8">
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
-            >
-              {floorPlanServices.map((service) => (
-                <motion.div key={service.id} variants={itemVariants}>
-                  <EnhancedServiceCard
-                    service={service}
-                    isSelected={!!selectedServices[service.id]}
-                    onToggle={handleServiceToggle}
-                  />
-                </motion.div>
-              ))}
-            </motion.div>
-          </TabsContent>
-        </Tabs>
-      </section>
+          ))}
+        </motion.section>
+      )}
 
       {/* Navigation */}
       <motion.div
