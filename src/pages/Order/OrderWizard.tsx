@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { ProgressIndicator } from './components/ProgressIndicator';
 import { CategorySelectionStep } from './steps/CategorySelectionStep';
+import { LocationCheckStep } from './steps/LocationCheckStep';
 import { ServiceSelectionStep } from './steps/ServiceSelectionStep';
 import { ConfigurationStep } from './steps/ConfigurationStep';
 import { PropertyDetailsStep } from './steps/PropertyDetailsStep';
@@ -46,6 +47,9 @@ export interface OrderState {
   uploads: any[];
   specialInstructions: string;
   draftOrderId: string | null;
+  travelCost: number;
+  distance: number;
+  locationValidated: boolean;
 }
 
 const STEPS = [
@@ -71,7 +75,10 @@ export const OrderWizard = () => {
     },
     uploads: [],
     specialInstructions: '',
-    draftOrderId: null
+    draftOrderId: null,
+    travelCost: 0,
+    distance: 0,
+    locationValidated: false
   });
 
   const { user } = useAuth();
@@ -124,12 +131,14 @@ export const OrderWizard = () => {
   };
 
   const calculateTotal = () => {
-    return Object.values(orderState.selectedServices).reduce((total, config) => {
+    const servicesTotal = Object.values(orderState.selectedServices).reduce((total, config) => {
       const service = services.find(s => s.id === config.serviceId);
       const basePrice = (service?.base_price || 0) * config.quantity;
       const expressCharge = config.turnaround === 'express' ? 50 : 0;
       return total + basePrice + expressCharge;
     }, 0);
+    
+    return servicesTotal + orderState.travelCost;
   };
 
   const nextStep = () => {
@@ -167,7 +176,39 @@ export const OrderWizard = () => {
   };
 
   const backToCategories = () => {
-    setOrderState(prev => ({ ...prev, selectedCategory: null }));
+    setOrderState(prev => ({ 
+      ...prev, 
+      selectedCategory: null,
+      locationValidated: false,
+      travelCost: 0,
+      distance: 0
+    }));
+  };
+
+  const handleLocationValidated = (travelCost: number, distance: number) => {
+    setOrderState(prev => ({
+      ...prev,
+      locationValidated: true,
+      travelCost,
+      distance
+    }));
+  };
+
+  const handleUpdateAddressField = (field: string, value: string) => {
+    setOrderState(prev => ({
+      ...prev,
+      address: {
+        ...prev.address,
+        [field]: value
+      }
+    }));
+  };
+
+  const backToLocationCheck = () => {
+    setOrderState(prev => ({
+      ...prev,
+      locationValidated: false
+    }));
   };
 
   const submitOrder = async () => {
@@ -284,14 +325,22 @@ export const OrderWizard = () => {
                     onSelectCategory={selectCategory}
                   />
                 )}
-                {orderState.step === 1 && orderState.selectedCategory && (
+                {orderState.step === 1 && orderState.selectedCategory === 'Fotografie' && !orderState.locationValidated && (
+                  <LocationCheckStep
+                    address={orderState.address}
+                    onUpdateAddress={handleUpdateAddressField}
+                    onLocationValidated={handleLocationValidated}
+                    onBack={backToCategories}
+                  />
+                )}
+                {orderState.step === 1 && orderState.selectedCategory && (orderState.selectedCategory !== 'Fotografie' || orderState.locationValidated) && (
                   <ServiceSelectionStep
                     services={services}
                     selectedServices={orderState.selectedServices}
                     onUpdateServices={updateSelectedServices}
                     onNext={nextStep}
                     category={orderState.selectedCategory}
-                    onBackToCategories={backToCategories}
+                    onBackToCategories={orderState.selectedCategory === 'Fotografie' ? backToLocationCheck : backToCategories}
                   />
                 )}
                 {orderState.step === 2 && (
@@ -349,6 +398,7 @@ export const OrderWizard = () => {
               services={services}
               total={calculateTotal()}
               step={orderState.step}
+              travelCost={orderState.travelCost}
             />
           )}
         </div>

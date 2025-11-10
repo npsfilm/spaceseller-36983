@@ -7,9 +7,10 @@ interface PricingCalculatorProps {
   services: Service[];
   total: number;
   step: number;
+  travelCost?: number;
 }
 
-export const PricingCalculator = ({ selectedServices, services, total, step }: PricingCalculatorProps) => {
+export const PricingCalculator = ({ selectedServices, services, total, step, travelCost = 0 }: PricingCalculatorProps) => {
   const serviceCount = Object.keys(selectedServices).length;
 
   return (
@@ -51,6 +52,11 @@ export const PricingCalculator = ({ selectedServices, services, total, step }: P
               >
                 €{total.toFixed(2)}
               </motion.p>
+              {travelCost > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  inkl. {travelCost}€ Anfahrt
+                </p>
+              )}
             </div>
 
             {/* Savings Badge (if applicable) */}
