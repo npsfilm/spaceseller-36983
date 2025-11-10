@@ -270,6 +270,19 @@ export const LocationCheckStep = ({
       
       const distanceMeters = routeResponse.body.routes[0].distance;
       const distanceKm = Math.round(distanceMeters / 1000);
+      
+      // Check if within service area (max 120km)
+      if (distanceKm > 120) {
+        setValidationResult({
+          valid: false,
+          travelCost: 0,
+          distance: distanceKm,
+          message: `Leider liegt ${address.stadt} außerhalb unseres Servicegebiets (${distanceKm} km entfernt). Wir bieten Fotografie nur bis 120 km von Augsburg an.`
+        });
+        setIsValidating(false);
+        return;
+      }
+      
       const travelCost = calculateTravelCost(distanceKm);
       
       setValidationResult({
