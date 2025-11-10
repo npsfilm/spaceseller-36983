@@ -277,7 +277,7 @@ export const LocationCheckStep = ({
           valid: false,
           travelCost: 0,
           distance: distanceKm,
-          message: `Leider liegt ${address.stadt} außerhalb unseres Servicegebiets (${distanceKm} km entfernt). Wir bieten Fotografie nur bis 120 km von Augsburg an.`
+          message: "Dieser Standort liegt außerhalb unseres aktuellen Servicebereichs für Fotografie. Wir arbeiten stetig am Ausbau unseres Servicebereichs. Unsere digitalen Dienstleistungen bieten wir deutschlandweit an."
         });
         setIsValidating(false);
         return;
