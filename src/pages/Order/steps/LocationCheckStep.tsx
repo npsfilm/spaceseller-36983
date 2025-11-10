@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,14 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import mbxGeocoding from '@mapbox/mapbox-sdk/services/geocoding';
 import mbxDirections from '@mapbox/mapbox-sdk/services/directions';
 import { MAPBOX_CONFIG } from '@/config/mapbox';
+
+interface AddressSuggestion {
+  place_name: string;
+  center: [number, number];
+  text: string;
+  address?: string;
+  context?: Array<{ id: string; text: string }>;
+}
 
 interface LocationCheckStepProps {
   address: {
@@ -34,10 +42,124 @@ export const LocationCheckStep = ({
     distance: number;
     message: string;
   } | null>(null);
+  
+  const [addressInput, setAddressInput] = useState('');
+  const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleChange = (field: string, value: string) => {
-    onUpdateAddress(field, value);
+  // Initialize address input from existing address
+  useEffect(() => {
+    if (address.strasse || address.hausnummer || address.plz || address.stadt) {
+      const fullAddress = [
+        address.strasse,
+        address.hausnummer,
+        address.plz,
+        address.stadt
+      ].filter(Boolean).join(' ');
+      setAddressInput(fullAddress);
+    }
+  }, []);
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node) &&
+          inputRef.current && !inputRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const parseAddressFromSuggestion = (suggestion: AddressSuggestion) => {
+    // Extract house number from address field
+    const houseNumber = suggestion.address || '';
+    
+    // Extract street name from text
+    const streetName = suggestion.text || '';
+    
+    // Extract city and postal code from context
+    let city = '';
+    let postalCode = '';
+    
+    if (suggestion.context) {
+      for (const ctx of suggestion.context) {
+        if (ctx.id.startsWith('postcode')) {
+          postalCode = ctx.text;
+        } else if (ctx.id.startsWith('place')) {
+          city = ctx.text;
+        }
+      }
+    }
+    
+    return { streetName, houseNumber, city, postalCode };
+  };
+
+  const fetchAddressSuggestions = async (query: string) => {
+    if (query.length < 3) {
+      setSuggestions([]);
+      return;
+    }
+
+    setIsLoadingSuggestions(true);
+    try {
+      const geocodingClient = mbxGeocoding({ accessToken: MAPBOX_CONFIG.accessToken });
+      const response = await geocodingClient.forwardGeocode({
+        query: `${query}, Deutschland`,
+        limit: 5,
+        countries: ['de'],
+        types: ['address']
+      }).send();
+
+      if (response.body.features) {
+        setSuggestions(response.body.features as AddressSuggestion[]);
+        setShowSuggestions(true);
+      }
+    } catch (error) {
+      console.error('Error fetching address suggestions:', error);
+    } finally {
+      setIsLoadingSuggestions(false);
+    }
+  };
+
+  const handleAddressInputChange = (value: string) => {
+    setAddressInput(value);
     setValidationResult(null);
+    
+    // Debounce the API call
+    const timeoutId = setTimeout(() => {
+      fetchAddressSuggestions(value);
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  };
+
+  const handleSuggestionSelect = (suggestion: AddressSuggestion) => {
+    const { streetName, houseNumber, city, postalCode } = parseAddressFromSuggestion(suggestion);
+    
+    setAddressInput(suggestion.place_name);
+    setShowSuggestions(false);
+    
+    // Update all address fields
+    onUpdateAddress('strasse', streetName);
+    onUpdateAddress('hausnummer', houseNumber);
+    onUpdateAddress('stadt', city);
+    onUpdateAddress('plz', postalCode);
+    
+    // Validate if house number is present
+    if (!houseNumber) {
+      setValidationResult({
+        valid: false,
+        travelCost: 0,
+        distance: 0,
+        message: 'Bitte geben Sie eine vollständige Adresse mit Hausnummer ein.'
+      });
+    }
   };
 
   const calculateTravelCost = (distanceKm: number): number => {
@@ -62,6 +184,22 @@ export const LocationCheckStep = ({
 
   const validateLocation = async () => {
     if (!address.strasse || !address.plz || !address.stadt) {
+      setValidationResult({
+        valid: false,
+        travelCost: 0,
+        distance: 0,
+        message: 'Bitte geben Sie eine vollständige Adresse ein.'
+      });
+      return;
+    }
+
+    if (!address.hausnummer) {
+      setValidationResult({
+        valid: false,
+        travelCost: 0,
+        distance: 0,
+        message: 'Bitte geben Sie eine Adresse mit Hausnummer ein.'
+      });
       return;
     }
 
@@ -138,9 +276,7 @@ export const LocationCheckStep = ({
         valid: true,
         travelCost,
         distance: distanceKm,
-        message: travelCost === 0 
-          ? `Perfekt! Wir bieten Fotografie in ${address.stadt} an. Anfahrt inklusive!`
-          : `Super! Wir bieten Fotografie in ${address.stadt} an. Entfernung: ${distanceKm} km, Anfahrtskosten: ${travelCost} €`
+        message: `Perfekt! Wir bieten Fotografie in ${address.stadt} an.`
       });
       
     } catch (error) {
@@ -156,7 +292,7 @@ export const LocationCheckStep = ({
     }
   };
 
-  const canValidate = address.strasse && address.plz && address.stadt;
+  const canValidate = addressInput.length > 0 && address.strasse && address.plz && address.stadt && address.hausnummer;
   const canProceed = validationResult?.valid;
 
   return (
@@ -172,58 +308,48 @@ export const LocationCheckStep = ({
         </div>
         <h2 className="text-3xl font-bold">Wo befindet sich die Immobilie?</h2>
         <p className="text-muted-foreground">
-          Geben Sie die Adresse ein, um Verfügbarkeit und Anfahrtskosten zu prüfen
+          Geben Sie die vollständige Adresse mit Hausnummer ein
         </p>
       </div>
 
       <div className="max-w-2xl mx-auto space-y-6">
-        <div className="grid gap-4">
-          <div className="grid grid-cols-3 gap-4">
-            <div className="col-span-2">
-              <Label htmlFor="strasse">Straße *</Label>
-              <Input
-                id="strasse"
-                value={address.strasse}
-                onChange={(e) => handleChange('strasse', e.target.value)}
-                placeholder="Musterstraße"
-                disabled={isValidating}
-              />
+        <div className="relative">
+          <Label htmlFor="address">Adresse mit Hausnummer *</Label>
+          <Input
+            ref={inputRef}
+            id="address"
+            value={addressInput}
+            onChange={(e) => handleAddressInputChange(e.target.value)}
+            onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+            placeholder="z.B. Musterstraße 123, 80331 München"
+            disabled={isValidating}
+            className="w-full"
+          />
+          
+          {showSuggestions && suggestions.length > 0 && (
+            <div
+              ref={suggestionsRef}
+              className="absolute z-50 w-full mt-1 bg-card border border-border rounded-md shadow-lg max-h-60 overflow-auto"
+            >
+              {suggestions.map((suggestion, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => handleSuggestionSelect(suggestion)}
+                  className="w-full px-4 py-3 text-left hover:bg-accent transition-colors flex items-start gap-3 border-b border-border last:border-0"
+                >
+                  <MapPin className="h-4 w-4 text-muted-foreground mt-1 flex-shrink-0" />
+                  <span className="text-sm">{suggestion.place_name}</span>
+                </button>
+              ))}
             </div>
-            <div>
-              <Label htmlFor="hausnummer">Hausnr.</Label>
-              <Input
-                id="hausnummer"
-                value={address.hausnummer}
-                onChange={(e) => handleChange('hausnummer', e.target.value)}
-                placeholder="123"
-                disabled={isValidating}
-              />
+          )}
+          
+          {isLoadingSuggestions && (
+            <div className="absolute right-3 top-9">
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
             </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <Label htmlFor="plz">PLZ *</Label>
-              <Input
-                id="plz"
-                value={address.plz}
-                onChange={(e) => handleChange('plz', e.target.value)}
-                placeholder="80331"
-                maxLength={5}
-                disabled={isValidating}
-              />
-            </div>
-            <div className="col-span-2">
-              <Label htmlFor="stadt">Stadt *</Label>
-              <Input
-                id="stadt"
-                value={address.stadt}
-                onChange={(e) => handleChange('stadt', e.target.value)}
-                placeholder="München"
-                disabled={isValidating}
-              />
-            </div>
-          </div>
+          )}
         </div>
 
         <Button
