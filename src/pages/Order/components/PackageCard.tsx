@@ -19,9 +19,9 @@ interface PackageCardProps {
 }
 
 export const PackageCard = ({ package: pkg, onSelect, delay = 0 }: PackageCardProps) => {
-  // For normal packages, show total of all services
-  // For Kombi packages with showSavings, use the actual package prices
-  const actualPrice = pkg.services.reduce((sum, service) => sum + service.base_price, 0);
+  // For package cards showing multiple service options, display the lowest price
+  // For Kombi packages with showSavings, show the lowest Kombi price with savings
+  const lowestPrice = Math.min(...pkg.services.map(s => s.base_price));
   
   // Kombi-Paket regular prices (what you'd pay separately)
   const kombiRegularPrices: Record<string, number> = {
@@ -30,15 +30,20 @@ export const PackageCard = ({ package: pkg, onSelect, delay = 0 }: PackageCardPr
     'Kombi 30': 889
   };
   
-  let displayPrice = actualPrice;
+  let displayPrice = lowestPrice;
   let regularPrice = null;
   let savingsAmount = 0;
   
   // Check if any service in the package is a Kombi package
   const kombiService = pkg.services.find(s => s.name.includes('Kombi'));
   if (kombiService && pkg.showSavings) {
-    displayPrice = kombiService.base_price;
-    regularPrice = kombiRegularPrices[kombiService.name] || displayPrice;
+    // For Kombi packages, show the lowest Kombi price
+    displayPrice = Math.min(...pkg.services.filter(s => s.name.includes('Kombi')).map(s => s.base_price));
+    // Get the corresponding regular price for the lowest Kombi package
+    const lowestKombiService = pkg.services
+      .filter(s => s.name.includes('Kombi'))
+      .reduce((min, s) => s.base_price < min.base_price ? s : min);
+    regularPrice = kombiRegularPrices[lowestKombiService.name] || displayPrice;
     savingsAmount = regularPrice - displayPrice;
   }
 
