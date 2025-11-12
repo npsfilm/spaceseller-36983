@@ -31,10 +31,32 @@ export const FileUploadZone = ({ orderId, uploads, onUploadComplete }: FileUploa
       setCurrentFile(file.name);
       setProgress(((i) / acceptedFiles.length) * 100);
 
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${orderId}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-
       try {
+        // SERVER-SIDE VALIDATION FIRST
+        const { data: validationResult, error: validationError } = await supabase.functions.invoke(
+          'validate-file-upload',
+          {
+            body: {
+              fileName: file.name,
+              fileSize: file.size,
+              fileType: file.type
+            }
+          }
+        );
+
+        if (validationError || !validationResult?.valid) {
+          toast({
+            title: 'Datei abgelehnt',
+            description: validationResult?.errors?.join(', ') || 'Datei entspricht nicht den Sicherheitsanforderungen',
+            variant: 'destructive'
+          });
+          continue;
+        }
+
+        // Proceed with upload only if validation passed
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${user.id}/${orderId}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+
         const { error: uploadError } = await supabase.storage
           .from('order-uploads')
           .upload(fileName, file);
