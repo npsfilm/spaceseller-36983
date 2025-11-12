@@ -7,6 +7,7 @@ import { DesktopNav } from "@/components/navigation/DesktopNav";
 import { MobileNav } from "@/components/navigation/MobileNav";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { User, Settings as SettingsIcon, Package, LogOut, Shield } from "lucide-react";
+import logo from "@/assets/spaceseller-logo.png";
 
 export const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -19,9 +20,7 @@ export const Header = () => {
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center">
-            <span className="text-2xl font-bold bg-gradient-hero bg-clip-text text-transparent">
-              spaceseller
-            </span>
+            <img src={logo} alt="spaceseller" className="h-8 w-auto" />
           </Link>
 
           {/* Desktop Navigation */}
