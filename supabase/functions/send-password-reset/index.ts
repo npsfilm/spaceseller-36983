@@ -141,7 +141,7 @@ Deno.serve(async (req) => {
 
     // Send email via Resend
     const { data: emailData, error } = await resend.emails.send({
-      from: "spaceseller <updates.spaceseller.de>", // Replace with your verified domain
+      from: "spaceseller <noreply@updates.spaceseller.de>", // Replace with your verified Resend domain
       to: [user.email],
       subject: "Passwort zurücksetzen - spaceseller",
       html,
