@@ -1,31 +1,31 @@
-import { Resend } from 'https://esm.sh/resend@4.0.0'
+import { Resend } from "https://esm.sh/resend@4.0.0";
 
-const resend = new Resend(Deno.env.get('RESEND_API_KEY') as string)
+const resend = new Resend(Deno.env.get("RESEND_API_KEY") as string);
 
 Deno.serve(async (req) => {
-  if (req.method !== 'POST') {
-    return new Response('Method not allowed', { status: 405 })
+  if (req.method !== "POST") {
+    return new Response("Method not allowed", { status: 405 });
   }
 
   try {
-    const payload = await req.json()
+    const payload = await req.json();
     const {
       user,
       email_data: { token_hash, redirect_to, email_action_type },
     } = payload as {
       user: {
-        email: string
-      }
+        email: string;
+      };
       email_data: {
-        token_hash: string
-        redirect_to: string
-        email_action_type: string
-      }
-    }
+        token_hash: string;
+        redirect_to: string;
+        email_action_type: string;
+      };
+    };
 
-    console.log(`Sending password reset email to: ${user.email}`)
+    console.log(`Sending password reset email to: ${user.email}`);
 
-    const resetLink = `${Deno.env.get('SUPABASE_URL')}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${redirect_to}`
+    const resetLink = `${Deno.env.get("SUPABASE_URL")}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${redirect_to}`;
 
     // HTML email template with spaceseller branding
     const html = `
@@ -137,42 +137,39 @@ Deno.serve(async (req) => {
   </table>
 </body>
 </html>
-    `
+    `;
 
     // Send email via Resend
     const { data: emailData, error } = await resend.emails.send({
-      from: 'spaceseller <onboarding@resend.dev>', // Replace with your verified domain
+      from: "spaceseller <updates.spaceseller.de>", // Replace with your verified domain
       to: [user.email],
-      subject: 'Passwort zurücksetzen - spaceseller',
+      subject: "Passwort zurücksetzen - spaceseller",
       html,
-    })
+    });
 
     if (error) {
-      console.error('Failed to send email:', error)
-      throw error
+      console.error("Failed to send email:", error);
+      throw error;
     }
 
-    console.log('Password reset email sent successfully:', emailData)
+    console.log("Password reset email sent successfully:", emailData);
 
-    return new Response(
-      JSON.stringify({ success: true, message: 'Email sent' }),
-      {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      }
-    )
+    return new Response(JSON.stringify({ success: true, message: "Email sent" }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
   } catch (error: any) {
-    console.error('Error in send-password-reset function:', error)
+    console.error("Error in send-password-reset function:", error);
     return new Response(
       JSON.stringify({
         error: {
-          message: error.message || 'Internal server error',
+          message: error.message || "Internal server error",
         },
       }),
       {
         status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      }
-    )
+        headers: { "Content-Type": "application/json" },
+      },
+    );
   }
-})
+});
