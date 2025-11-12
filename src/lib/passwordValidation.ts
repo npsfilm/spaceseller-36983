@@ -1,5 +1,11 @@
 import { zxcvbn, zxcvbnOptions } from '@zxcvbn-ts/core';
 import * as zxcvbnCommonPackage from '@zxcvbn-ts/language-common';
+import { z } from 'zod';
+
+// Zod schema for password validation
+export const passwordSchema = z
+  .string()
+  .min(8, 'Passwort muss mindestens 8 Zeichen lang sein');
 
 // Initialize zxcvbn with common dictionary
 const options = {

@@ -288,6 +288,33 @@ export type Database = {
           },
         ]
       }
+      password_reset_tokens: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          token: string
+          used: boolean
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          token: string
+          used?: boolean
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          token?: string
+          used?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           aufmerksam_geworden_durch: string | null
@@ -452,6 +479,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_expired_reset_tokens: { Args: never; Returns: undefined }
       generate_order_number: { Args: never; Returns: string }
       has_role: {
         Args: {

@@ -36,11 +36,15 @@ export function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProp
 
     setLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth`,
+      const { data, error } = await supabase.functions.invoke('request-password-reset', {
+        body: { email },
       });
 
       if (error) throw error;
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
 
       setSuccess(true);
       setTimeout(() => {
