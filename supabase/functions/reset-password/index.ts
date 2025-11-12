@@ -18,6 +18,56 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Extract IP address for rate limiting
+    const ipAddress = req.headers.get('x-forwarded-for')?.split(',')[0].trim() || 
+                     req.headers.get('x-real-ip') || 
+                     'unknown';
+
+    // Create Supabase admin client
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      }
+    );
+
+    // Check rate limit: 5 requests per 15 minutes per IP
+    const { data: isRateLimited, error: rateLimitError } = await supabaseAdmin.rpc(
+      'check_rate_limit',
+      {
+        _ip_address: ipAddress,
+        _endpoint: 'reset-password',
+        _max_requests: 5,
+        _window_minutes: 15
+      }
+    );
+
+    if (rateLimitError) {
+      console.error('Rate limit check error:', rateLimitError);
+      // Continue anyway - don't block on rate limit errors
+    }
+
+    if (isRateLimited === true) {
+      console.log('Rate limit exceeded for IP:', ipAddress);
+      return new Response(
+        JSON.stringify({ 
+          error: "Too many password reset attempts. Please try again in 15 minutes." 
+        }),
+        {
+          status: 429,
+          headers: { 
+            "Content-Type": "application/json", 
+            "Retry-After": "900", // 15 minutes in seconds
+            ...corsHeaders 
+          },
+        }
+      );
+    }
+
     const { token, newPassword }: RequestBody = await req.json();
 
     if (!token || !newPassword) {
@@ -73,19 +123,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Create Supabase admin client
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
-        },
-      }
-    );
-
-    // Find the token in the database
+    // Find the token in the database (supabaseAdmin already created above for rate limiting)
     const { data: tokenData, error: tokenError } = await supabaseAdmin
       .from("password_reset_tokens")
       .select("*")
