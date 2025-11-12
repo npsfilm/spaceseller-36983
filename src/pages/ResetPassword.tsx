@@ -107,11 +107,7 @@ const ResetPassword = () => {
         navigate('/auth');
       }, 3000);
     } catch (error: any) {
-      // Log only safe information (no tokens, no sensitive data)
-      console.error('Password reset failed:', {
-        message: error.message,
-        timestamp: new Date().toISOString()
-      });
+      console.error('Password reset error:', error);
       toast({
         title: "Fehler",
         description: error.message || "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
