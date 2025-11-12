@@ -89,6 +89,10 @@ const ResetPassword = () => {
       if (error) throw error;
 
       if (data.error) {
+        // If there are detailed validation errors, show them
+        if (data.details && Array.isArray(data.details)) {
+          throw new Error(data.details.join('. '));
+        }
         throw new Error(data.error);
       }
 

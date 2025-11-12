@@ -30,10 +30,42 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Validate password strength
+    // Comprehensive password validation
+    const passwordErrors: string[] = [];
+    
     if (newPassword.length < 8) {
+      passwordErrors.push("Password must be at least 8 characters long");
+    }
+    if (!/[A-Z]/.test(newPassword)) {
+      passwordErrors.push("Password must contain at least one uppercase letter");
+    }
+    if (!/[a-z]/.test(newPassword)) {
+      passwordErrors.push("Password must contain at least one lowercase letter");
+    }
+    if (!/\d/.test(newPassword)) {
+      passwordErrors.push("Password must contain at least one number");
+    }
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(newPassword)) {
+      passwordErrors.push("Password must contain at least one special character");
+    }
+
+    // Block common weak passwords
+    const commonPasswords = [
+      "password", "password123", "12345678", "qwerty", "abc123", 
+      "password1", "admin123", "letmein", "welcome", "monkey",
+      "dragon", "master", "sunshine", "iloveyou", "princess"
+    ];
+    if (commonPasswords.some(common => newPassword.toLowerCase().includes(common))) {
+      passwordErrors.push("Password is too common and easily guessable");
+    }
+
+    if (passwordErrors.length > 0) {
+      console.log("Password validation failed:", passwordErrors);
       return new Response(
-        JSON.stringify({ error: "Password must be at least 8 characters long" }),
+        JSON.stringify({ 
+          error: "Password does not meet security requirements", 
+          details: passwordErrors 
+        }),
         {
           status: 400,
           headers: { "Content-Type": "application/json", ...corsHeaders },
