@@ -6,9 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Download, X } from 'lucide-react';
+import { Upload, Download, X, Camera } from 'lucide-react';
 
 interface OrderDetailModalProps {
   order: any;
@@ -33,11 +35,19 @@ export function OrderDetailModal({ order, open, onClose, onUpdate }: OrderDetail
   const [addresses, setAddresses] = useState<any[]>([]);
   const [newStatus, setNewStatus] = useState(order.status);
   const [uploading, setUploading] = useState(false);
+  const [photographers, setPhotographers] = useState<any[]>([]);
+  const [currentAssignment, setCurrentAssignment] = useState<any>(null);
+  const [selectedPhotographer, setSelectedPhotographer] = useState<string>('');
+  const [adminNotes, setAdminNotes] = useState('');
+  const [scheduledDate, setScheduledDate] = useState('');
+  const [scheduledTime, setScheduledTime] = useState('');
   const { toast } = useToast();
 
   useEffect(() => {
     if (open) {
       fetchOrderDetails();
+      fetchPhotographers();
+      fetchCurrentAssignment();
     }
   }, [open, order.id]);
 
@@ -185,6 +195,123 @@ export function OrderDetailModal({ order, open, onClose, onUpdate }: OrderDetail
     }
   };
 
+  const fetchPhotographers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .eq('role', 'photographer');
+
+      if (error) throw error;
+
+      const photographerIds = data?.map(r => r.user_id) || [];
+      
+      if (photographerIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, vorname, nachname, email')
+          .in('id', photographerIds);
+
+        const formattedPhotographers = profilesData?.map(profile => ({
+          id: profile.id,
+          name: `${profile.vorname || ''} ${profile.nachname || ''}`.trim() || profile.email,
+          email: profile.email
+        })) || [];
+
+        setPhotographers(formattedPhotographers);
+      }
+    } catch (error) {
+      console.error('Error fetching photographers:', error);
+    }
+  };
+
+  const fetchCurrentAssignment = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('order_assignments')
+        .select(`
+          *,
+          profiles!order_assignments_photographer_id_fkey(vorname, nachname, email)
+        `)
+        .eq('order_id', order.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') throw error;
+
+      setCurrentAssignment(data);
+      if (data) {
+        setSelectedPhotographer(data.photographer_id);
+        setAdminNotes(data.admin_notes || '');
+        setScheduledDate(data.scheduled_date || '');
+        setScheduledTime(data.scheduled_time?.slice(0, 5) || '');
+      }
+    } catch (error) {
+      console.error('Error fetching assignment:', error);
+    }
+  };
+
+  const handleAssignPhotographer = async () => {
+    if (!selectedPhotographer) {
+      toast({
+        title: 'Fehler',
+        description: 'Bitte wählen Sie einen Fotografen aus',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      const assignmentData = {
+        order_id: order.id,
+        photographer_id: selectedPhotographer,
+        assigned_by: (await supabase.auth.getUser()).data.user?.id,
+        admin_notes: adminNotes,
+        scheduled_date: scheduledDate || null,
+        scheduled_time: scheduledTime || null,
+        status: 'pending'
+      };
+
+      if (currentAssignment) {
+        const { error } = await supabase
+          .from('order_assignments')
+          .update(assignmentData)
+          .eq('id', currentAssignment.id);
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('order_assignments')
+          .insert(assignmentData);
+
+        if (error) throw error;
+      }
+
+      // Create notification for photographer
+      await supabase.from('notifications').insert({
+        user_id: selectedPhotographer,
+        type: 'assignment_created',
+        title: 'Neuer Auftrag zugewiesen',
+        message: `Sie wurden für Auftrag #${order.order_number} zugewiesen.`,
+        link: '/freelancer-dashboard'
+      });
+
+      toast({
+        title: 'Erfolg',
+        description: 'Fotograf erfolgreich zugewiesen',
+      });
+
+      fetchCurrentAssignment();
+      onUpdate();
+    } catch (error) {
+      console.error('Error assigning photographer:', error);
+      toast({
+        title: 'Fehler',
+        description: 'Fehler beim Zuweisen des Fotografen',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -213,6 +340,102 @@ export function OrderDetailModal({ order, open, onClose, onUpdate }: OrderDetail
                 <Label className="text-muted-foreground">Firma</Label>
                 <p>{order.profiles?.firma || '-'}</p>
               </div>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Photographer Assignment */}
+          <div>
+            <h3 className="font-semibold mb-3 flex items-center gap-2">
+              <Camera className="h-5 w-5" />
+              Fotografen-Zuweisung
+            </h3>
+            
+            {currentAssignment && (
+              <div className="mb-4 p-4 bg-muted rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <Label className="text-sm font-medium">Aktueller Status</Label>
+                  <Badge variant={
+                    currentAssignment.status === 'accepted' ? 'default' :
+                    currentAssignment.status === 'declined' ? 'destructive' :
+                    'secondary'
+                  }>
+                    {currentAssignment.status === 'pending' && 'Ausstehend'}
+                    {currentAssignment.status === 'accepted' && 'Angenommen'}
+                    {currentAssignment.status === 'declined' && 'Abgelehnt'}
+                    {currentAssignment.status === 'completed' && 'Abgeschlossen'}
+                  </Badge>
+                </div>
+                {currentAssignment.photographer_notes && (
+                  <div className="mt-2">
+                    <Label className="text-xs text-muted-foreground">Notiz vom Fotografen</Label>
+                    <p className="text-sm mt-1">{currentAssignment.photographer_notes}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="photographer-select">Fotograf auswählen</Label>
+                <Select value={selectedPhotographer} onValueChange={setSelectedPhotographer}>
+                  <SelectTrigger id="photographer-select">
+                    <SelectValue placeholder="Fotografen auswählen..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {photographers.length === 0 ? (
+                      <SelectItem value="none" disabled>Keine Fotografen verfügbar</SelectItem>
+                    ) : (
+                      photographers.map((photographer) => (
+                        <SelectItem key={photographer.id} value={photographer.id}>
+                          {photographer.name} ({photographer.email})
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="scheduled-date">Shooting-Termin</Label>
+                  <Input
+                    id="scheduled-date"
+                    type="date"
+                    value={scheduledDate}
+                    onChange={(e) => setScheduledDate(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="scheduled-time">Uhrzeit</Label>
+                  <Input
+                    id="scheduled-time"
+                    type="time"
+                    value={scheduledTime}
+                    onChange={(e) => setScheduledTime(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="admin-notes">Anweisungen für den Fotografen</Label>
+                <Textarea
+                  id="admin-notes"
+                  placeholder="Spezielle Anweisungen, Hinweise, etc..."
+                  value={adminNotes}
+                  onChange={(e) => setAdminNotes(e.target.value)}
+                  rows={3}
+                />
+              </div>
+
+              <Button 
+                onClick={handleAssignPhotographer} 
+                disabled={!selectedPhotographer}
+                className="w-full"
+              >
+                {currentAssignment ? 'Zuweisung aktualisieren' : 'Fotograf zuweisen'}
+              </Button>
             </div>
           </div>
 
