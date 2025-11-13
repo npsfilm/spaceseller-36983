@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { validatePassword } from '@/lib/passwordValidation';
 import { validateEmail } from '@/lib/emailValidation';
 import { z } from 'zod';
-import { Lock, Mail, Eye, EyeOff, Shield } from 'lucide-react';
+import { Lock, Mail, Eye, EyeOff, ExternalLink, ArrowLeft } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { BenefitsCarousel } from '@/components/auth/BenefitsCarousel';
 import { FloatingLabelInput } from '@/components/auth/FloatingLabelInput';
@@ -19,8 +19,10 @@ import { ForgotPasswordModal } from '@/components/auth/ForgotPasswordModal';
 const emailSchema = z.string().email('Ungültige E-Mail-Adresse').max(255);
 const passwordSchema = z.string().min(8, 'Passwort muss mindestens 8 Zeichen lang sein');
 
+type AuthView = 'initial' | 'login' | 'register';
+
 export default function Auth() {
-  const [isLogin, setIsLogin] = useState(true);
+  const [currentView, setCurrentView] = useState<AuthView>('initial');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -44,9 +46,6 @@ export default function Auth() {
   }, [user, navigate]);
 
   useEffect(() => {
-    // Auto-focus email input on mount
-    emailInputRef.current?.focus();
-
     // Load remembered email
     const savedEmail = localStorage.getItem('remembered_email');
     if (savedEmail) {
@@ -54,6 +53,13 @@ export default function Auth() {
       setRememberMe(true);
     }
   }, []);
+
+  useEffect(() => {
+    // Auto-focus email when in login or register view
+    if (currentView !== 'initial') {
+      emailInputRef.current?.focus();
+    }
+  }, [currentView]);
 
   useEffect(() => {
     // Validate email in real-time
@@ -76,25 +82,28 @@ export default function Auth() {
     });
   };
 
+  const handleBack = () => {
+    setCurrentView('initial');
+    setEmail('');
+    setPassword('');
+    setPasswordFocused(false);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // Validate email
       emailSchema.parse(email.trim());
-      
-      // Validate password
       passwordSchema.parse(password);
 
-      // Save email if remember me is checked
-      if (rememberMe) {
+      if (currentView === 'login' && rememberMe) {
         localStorage.setItem('remembered_email', email.trim());
       } else {
         localStorage.removeItem('remembered_email');
       }
 
-      if (isLogin) {
+      if (currentView === 'login') {
         const { error } = await signIn(email.trim(), password);
         if (error) {
           // Shake animation will be handled by motion.div
@@ -157,37 +166,17 @@ export default function Auth() {
     }
   };
 
-  const handleModeSwitch = () => {
-    setIsLogin(!isLogin);
-    setPassword('');
-    setEmailError('');
-  };
-
   return (
-    <div className="min-h-screen flex">
-      {/* Left Side - Benefits Carousel (hidden on mobile) */}
-      <motion.div 
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.6 }}
-        className="hidden lg:block lg:w-2/5 relative overflow-hidden"
-      >
-        <BenefitsCarousel />
-      </motion.div>
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex">
+      <BenefitsCarousel />
 
-        {/* Right Side - Auth Form */}
-        <div className="flex-1 flex items-center justify-center p-4 lg:p-8 relative overflow-hidden">
-          {/* Animated gradient background (mobile) */}
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-accent/5 to-primary/5 lg:hidden" />
-          
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="w-full max-w-md relative z-10"
-          >
-            {/* Glassmorphism card */}
-            <div className="bg-card/80 backdrop-blur-xl border border-border rounded-3xl p-8 shadow-2xl">
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-md"
+        >
+          <div className="relative backdrop-blur-xl bg-card/40 border border-border/50 rounded-2xl p-8 shadow-2xl">
               {/* Header */}
               <AnimatePresence mode="wait">
                 <motion.div
