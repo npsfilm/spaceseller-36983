@@ -40,7 +40,7 @@ const App = () => (
             <Route path="/order/confirmation/:orderId" element={<OrderConfirmation />} />
             <Route path="/my-orders" element={<MyOrders />} />
             <Route path="/settings" element={<Settings />} />
-            <Route path="/admin" element={<ProtectedRoute requireOnboarding requireAdmin><Admin /></ProtectedRoute>} />
+            <Route path="/admin-backend" element={<ProtectedRoute requireOnboarding requireAdmin><Admin /></ProtectedRoute>} />
             <Route path="/impressum" element={<Impressum />} />
             <Route path="/datenschutz" element={<Datenschutz />} />
             <Route path="/agb" element={<AGB />} />

@@ -64,7 +64,7 @@ export const Header = () => {
                       <>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
-                          <Link to="/admin" className="cursor-pointer">
+                          <Link to="/admin-backend" className="cursor-pointer">
                             <Shield className="mr-2 h-4 w-4" />
                             Admin Dashboard
                           </Link>
