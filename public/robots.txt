@@ -2,11 +2,13 @@ User-agent: Googlebot
 Allow: /
 Disallow: /admin-backend
 Disallow: /admin
+Disallow: /freelancer-dashboard
 
 User-agent: Bingbot
 Allow: /
 Disallow: /admin-backend
 Disallow: /admin
+Disallow: /freelancer-dashboard
 
 User-agent: Twitterbot
 Allow: /
@@ -18,3 +20,4 @@ User-agent: *
 Allow: /
 Disallow: /admin-backend
 Disallow: /admin
+Disallow: /freelancer-dashboard

@@ -3,16 +3,19 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { useIsPhotographer } from "@/hooks/useIsPhotographer";
 import { DesktopNav } from "@/components/navigation/DesktopNav";
 import { MobileNav } from "@/components/navigation/MobileNav";
+import { NotificationBell } from "@/components/NotificationBell";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { User, Settings as SettingsIcon, Package, LogOut, Shield } from "lucide-react";
+import { User, Settings as SettingsIcon, Package, LogOut, Shield, Camera } from "lucide-react";
 import logo from "@/assets/spaceseller-logo.png";
 
 export const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { user, signOut } = useAuth();
   const { isAdmin } = useIsAdmin();
+  const { isPhotographer } = useIsPhotographer();
 
   return (
     <header className="fixed top-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border">
@@ -33,6 +36,8 @@ export const Header = () => {
                 <Button asChild variant="cta" className="hidden md:inline-flex">
                   <Link to="/order">Neue Bestellung</Link>
                 </Button>
+                
+                <NotificationBell />
                 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -60,6 +65,17 @@ export const Header = () => {
                         Einstellungen
                       </Link>
                     </DropdownMenuItem>
+                    {isPhotographer && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                          <Link to="/freelancer-dashboard" className="cursor-pointer">
+                            <Camera className="mr-2 h-4 w-4" />
+                            Freelancer Dashboard
+                          </Link>
+                        </DropdownMenuItem>
+                      </>
+                    )}
                     {isAdmin && (
                       <>
                         <DropdownMenuSeparator />

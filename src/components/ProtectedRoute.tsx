@@ -4,18 +4,21 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useState } from 'react';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
+import { useIsPhotographer } from '@/hooks/useIsPhotographer';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requireOnboarding?: boolean;
   requireAdmin?: boolean;
+  requirePhotographer?: boolean;
 }
 
-export const ProtectedRoute = ({ children, requireOnboarding = false, requireAdmin = false }: ProtectedRouteProps) => {
+export const ProtectedRoute = ({ children, requireOnboarding = false, requireAdmin = false, requirePhotographer = false }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(null);
   const { isAdmin, loading: adminLoading } = useIsAdmin();
+  const { isPhotographer, loading: photographerLoading } = useIsPhotographer();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -49,7 +52,13 @@ export const ProtectedRoute = ({ children, requireOnboarding = false, requireAdm
     }
   }, [requireAdmin, adminLoading, isAdmin, user, navigate]);
 
-  if (loading || (requireOnboarding && onboardingComplete === null) || (requireAdmin && adminLoading)) {
+  useEffect(() => {
+    if (requirePhotographer && !photographerLoading && !isPhotographer && user) {
+      navigate('/');
+    }
+  }, [requirePhotographer, photographerLoading, isPhotographer, user, navigate]);
+
+  if (loading || (requireOnboarding && onboardingComplete === null) || (requireAdmin && adminLoading) || (requirePhotographer && photographerLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -62,6 +71,10 @@ export const ProtectedRoute = ({ children, requireOnboarding = false, requireAdm
   }
 
   if (requireAdmin && !isAdmin) {
+    return null;
+  }
+
+  if (requirePhotographer && !isPhotographer) {
     return null;
   }
 
