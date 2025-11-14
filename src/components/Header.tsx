@@ -2,8 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useIsAdmin } from "@/hooks/useIsAdmin";
-import { useIsPhotographer } from "@/hooks/useIsPhotographer";
+import { useUserRole } from "@/hooks/useUserRole";
 import { DesktopNav } from "@/components/navigation/DesktopNav";
 import { MobileNav } from "@/components/navigation/MobileNav";
 import { NotificationBell } from "@/components/NotificationBell";
@@ -14,8 +13,7 @@ import logo from "@/assets/spaceseller-logo.png";
 export const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { user, signOut } = useAuth();
-  const { isAdmin } = useIsAdmin();
-  const { isPhotographer } = useIsPhotographer();
+  const { role, loading } = useUserRole();
 
   return (
     <header className="fixed top-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border">
@@ -33,9 +31,11 @@ export const Header = () => {
           <div className="flex items-center gap-3">
             {user ? (
               <>
-                <Button asChild variant="cta" className="hidden md:inline-flex">
-                  <Link to="/order">Neue Bestellung</Link>
-                </Button>
+                {role === 'client' && (
+                  <Button asChild variant="cta" className="hidden md:inline-flex">
+                    <Link to="/order">Neue Bestellung</Link>
+                  </Button>
+                )}
                 
                 <NotificationBell />
                 
@@ -53,19 +53,21 @@ export const Header = () => {
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link to="/my-orders" className="cursor-pointer">
-                        <Package className="mr-2 h-4 w-4" />
-                        Meine Bestellungen
-                      </Link>
-                    </DropdownMenuItem>
+                    {role === 'client' && (
+                      <DropdownMenuItem asChild>
+                        <Link to="/my-orders" className="cursor-pointer">
+                          <Package className="mr-2 h-4 w-4" />
+                          Meine Bestellungen
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem asChild>
                       <Link to="/settings" className="cursor-pointer">
                         <SettingsIcon className="mr-2 h-4 w-4" />
                         Einstellungen
                       </Link>
                     </DropdownMenuItem>
-                    {isPhotographer && (
+                    {role === 'photographer' && (
                       <>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
@@ -82,7 +84,7 @@ export const Header = () => {
                         </DropdownMenuItem>
                       </>
                     )}
-                    {isAdmin && (
+                    {role === 'admin' && (
                       <>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
@@ -92,7 +94,7 @@ export const Header = () => {
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link to="/admin-backend/photographers" className="cursor-pointer">
+                          <Link to="/admin/photographers" className="cursor-pointer">
                             <Users className="mr-2 h-4 w-4" />
                             Fotografen
                           </Link>
