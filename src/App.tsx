@@ -18,6 +18,7 @@ import MyOrders from "./pages/MyOrders";
 import Settings from "./pages/Settings";
 import Admin from "./pages/Admin";
 import PhotographerManagement from "./pages/admin/PhotographerManagement";
+import UserRoleManagement from "./pages/admin/UserRoleManagement";
 import FreelancerDashboard from "./pages/FreelancerDashboard";
 import Dashboard from "./pages/Dashboard";
 import ResetPassword from "./pages/ResetPassword";
@@ -45,6 +46,7 @@ const App = () => (
             <Route path="/settings" element={<ProtectedRoute requireOnboarding><Settings /></ProtectedRoute>} />
             <Route path="/admin-backend" element={<ProtectedRoute requireOnboarding requireAdmin><Admin /></ProtectedRoute>} />
             <Route path="/admin-backend/photographers" element={<ProtectedRoute requireOnboarding requireAdmin><PhotographerManagement /></ProtectedRoute>} />
+            <Route path="/admin-backend/users" element={<ProtectedRoute requireOnboarding requireAdmin><UserRoleManagement /></ProtectedRoute>} />
             <Route path="/freelancer-dashboard" element={<ProtectedRoute requireOnboarding requirePhotographer><FreelancerDashboard /></ProtectedRoute>} />
             <Route path="/photographer-settings" element={<ProtectedRoute requireOnboarding requirePhotographer><PhotographerSettings /></ProtectedRoute>} />
             <Route path="/impressum" element={<Impressum />} />
