@@ -94,8 +94,14 @@ export const Header = () => {
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link to="/admin/photographers" className="cursor-pointer">
+                          <Link to="/admin-backend/users" className="cursor-pointer">
                             <Users className="mr-2 h-4 w-4" />
+                            Benutzerverwaltung
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link to="/admin-backend/photographers" className="cursor-pointer">
+                            <Camera className="mr-2 h-4 w-4" />
                             Fotografen
                           </Link>
                         </DropdownMenuItem>

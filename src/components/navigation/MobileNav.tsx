@@ -118,6 +118,22 @@ export const MobileNav = ({ isOpen, onOpenChange }: MobileNavProps) => {
                     <Shield className="w-4 h-4" />
                     Admin Dashboard
                   </Link>
+                  <Link
+                    to="/admin-backend/users"
+                    onClick={handleNavClick}
+                    className="flex items-center gap-3 rounded-md p-3 text-sm font-medium hover:bg-accent transition-colors"
+                  >
+                    <User className="w-4 h-4" />
+                    Benutzerverwaltung
+                  </Link>
+                  <Link
+                    to="/admin-backend/photographers"
+                    onClick={handleNavClick}
+                    className="flex items-center gap-3 rounded-md p-3 text-sm font-medium hover:bg-accent transition-colors"
+                  >
+                    <Camera className="w-4 h-4" />
+                    Fotografen
+                  </Link>
                 </>
               )}
 
