@@ -8,10 +8,10 @@ import {
 } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { legalNav } from "@/lib/navigation";
-import { Menu, User, Package, Settings as SettingsIcon, LogOut, Shield } from "lucide-react";
+import { Menu, User, Package, Settings as SettingsIcon, LogOut, Shield, Camera } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface MobileNavProps {
   isOpen: boolean;
@@ -20,7 +20,7 @@ interface MobileNavProps {
 
 export const MobileNav = ({ isOpen, onOpenChange }: MobileNavProps) => {
   const { user, signOut } = useAuth();
-  const { isAdmin } = useIsAdmin();
+  const { role, loading } = useUserRole();
   
   const handleNavClick = () => {
     onOpenChange(false);
@@ -55,22 +55,26 @@ export const MobileNav = ({ isOpen, onOpenChange }: MobileNavProps) => {
               <Separator className="my-2" />
 
               {/* User Actions */}
-              <Link
-                to="/order"
-                onClick={handleNavClick}
-                className="flex items-center gap-3 rounded-md p-3 text-sm font-medium hover:bg-accent transition-colors"
-              >
-                Neue Bestellung
-              </Link>
+              {role === 'client' && (
+                <>
+                  <Link
+                    to="/order"
+                    onClick={handleNavClick}
+                    className="flex items-center gap-3 rounded-md p-3 text-sm font-medium hover:bg-accent transition-colors"
+                  >
+                    Neue Bestellung
+                  </Link>
 
-              <Link
-                to="/my-orders"
-                onClick={handleNavClick}
-                className="flex items-center gap-3 rounded-md p-3 text-sm font-medium hover:bg-accent transition-colors"
-              >
-                <Package className="w-4 h-4" />
-                Meine Bestellungen
-              </Link>
+                  <Link
+                    to="/my-orders"
+                    onClick={handleNavClick}
+                    className="flex items-center gap-3 rounded-md p-3 text-sm font-medium hover:bg-accent transition-colors"
+                  >
+                    <Package className="w-4 h-4" />
+                    Meine Bestellungen
+                  </Link>
+                </>
+              )}
 
               <Link
                 to="/settings"
@@ -81,15 +85,40 @@ export const MobileNav = ({ isOpen, onOpenChange }: MobileNavProps) => {
                 Einstellungen
               </Link>
 
-              {isAdmin && (
-                <Link
-                  to="/admin"
-                  onClick={handleNavClick}
-                  className="flex items-center gap-3 rounded-md p-3 text-sm font-medium hover:bg-accent transition-colors"
-                >
-                  <Shield className="w-4 h-4" />
-                  Admin Dashboard
-                </Link>
+              {role === 'photographer' && (
+                <>
+                  <Separator className="my-2" />
+                  <Link
+                    to="/freelancer-dashboard"
+                    onClick={handleNavClick}
+                    className="flex items-center gap-3 rounded-md p-3 text-sm font-medium hover:bg-accent transition-colors"
+                  >
+                    <Camera className="w-4 h-4" />
+                    Freelancer Dashboard
+                  </Link>
+                  <Link
+                    to="/photographer-settings"
+                    onClick={handleNavClick}
+                    className="flex items-center gap-3 rounded-md p-3 text-sm font-medium hover:bg-accent transition-colors"
+                  >
+                    <SettingsIcon className="w-4 h-4" />
+                    Fotografen-Einstellungen
+                  </Link>
+                </>
+              )}
+
+              {role === 'admin' && (
+                <>
+                  <Separator className="my-2" />
+                  <Link
+                    to="/admin-backend"
+                    onClick={handleNavClick}
+                    className="flex items-center gap-3 rounded-md p-3 text-sm font-medium hover:bg-accent transition-colors"
+                  >
+                    <Shield className="w-4 h-4" />
+                    Admin Dashboard
+                  </Link>
+                </>
               )}
 
               <Separator className="my-2" />
