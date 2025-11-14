@@ -19,9 +19,12 @@ export type Database = {
           additional_info: string | null
           address_type: Database["public"]["Enums"]["address_type"]
           created_at: string | null
+          geocoded_at: string | null
           hausnummer: string | null
           id: string
           land: string
+          latitude: number | null
+          longitude: number | null
           order_id: string | null
           plz: string
           stadt: string
@@ -32,9 +35,12 @@ export type Database = {
           additional_info?: string | null
           address_type: Database["public"]["Enums"]["address_type"]
           created_at?: string | null
+          geocoded_at?: string | null
           hausnummer?: string | null
           id?: string
           land?: string
+          latitude?: number | null
+          longitude?: number | null
           order_id?: string | null
           plz: string
           stadt: string
@@ -45,9 +51,12 @@ export type Database = {
           additional_info?: string | null
           address_type?: Database["public"]["Enums"]["address_type"]
           created_at?: string | null
+          geocoded_at?: string | null
           hausnummer?: string | null
           id?: string
           land?: string
+          latitude?: number | null
+          longitude?: number | null
           order_id?: string | null
           plz?: string
           stadt?: string
@@ -67,6 +76,98 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          link: string | null
+          message: string
+          read: boolean | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          link?: string | null
+          message: string
+          read?: boolean | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          link?: string | null
+          message?: string
+          read?: boolean | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      order_assignments: {
+        Row: {
+          admin_notes: string | null
+          assigned_at: string | null
+          assigned_by: string
+          created_at: string | null
+          estimated_duration: unknown
+          id: string
+          order_id: string
+          photographer_id: string
+          photographer_notes: string | null
+          responded_at: string | null
+          scheduled_date: string | null
+          scheduled_time: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          assigned_at?: string | null
+          assigned_by: string
+          created_at?: string | null
+          estimated_duration?: unknown
+          id?: string
+          order_id: string
+          photographer_id: string
+          photographer_notes?: string | null
+          responded_at?: string | null
+          scheduled_date?: string | null
+          scheduled_time?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          assigned_at?: string | null
+          assigned_by?: string
+          created_at?: string | null
+          estimated_duration?: unknown
+          id?: string
+          order_id?: string
+          photographer_id?: string
+          photographer_notes?: string | null
+          responded_at?: string | null
+          scheduled_date?: string | null
+          scheduled_time?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_assignments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
             referencedColumns: ["id"]
           },
         ]
@@ -315,18 +416,61 @@ export type Database = {
         }
         Relationships: []
       }
+      photographer_availability: {
+        Row: {
+          created_at: string | null
+          date: string
+          id: string
+          is_available: boolean
+          notes: string | null
+          photographer_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          id?: string
+          is_available?: boolean
+          notes?: string | null
+          photographer_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          id?: string
+          is_available?: boolean
+          notes?: string | null
+          photographer_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "photographer_availability_photographer_id_fkey"
+            columns: ["photographer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           aufmerksam_geworden_durch: string | null
           branche: string | null
+          city: string | null
           created_at: string | null
           email: string
           firma: string | null
           id: string
           land: string | null
+          location_lat: number | null
+          location_lng: number | null
           nachname: string | null
           onboarding_completed: boolean | null
           plz: string | null
+          postal_code: string | null
+          service_radius_km: number | null
           stadt: string | null
           strasse: string | null
           telefon: string | null
@@ -336,14 +480,19 @@ export type Database = {
         Insert: {
           aufmerksam_geworden_durch?: string | null
           branche?: string | null
+          city?: string | null
           created_at?: string | null
           email: string
           firma?: string | null
           id: string
           land?: string | null
+          location_lat?: number | null
+          location_lng?: number | null
           nachname?: string | null
           onboarding_completed?: boolean | null
           plz?: string | null
+          postal_code?: string | null
+          service_radius_km?: number | null
           stadt?: string | null
           strasse?: string | null
           telefon?: string | null
@@ -353,14 +502,19 @@ export type Database = {
         Update: {
           aufmerksam_geworden_durch?: string | null
           branche?: string | null
+          city?: string | null
           created_at?: string | null
           email?: string
           firma?: string | null
           id?: string
           land?: string | null
+          location_lat?: number | null
+          location_lng?: number | null
           nachname?: string | null
           onboarding_completed?: boolean | null
           plz?: string | null
+          postal_code?: string | null
+          service_radius_km?: number | null
           stadt?: string | null
           strasse?: string | null
           telefon?: string | null
@@ -526,6 +680,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_photographer: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       address_type: "shooting_location" | "billing_address"
