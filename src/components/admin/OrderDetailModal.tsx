@@ -227,7 +227,7 @@ export function OrderDetailModal({ order, open, onClose, onUpdate }: OrderDetail
 
   const fetchCurrentAssignment = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('order_assignments')
         .select(`
           *,
@@ -272,14 +272,14 @@ export function OrderDetailModal({ order, open, onClose, onUpdate }: OrderDetail
       };
 
       if (currentAssignment) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('order_assignments')
           .update(assignmentData)
           .eq('id', currentAssignment.id);
 
         if (error) throw error;
       } else {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('order_assignments')
           .insert(assignmentData);
 
@@ -287,7 +287,7 @@ export function OrderDetailModal({ order, open, onClose, onUpdate }: OrderDetail
       }
 
       // Create notification for photographer
-      await supabase.from('notifications').insert({
+      await (supabase as any).from('notifications').insert({
         user_id: selectedPhotographer,
         type: 'assignment_created',
         title: 'Neuer Auftrag zugewiesen',

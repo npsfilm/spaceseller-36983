@@ -77,15 +77,15 @@ export default function PhotographerManagement() {
       // Get assignment stats for each photographer
       const photographersWithStats = await Promise.all(
         (profiles || []).map(async (profile) => {
-          const { data: assignments } = await supabase
+          const { data: assignments } = await (supabase as any)
             .from('order_assignments')
             .select('status')
             .eq('photographer_id', profile.id);
 
           const total = assignments?.length || 0;
-          const accepted = assignments?.filter(a => a.status === 'accepted' || a.status === 'completed').length || 0;
-          const declined = assignments?.filter(a => a.status === 'declined').length || 0;
-          const completed = assignments?.filter(a => a.status === 'completed').length || 0;
+          const accepted = assignments?.filter((a: any) => a.status === 'accepted' || a.status === 'completed').length || 0;
+          const declined = assignments?.filter((a: any) => a.status === 'declined').length || 0;
+          const completed = assignments?.filter((a: any) => a.status === 'completed').length || 0;
           const acceptanceRate = total > 0 ? (accepted / total) * 100 : 0;
 
           return {

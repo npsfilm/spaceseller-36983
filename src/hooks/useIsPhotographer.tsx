@@ -19,7 +19,7 @@ export const useIsPhotographer = () => {
     }
 
     try {
-      const { data, error } = await supabase.rpc('is_photographer', {
+      const { data, error } = await (supabase as any).rpc('is_photographer', {
         _user_id: user.id
       });
 

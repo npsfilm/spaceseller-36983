@@ -45,7 +45,7 @@ export default function FreelancerDashboard() {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('order_assignments')
         .select(`
           *,
@@ -78,7 +78,7 @@ export default function FreelancerDashboard() {
 
   const handleAcceptAssignment = async (assignmentId: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('order_assignments')
         .update({ 
           status: 'accepted',
@@ -94,7 +94,7 @@ export default function FreelancerDashboard() {
       // Create notification for admin
       const assignment = assignments.find(a => a.id === assignmentId);
       if (assignment) {
-        await supabase.from('notifications').insert({
+        await (supabase as any).from('notifications').insert({
           user_id: assignment.orders.user_id,
           type: 'assignment_accepted',
           title: 'Fotograf hat zugestimmt',
@@ -110,7 +110,7 @@ export default function FreelancerDashboard() {
 
   const handleDeclineAssignment = async (assignmentId: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('order_assignments')
         .update({ 
           status: 'declined',
@@ -126,7 +126,7 @@ export default function FreelancerDashboard() {
       // Create notification for admin
       const assignment = assignments.find(a => a.id === assignmentId);
       if (assignment) {
-        await supabase.from('notifications').insert({
+        await (supabase as any).from('notifications').insert({
           user_id: assignment.orders.user_id,
           type: 'assignment_declined',
           title: 'Fotograf hat abgelehnt',

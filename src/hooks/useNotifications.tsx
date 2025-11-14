@@ -35,7 +35,7 @@ export const useNotifications = () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('notifications')
         .select('*')
         .eq('user_id', user.id)
@@ -85,7 +85,7 @@ export const useNotifications = () => {
 
   const markAsRead = async (notificationId: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('notifications')
         .update({ read: true })
         .eq('id', notificationId);
@@ -105,7 +105,7 @@ export const useNotifications = () => {
     if (!user) return;
 
     try {
-      const { error } = await supabase
+      const { error} = await (supabase as any)
         .from('notifications')
         .update({ read: true })
         .eq('user_id', user.id)
