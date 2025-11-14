@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { PhotographerSuggestions } from './PhotographerSuggestions';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
@@ -377,6 +378,17 @@ export function OrderDetailModal({ order, open, onClose, onUpdate }: OrderDetail
             )}
 
             <div className="space-y-4">
+              {/* Photographer Suggestions Based on Location */}
+              {addresses.find(a => a.address_type === 'shooting_location') && (
+                <PhotographerSuggestions
+                  orderId={order.id}
+                  shootingAddress={addresses.find(a => a.address_type === 'shooting_location')}
+                  scheduledDate={scheduledDate}
+                  onSelectPhotographer={setSelectedPhotographer}
+                  selectedPhotographer={selectedPhotographer}
+                />
+              )}
+
               <div>
                 <Label htmlFor="photographer-select">Fotograf auswählen</Label>
                 <Select value={selectedPhotographer} onValueChange={setSelectedPhotographer}>
