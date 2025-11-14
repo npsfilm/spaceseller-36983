@@ -338,7 +338,7 @@ export const OrderWizard = () => {
       const deliveryDeadline = new Date();
       deliveryDeadline.setHours(deliveryDeadline.getHours() + 48);
 
-      await supabase
+      const { data: orderData } = await supabase
         .from('orders')
         .update({
           status: 'submitted',
@@ -346,7 +346,27 @@ export const OrderWizard = () => {
           delivery_deadline: deliveryDeadline.toISOString(),
           special_instructions: orderState.specialInstructions
         })
-        .eq('id', orderState.draftOrderId);
+        .eq('id', orderState.draftOrderId)
+        .select()
+        .single();
+
+      // Notify all admins about the new order
+      const { data: adminRoles } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .eq('role', 'admin');
+
+      if (adminRoles && adminRoles.length > 0) {
+        const notifications = adminRoles.map(admin => ({
+          user_id: admin.user_id,
+          type: 'new_order',
+          title: 'Neue Bestellung eingegangen',
+          message: `Bestellung #${orderData?.order_number || 'N/A'} wurde soeben aufgegeben.`,
+          link: '/admin-backend'
+        }));
+        
+        await (supabase as any).from('notifications').insert(notifications);
+      }
 
       toast({
         title: 'Bestellung erfolgreich!',

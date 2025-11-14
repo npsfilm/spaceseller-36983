@@ -296,6 +296,28 @@ export function OrderDetailModal({ order, open, onClose, onUpdate }: OrderDetail
         link: '/freelancer-dashboard'
       });
 
+      // Trigger Zapier webhook
+      try {
+        await supabase.functions.invoke('trigger-zapier-webhook', {
+          body: {
+            assignmentData: {
+              order_number: order.order_number,
+              order_id: order.id,
+              photographer_id: selectedPhotographer,
+              photographer_email: photographers.find(p => p.id === selectedPhotographer)?.email,
+              scheduled_date: scheduledDate,
+              scheduled_time: scheduledTime,
+              admin_notes: adminNotes,
+              total_amount: order.total_amount,
+              timestamp: new Date().toISOString()
+            }
+          }
+        });
+      } catch (error) {
+        console.error('Error triggering Zapier webhook:', error);
+        // Don't fail the assignment if webhook fails
+      }
+
       toast({
         title: 'Erfolg',
         description: 'Fotograf erfolgreich zugewiesen',
@@ -372,6 +394,12 @@ export function OrderDetailModal({ order, open, onClose, onUpdate }: OrderDetail
                   <div className="mt-2">
                     <Label className="text-xs text-muted-foreground">Notiz vom Fotografen</Label>
                     <p className="text-sm mt-1">{currentAssignment.photographer_notes}</p>
+                  </div>
+                )}
+                {currentAssignment.status === 'declined' && currentAssignment.photographer_notes && (
+                  <div className="mt-3 p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
+                    <h4 className="font-semibold text-red-900 dark:text-red-100 mb-1 text-sm">Ablehnungsgrund:</h4>
+                    <p className="text-sm text-red-700 dark:text-red-300">{currentAssignment.photographer_notes}</p>
                   </div>
                 )}
               </div>

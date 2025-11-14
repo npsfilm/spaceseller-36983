@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { AssignmentCard } from '@/components/freelancer/AssignmentCard';
+import { DeclineReasonDialog } from '@/components/freelancer/DeclineReasonDialog';
 import { Clock, CheckCircle, XCircle, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -22,13 +23,36 @@ interface Assignment {
     order_number: string;
     special_instructions: string | null;
     user_id: string;
+    total_amount: number;
+    profiles: {
+      vorname: string;
+      nachname: string;
+      email: string;
+      telefon: string | null;
+    };
   };
+  addresses: Array<{
+    strasse: string;
+    hausnummer: string;
+    plz: string;
+    stadt: string;
+    land: string;
+  }>;
+  order_items: Array<{
+    quantity: number;
+    total_price: number;
+    services: {
+      name: string;
+    };
+  }>;
 }
 
 export default function FreelancerDashboard() {
   const { user } = useAuth();
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [declineDialogOpen, setDeclineDialogOpen] = useState(false);
+  const [assignmentToDecline, setAssignmentToDecline] = useState<string | null>(null);
   const [stats, setStats] = useState({
     pending: 0,
     accepted: 0,
@@ -52,7 +76,26 @@ export default function FreelancerDashboard() {
           orders!inner(
             order_number,
             special_instructions,
-            user_id
+            user_id,
+            total_amount,
+            profiles!orders_user_id_fkey(
+              vorname,
+              nachname,
+              email,
+              telefon
+            )
+          ),
+          addresses:addresses!order_assignments_order_id_addresses_order_id_fkey(
+            strasse,
+            hausnummer,
+            plz,
+            stadt,
+            land
+          ),
+          order_items:order_items!order_assignments_order_id_order_items_order_id_fkey(
+            quantity,
+            total_price,
+            services(name)
           )
         `)
         .eq('photographer_id', user.id)
@@ -78,6 +121,8 @@ export default function FreelancerDashboard() {
 
   const handleAcceptAssignment = async (assignmentId: string) => {
     try {
+      const assignment = assignments.find(a => a.id === assignmentId);
+      
       const { error } = await (supabase as any)
         .from('order_assignments')
         .update({ 
@@ -92,15 +137,23 @@ export default function FreelancerDashboard() {
       fetchAssignments();
       
       // Create notification for admin
-      const assignment = assignments.find(a => a.id === assignmentId);
       if (assignment) {
-        await (supabase as any).from('notifications').insert({
-          user_id: assignment.orders.user_id,
-          type: 'assignment_accepted',
-          title: 'Fotograf hat zugestimmt',
-          message: `Ihr Auftrag #${assignment.orders.order_number} wurde von einem Fotografen angenommen.`,
-          link: `/admin-backend`
-        });
+        const { data: adminRoles } = await supabase
+          .from('user_roles')
+          .select('user_id')
+          .eq('role', 'admin');
+
+        if (adminRoles) {
+          const notifications = adminRoles.map(admin => ({
+            user_id: admin.user_id,
+            type: 'assignment_accepted',
+            title: 'Fotograf hat zugestimmt',
+            message: `Auftrag #${assignment.orders.order_number} wurde von einem Fotografen angenommen.`,
+            link: `/admin-backend`
+          }));
+          
+          await (supabase as any).from('notifications').insert(notifications);
+        }
       }
     } catch (error) {
       console.error('Error accepting assignment:', error);
@@ -108,13 +161,16 @@ export default function FreelancerDashboard() {
     }
   };
 
-  const handleDeclineAssignment = async (assignmentId: string) => {
+  const handleDeclineAssignment = async (assignmentId: string, reason: string) => {
     try {
+      const assignment = assignments.find(a => a.id === assignmentId);
+      
       const { error } = await (supabase as any)
         .from('order_assignments')
         .update({ 
           status: 'declined',
-          responded_at: new Date().toISOString()
+          responded_at: new Date().toISOString(),
+          photographer_notes: reason
         })
         .eq('id', assignmentId);
 
@@ -123,21 +179,37 @@ export default function FreelancerDashboard() {
       toast.success('Auftrag abgelehnt');
       fetchAssignments();
 
-      // Create notification for admin
-      const assignment = assignments.find(a => a.id === assignmentId);
+      // Create detailed notification for admin with decline reason
       if (assignment) {
-        await (supabase as any).from('notifications').insert({
-          user_id: assignment.orders.user_id,
-          type: 'assignment_declined',
-          title: 'Fotograf hat abgelehnt',
-          message: `Auftrag #${assignment.orders.order_number} wurde abgelehnt. Bitte weisen Sie einen anderen Fotografen zu.`,
-          link: `/admin-backend`
-        });
+        const { data: adminRoles } = await supabase
+          .from('user_roles')
+          .select('user_id')
+          .eq('role', 'admin');
+
+        if (adminRoles) {
+          const notifications = adminRoles.map(admin => ({
+            user_id: admin.user_id,
+            type: 'assignment_declined',
+            title: 'Fotograf hat abgelehnt',
+            message: `Auftrag #${assignment.orders.order_number} wurde abgelehnt. Grund: ${reason}`,
+            link: `/admin-backend`
+          }));
+          
+          await (supabase as any).from('notifications').insert(notifications);
+        }
       }
+      
+      setDeclineDialogOpen(false);
+      setAssignmentToDecline(null);
     } catch (error) {
       console.error('Error declining assignment:', error);
       toast.error('Fehler beim Ablehnen des Auftrags');
     }
+  };
+
+  const onDeclineClick = (assignmentId: string) => {
+    setAssignmentToDecline(assignmentId);
+    setDeclineDialogOpen(true);
   };
 
   const pendingAssignments = assignments.filter(a => a.status === 'pending');
@@ -222,7 +294,7 @@ export default function FreelancerDashboard() {
                   assignment={assignment as any}
                   onViewDetails={() => {}}
                   onAccept={() => handleAcceptAssignment(assignment.id)}
-                  onDecline={() => handleDeclineAssignment(assignment.id)}
+                  onDecline={() => onDeclineClick(assignment.id)}
                 />
               ))
             )}
@@ -265,6 +337,19 @@ export default function FreelancerDashboard() {
           </TabsContent>
         </Tabs>
       </div>
+
+      <DeclineReasonDialog
+        open={declineDialogOpen}
+        onClose={() => {
+          setDeclineDialogOpen(false);
+          setAssignmentToDecline(null);
+        }}
+        onConfirm={(reason, notes) => {
+          if (assignmentToDecline) {
+            handleDeclineAssignment(assignmentToDecline, notes || reason);
+          }
+        }}
+      />
     </Layout>
   );
 }
