@@ -21,6 +21,7 @@ import PhotographerManagement from "./pages/admin/PhotographerManagement";
 import FreelancerDashboard from "./pages/FreelancerDashboard";
 import Dashboard from "./pages/Dashboard";
 import ResetPassword from "./pages/ResetPassword";
+import PhotographerSettings from "./pages/PhotographerSettings";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -45,6 +46,7 @@ const App = () => (
             <Route path="/admin-backend" element={<ProtectedRoute requireOnboarding requireAdmin><Admin /></ProtectedRoute>} />
             <Route path="/admin-backend/photographers" element={<ProtectedRoute requireOnboarding requireAdmin><PhotographerManagement /></ProtectedRoute>} />
             <Route path="/freelancer-dashboard" element={<ProtectedRoute requireOnboarding requirePhotographer><FreelancerDashboard /></ProtectedRoute>} />
+            <Route path="/photographer-settings" element={<ProtectedRoute requireOnboarding requirePhotographer><PhotographerSettings /></ProtectedRoute>} />
             <Route path="/impressum" element={<Impressum />} />
             <Route path="/datenschutz" element={<Datenschutz />} />
             <Route path="/agb" element={<AGB />} />

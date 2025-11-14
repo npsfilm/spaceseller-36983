@@ -74,6 +74,12 @@ export const Header = () => {
                             Freelancer Dashboard
                           </Link>
                         </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link to="/photographer-settings" className="cursor-pointer">
+                            <SettingsIcon className="mr-2 h-4 w-4" />
+                            Fotografen-Einstellungen
+                          </Link>
+                        </DropdownMenuItem>
                       </>
                     )}
                     {isAdmin && (
