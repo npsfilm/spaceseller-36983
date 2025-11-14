@@ -38,12 +38,6 @@ export default function Auth() {
   const passwordValidation = validatePassword(password);
 
   useEffect(() => {
-    if (user) {
-      navigate('/order');
-    }
-  }, [user, navigate]);
-
-  useEffect(() => {
     // Auto-focus email input on mount
     emailInputRef.current?.focus();
 
@@ -117,7 +111,10 @@ export default function Auth() {
             description: 'Willkommen zurück!'
           });
           triggerSuccessConfetti();
-          navigate('/order');
+          // Navigate to home which will handle role-based redirect
+          setTimeout(() => {
+            navigate('/');
+          }, 500);
         }
       } else {
         const { error } = await signUp(email.trim(), password, { email: email.trim() });
