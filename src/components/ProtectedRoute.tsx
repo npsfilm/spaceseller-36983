@@ -11,9 +11,10 @@ interface ProtectedRouteProps {
   requireOnboarding?: boolean;
   requireAdmin?: boolean;
   requirePhotographer?: boolean;
+  requireClient?: boolean;
 }
 
-export const ProtectedRoute = ({ children, requireOnboarding = false, requireAdmin = false, requirePhotographer = false }: ProtectedRouteProps) => {
+export const ProtectedRoute = ({ children, requireOnboarding = false, requireAdmin = false, requirePhotographer = false, requireClient = false }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(null);
@@ -58,7 +59,17 @@ export const ProtectedRoute = ({ children, requireOnboarding = false, requireAdm
     }
   }, [requirePhotographer, photographerLoading, isPhotographer, user, navigate]);
 
-  if (loading || (requireOnboarding && onboardingComplete === null) || (requireAdmin && adminLoading) || (requirePhotographer && photographerLoading)) {
+  useEffect(() => {
+    if (requireClient && !adminLoading && !photographerLoading && user) {
+      if (isAdmin) {
+        navigate('/admin-backend');
+      } else if (isPhotographer) {
+        navigate('/freelancer-dashboard');
+      }
+    }
+  }, [requireClient, adminLoading, photographerLoading, isAdmin, isPhotographer, user, navigate]);
+
+  if (loading || (requireOnboarding && onboardingComplete === null) || (requireAdmin && adminLoading) || (requirePhotographer && photographerLoading) || (requireClient && (adminLoading || photographerLoading))) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -75,6 +86,10 @@ export const ProtectedRoute = ({ children, requireOnboarding = false, requireAdm
   }
 
   if (requirePhotographer && !isPhotographer) {
+    return null;
+  }
+
+  if (requireClient && (isAdmin || isPhotographer)) {
     return null;
   }
 

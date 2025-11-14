@@ -1,20 +1,29 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserRole } from "@/hooks/useUserRole";
 
 const Home = () => {
   const navigate = useNavigate();
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const { role, loading: roleLoading } = useUserRole();
 
   useEffect(() => {
-    if (!loading) {
-      if (user) {
-        navigate("/order");
-      } else {
+    if (!authLoading && !roleLoading) {
+      if (user && role) {
+        // Redirect based on user role
+        if (role === 'admin') {
+          navigate("/admin-backend");
+        } else if (role === 'photographer') {
+          navigate("/freelancer-dashboard");
+        } else {
+          navigate("/dashboard");
+        }
+      } else if (!user) {
         navigate("/auth");
       }
     }
-  }, [user, loading, navigate]);
+  }, [user, role, authLoading, roleLoading, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center">

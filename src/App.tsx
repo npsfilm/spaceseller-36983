@@ -38,11 +38,11 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/onboarding" element={<Onboarding />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/order" element={<Order />} />
-            <Route path="/order/confirmation/:orderId" element={<OrderConfirmation />} />
-            <Route path="/my-orders" element={<MyOrders />} />
-            <Route path="/settings" element={<Settings />} />
+            <Route path="/dashboard" element={<ProtectedRoute requireOnboarding requireClient><Dashboard /></ProtectedRoute>} />
+            <Route path="/order" element={<ProtectedRoute requireOnboarding requireClient><Order /></ProtectedRoute>} />
+            <Route path="/order/confirmation/:orderId" element={<ProtectedRoute requireOnboarding requireClient><OrderConfirmation /></ProtectedRoute>} />
+            <Route path="/my-orders" element={<ProtectedRoute requireOnboarding requireClient><MyOrders /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute requireOnboarding><Settings /></ProtectedRoute>} />
             <Route path="/admin-backend" element={<ProtectedRoute requireOnboarding requireAdmin><Admin /></ProtectedRoute>} />
             <Route path="/admin-backend/photographers" element={<ProtectedRoute requireOnboarding requireAdmin><PhotographerManagement /></ProtectedRoute>} />
             <Route path="/freelancer-dashboard" element={<ProtectedRoute requireOnboarding requirePhotographer><FreelancerDashboard /></ProtectedRoute>} />
