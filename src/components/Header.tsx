@@ -8,7 +8,7 @@ import { DesktopNav } from "@/components/navigation/DesktopNav";
 import { MobileNav } from "@/components/navigation/MobileNav";
 import { NotificationBell } from "@/components/NotificationBell";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { User, Settings as SettingsIcon, Package, LogOut, Shield, Camera } from "lucide-react";
+import { User, Settings as SettingsIcon, Package, LogOut, Shield, Camera, Users } from "lucide-react";
 import logo from "@/assets/spaceseller-logo.png";
 
 export const Header = () => {
@@ -83,6 +83,12 @@ export const Header = () => {
                           <Link to="/admin-backend" className="cursor-pointer">
                             <Shield className="mr-2 h-4 w-4" />
                             Admin Dashboard
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link to="/admin-backend/photographers" className="cursor-pointer">
+                            <Users className="mr-2 h-4 w-4" />
+                            Fotografen
                           </Link>
                         </DropdownMenuItem>
                       </>
