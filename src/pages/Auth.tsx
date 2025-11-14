@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { validatePassword } from '@/lib/passwordValidation';
 import { validateEmail } from '@/lib/emailValidation';
 import { z } from 'zod';
-import { Lock, Mail, Eye, EyeOff, Shield } from 'lucide-react';
+import { Lock, Mail, Eye, EyeOff, Shield, ArrowLeft } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { BenefitsCarousel } from '@/components/auth/BenefitsCarousel';
 import { FloatingLabelInput } from '@/components/auth/FloatingLabelInput';
@@ -21,6 +21,7 @@ const passwordSchema = z.string().min(8, 'Passwort muss mindestens 8 Zeichen lan
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
+  const [showForm, setShowForm] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -188,23 +189,39 @@ export default function Auth() {
           >
             {/* Glassmorphism card */}
             <div className="bg-card/80 backdrop-blur-xl border border-border rounded-3xl p-8 shadow-2xl">
-              {/* Header */}
+              {/* Header with back button when form is shown */}
               <AnimatePresence mode="wait">
                 <motion.div
-                  key={isLogin ? 'login' : 'signup'}
+                  key={showForm ? (isLogin ? 'login-form' : 'signup-form') : 'landing'}
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
                   transition={{ duration: 0.3 }}
                   className="text-center mb-8"
                 >
+                  {showForm && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-4 left-4"
+                      onClick={() => {
+                        setShowForm(false);
+                        setPassword('');
+                        setEmailError('');
+                      }}
+                    >
+                      <ArrowLeft className="w-5 h-5" />
+                    </Button>
+                  )}
                   <h1 className="text-3xl font-bold mb-2">
-                    {isLogin ? 'Willkommen zurück' : 'Starten Sie jetzt'}
+                    {showForm 
+                      ? (isLogin ? 'Willkommen zurück' : 'Starten Sie jetzt')
+                      : 'Willkommen bei spaceseller'}
                   </h1>
                   <p className="text-muted-foreground">
-                    {isLogin 
-                      ? 'Melden Sie sich an, um fortzufahren' 
-                      : 'Erstellen Sie Ihr kostenloses Konto'}
+                    {showForm
+                      ? (isLogin ? 'Melden Sie sich an, um fortzufahren' : 'Erstellen Sie Ihr kostenloses Konto')
+                      : 'Wählen Sie eine Option, um fortzufahren'}
                   </p>
                 </motion.div>
               </AnimatePresence>
@@ -212,8 +229,42 @@ export default function Auth() {
               {/* Social Auth */}
               <SocialAuthButtons />
 
+              {/* Button Landing View */}
+              {!showForm && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-4 mt-6"
+                >
+                  <Button
+                    size="lg"
+                    className="w-full h-14 text-lg"
+                    onClick={() => {
+                      setIsLogin(true);
+                      setShowForm(true);
+                    }}
+                  >
+                    Anmelden
+                  </Button>
+                  
+                  <Button
+                    size="default"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => {
+                      setIsLogin(false);
+                      setShowForm(true);
+                    }}
+                  >
+                    Registrieren
+                  </Button>
+                </motion.div>
+              )}
+
               {/* Form */}
-              <form onSubmit={handleSubmit} className="space-y-5 mt-6">
+              {showForm && (
+                <>
+                <form onSubmit={handleSubmit} className="space-y-5 mt-6">
                 <div className="space-y-4">
                   <FloatingLabelInput
                     ref={emailInputRef}
@@ -389,6 +440,8 @@ export default function Auth() {
                   </p>
                 )}
               </div>
+                </>
+              )}
             </div>
           </motion.div>
         </div>
