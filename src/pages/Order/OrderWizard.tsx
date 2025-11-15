@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Layout } from '@/components/Layout';
+import { OrderLayout } from '@/components/OrderLayout';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -14,7 +14,7 @@ import { ConfigurationStep } from './steps/ConfigurationStep';
 import { PropertyDetailsStep } from './steps/PropertyDetailsStep';
 import { FileUploadStep } from './steps/FileUploadStep';
 import { ReviewStep } from './steps/ReviewStep';
-import { PricingCalculator } from './components/PricingCalculator';
+import { PricingSidebar } from './components/PricingSidebar';
 
 export interface Service {
   id: string;
@@ -62,12 +62,10 @@ export interface OrderState {
 }
 
 const STEPS = [
-  { number: 1, title: 'Services', description: 'Wählen Sie Services' },
-  { number: 2, title: 'Upgrades', description: 'Optionale Extras' },
-  { number: 3, title: 'Konfiguration', description: 'Details angeben' },
-  { number: 4, title: 'Adresse', description: 'Objektdetails' },
-  { number: 5, title: 'Upload', description: 'Bilder hochladen' },
-  { number: 6, title: 'Prüfung', description: 'Bestellung prüfen' }
+  { number: 1, title: 'Services', description: 'Auswahl' },
+  { number: 2, title: 'Konfiguration', description: 'Details' },
+  { number: 3, title: 'Objektdaten', description: 'Adresse & Upload' },
+  { number: 4, title: 'Prüfung', description: 'Abschluss' }
 ];
 
 export const OrderWizard = () => {
@@ -401,126 +399,183 @@ export const OrderWizard = () => {
   const hasSelectedServices = Object.keys(orderState.selectedServices).length > 0;
 
   return (
-    <Layout>
-      <div className="min-h-screen pt-24 pb-16 px-4">
-        <div className="container mx-auto max-w-7xl">
+    <OrderLayout>
+      <div className="flex h-full">
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col overflow-hidden">
           {/* Progress Indicator */}
           <ProgressIndicator 
-            steps={STEPS} 
-            currentStep={orderState.step} 
+            steps={STEPS}
+            currentStep={orderState.step}
             onStepClick={goToStep}
           />
 
-          {/* Step Content */}
-          <div className="mt-12">
-            <AnimatePresence mode="wait" custom={orderState.step}>
-              <motion.div
-                key={orderState.step}
-                custom={orderState.step}
-                variants={slideVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{
-                  x: { type: "spring", stiffness: 300, damping: 30 },
-                  opacity: { duration: 0.2 }
-                }}
-              >
-                {orderState.step === 1 && !orderState.selectedCategory && (
-                  <CategorySelectionStep
-                    services={services}
-                    onSelectCategory={selectCategory}
-                  />
-                )}
-                {orderState.step === 1 && orderState.selectedCategory === 'photography' && !orderState.locationValidated && (
-                  <LocationCheckStep
-                    address={orderState.address}
-                    onUpdateAddress={handleUpdateAddressField}
-                    onLocationValidated={handleLocationValidated}
-                    onBack={backToCategories}
-                  />
-                )}
-                {orderState.step === 1 && orderState.selectedCategory && (orderState.selectedCategory !== 'photography' || orderState.locationValidated) && (
-                  <ServiceSelectionStep
-                    services={services}
-                    selectedServices={orderState.selectedServices}
-                    onUpdateServices={updateSelectedServices}
-                    onNext={nextStep}
-                    category={orderState.selectedCategory}
-                    onBackToCategories={orderState.selectedCategory === 'photography' ? backToLocationCheck : backToCategories}
-                  />
-                )}
-                {orderState.step === 2 && (
-                  <UpgradesStep
-                    selectedUpgrades={orderState.selectedUpgrades}
-                    onUpdateUpgrades={updateUpgrades}
-                    virtualStagingCount={orderState.virtualStagingCount}
-                    onUpdateVirtualStagingCount={updateVirtualStagingCount}
-                    onNext={nextStep}
-                    onBack={prevStep}
-                    category={orderState.selectedCategory || ''}
-                  />
-                )}
-                {orderState.step === 3 && (
-                  <ConfigurationStep
-                    services={services}
-                    selectedServices={orderState.selectedServices}
-                    onUpdateServices={updateSelectedServices}
-                    onNext={nextStep}
-                    onBack={prevStep}
-                  />
-                )}
-                {orderState.step === 4 && (
-                  <PropertyDetailsStep
-                    address={orderState.address}
-                    onUpdateAddress={updateAddress}
-                    onNext={nextStep}
-                    onBack={prevStep}
-                    hasPhotography={Object.values(orderState.selectedServices).some(config => {
-                      const service = services.find(s => s.id === config.serviceId);
-                      return service?.category === 'photography';
-                    })}
-                  />
-                )}
-                {orderState.step === 5 && (
-                  <FileUploadStep
-                    orderId={orderState.draftOrderId || ''}
-                    uploads={orderState.uploads}
-                    onUpdateUploads={updateUploads}
-                    onNext={nextStep}
-                    onBack={prevStep}
-                    hasEditingServices={Object.values(orderState.selectedServices).some(config => {
-                      const service = services.find(s => s.id === config.serviceId);
-                      return service?.category !== 'photography';
-                    })}
-                  />
-                )}
-                {orderState.step === 6 && (
-                  <ReviewStep
-                    services={services}
-                    orderState={orderState}
-                    onUpdateInstructions={updateSpecialInstructions}
-                    onBack={prevStep}
-                    onSubmit={submitOrder}
-                    calculateTotal={calculateTotal}
-                  />
-                )}
-              </motion.div>
-            </AnimatePresence>
-          </div>
+          {/* Content Container */}
+          <div className="flex-1 overflow-y-auto">
+            <div className="container mx-auto max-w-6xl px-4 py-6">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={orderState.step}
+                  variants={slideVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  transition={{ duration: 0.2 }}
+                >
+                  {/* Step 1: Category + Service Selection */}
+                  {orderState.step === 1 && !orderState.selectedCategory && (
+                    <CategorySelectionStep
+                      services={services}
+                      onSelectCategory={selectCategory}
+                    />
+                  )}
 
-          {/* Floating Action Bar */}
-          {hasSelectedServices && (
-            <PricingCalculator
-              selectedServices={orderState.selectedServices}
-              services={services}
-              total={calculateTotal()}
-              step={orderState.step}
-              travelCost={orderState.travelCost}
-            />
-          )}
+                  {orderState.step === 1 && orderState.selectedCategory === 'photography' && !orderState.locationValidated && (
+                    <LocationCheckStep
+                      address={orderState.address}
+                      onUpdateAddress={handleUpdateAddressField}
+                      onLocationValidated={handleLocationValidated}
+                      onBack={backToCategories}
+                    />
+                  )}
+
+                  {orderState.step === 1 && orderState.selectedCategory && (orderState.selectedCategory !== 'photography' || orderState.locationValidated) && (
+                    <ServiceSelectionStep
+                      services={services}
+                      selectedServices={orderState.selectedServices}
+                      onUpdateServices={updateSelectedServices}
+                      onNext={nextStep}
+                      category={orderState.selectedCategory}
+                      onBackToCategories={orderState.selectedCategory === 'photography' ? backToLocationCheck : backToCategories}
+                    />
+                  )}
+
+                  {/* Step 2: Configuration + Upgrades Combined */}
+                  {orderState.step === 2 && (
+                    <div className="space-y-4">
+                      <div>
+                        <h2 className="text-2xl font-bold mb-1">Konfiguration & Upgrades</h2>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Passen Sie Ihre Services an und wählen Sie optionale Extras
+                        </p>
+                      </div>
+
+                      <div className="grid lg:grid-cols-2 gap-4">
+                        {/* Left: Configuration */}
+                        <div className="space-y-3">
+                          <h3 className="text-base font-semibold">Service-Details</h3>
+                          <ConfigurationStep
+                            services={services}
+                            selectedServices={orderState.selectedServices}
+                            onUpdateServices={updateSelectedServices}
+                            onNext={nextStep}
+                            onBack={prevStep}
+                          />
+                        </div>
+
+                        {/* Right: Upgrades */}
+                        <div className="space-y-3">
+                          <h3 className="text-base font-semibold">Optionale Extras</h3>
+                          <UpgradesStep
+                            selectedUpgrades={orderState.selectedUpgrades}
+                            onUpdateUpgrades={updateUpgrades}
+                            virtualStagingCount={orderState.virtualStagingCount}
+                            onUpdateVirtualStagingCount={updateVirtualStagingCount}
+                            onNext={nextStep}
+                            onBack={prevStep}
+                            category={orderState.selectedCategory || ''}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Step 3: Property Details + Upload Combined */}
+                  {orderState.step === 3 && (
+                    <div className="space-y-4">
+                      <div>
+                        <h2 className="text-2xl font-bold mb-1">Objektdaten</h2>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Geben Sie die Objektadresse ein und laden Sie Dateien hoch
+                        </p>
+                      </div>
+
+                      <div className="grid lg:grid-cols-2 gap-4">
+                        {/* Left: Address */}
+                        <div className="space-y-3">
+                          <h3 className="text-base font-semibold">Adresse</h3>
+                          <PropertyDetailsStep
+                            address={orderState.address}
+                            onUpdateAddress={updateAddress}
+                            onNext={nextStep}
+                            onBack={prevStep}
+                            hasPhotography={Object.values(orderState.selectedServices).some(config => {
+                              const service = services.find(s => s.id === config.serviceId);
+                              return service?.category === 'photography';
+                            })}
+                          />
+                        </div>
+
+                        {/* Right: File Upload */}
+                        <div className="space-y-3">
+                          <h3 className="text-base font-semibold">Dateien hochladen</h3>
+                          <FileUploadStep
+                            orderId={orderState.draftOrderId || ''}
+                            uploads={orderState.uploads}
+                            onUpdateUploads={updateUploads}
+                            onNext={nextStep}
+                            onBack={prevStep}
+                            hasEditingServices={Object.values(orderState.selectedServices).some(config => {
+                              const service = services.find(s => s.id === config.serviceId);
+                              return service?.category !== 'photography';
+                            })}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Step 4: Review */}
+                  {orderState.step === 4 && (
+                    <ReviewStep
+                      services={services}
+                      orderState={orderState}
+                      onUpdateInstructions={updateSpecialInstructions}
+                      onBack={prevStep}
+                      onSubmit={submitOrder}
+                      calculateTotal={calculateTotal}
+                    />
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </div>
+        </div>
+
+        {/* Pricing Sidebar - Desktop Only */}
+        <div className="hidden lg:block">
+          <PricingSidebar
+            selectedServices={orderState.selectedServices}
+            services={services}
+            total={calculateTotal()}
+            step={orderState.step}
+            travelCost={orderState.travelCost}
+          />
         </div>
       </div>
-    </Layout>
+
+      {/* Mobile Pricing Bar */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border shadow-lg p-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs text-muted-foreground">Gesamt</p>
+            <p className="text-lg font-bold text-primary">€{calculateTotal().toFixed(2)}</p>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {Object.keys(orderState.selectedServices).length} Services
+          </p>
+        </div>
+      </div>
+    </OrderLayout>
   );
 };

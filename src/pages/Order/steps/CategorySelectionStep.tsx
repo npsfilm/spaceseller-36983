@@ -52,18 +52,18 @@ export const CategorySelectionStep = ({
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="text-center space-y-3"
+          className="text-center space-y-2"
         >
-          <h1 className="text-4xl md:text-5xl font-bold text-foreground">
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">
             Was benötigen Sie?
           </h1>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             Wählen Sie die Kategorie, die am besten zu Ihrem Projekt passt
           </p>
         </motion.div>
 
         {/* Category Grid */}
-        <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-5xl mx-auto">
           {categories.map((category, index) => {
             const startingPrice = Math.min(...category.services.map(s => s.base_price));
             return (
