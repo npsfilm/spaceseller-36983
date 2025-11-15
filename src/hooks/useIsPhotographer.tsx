@@ -13,23 +13,33 @@ export const useIsPhotographer = () => {
 
   const checkPhotographerStatus = async () => {
     if (!user) {
+      console.log('[useIsPhotographer] No user, setting isPhotographer to false');
       setIsPhotographer(false);
       setLoading(false);
       return;
     }
+
+    console.log('[useIsPhotographer] Checking photographer status for user:', user.id);
 
     try {
       const { data, error } = await (supabase as any).rpc('is_photographer', {
         _user_id: user.id
       });
 
-      if (!error && data === true) {
+      console.log('[useIsPhotographer] RPC result:', { data, error });
+
+      if (error) {
+        console.error('[useIsPhotographer] RPC error:', error);
+        setIsPhotographer(false);
+      } else if (data === true) {
+        console.log('[useIsPhotographer] User IS photographer');
         setIsPhotographer(true);
       } else {
+        console.log('[useIsPhotographer] User is NOT photographer');
         setIsPhotographer(false);
       }
     } catch (error) {
-      console.error('Error checking photographer status:', error);
+      console.error('[useIsPhotographer] Exception checking photographer status:', error);
       setIsPhotographer(false);
     }
     
