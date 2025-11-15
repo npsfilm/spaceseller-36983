@@ -13,10 +13,13 @@ export const useIsAdmin = () => {
 
   const checkAdminStatus = async () => {
     if (!user) {
+      console.log('[useIsAdmin] No user, setting isAdmin to false');
       setIsAdmin(false);
       setLoading(false);
       return;
     }
+
+    console.log('[useIsAdmin] Checking admin status for user:', user.id);
 
     try {
       // Call the security definer function
@@ -24,13 +27,20 @@ export const useIsAdmin = () => {
         _user_id: user.id
       });
 
-      if (!error && data === true) {
+      console.log('[useIsAdmin] RPC result:', { data, error });
+
+      if (error) {
+        console.error('[useIsAdmin] RPC error:', error);
+        setIsAdmin(false);
+      } else if (data === true) {
+        console.log('[useIsAdmin] User IS admin');
         setIsAdmin(true);
       } else {
+        console.log('[useIsAdmin] User is NOT admin');
         setIsAdmin(false);
       }
     } catch (error) {
-      console.error('Error checking admin status:', error);
+      console.error('[useIsAdmin] Exception checking admin status:', error);
       setIsAdmin(false);
     }
     
