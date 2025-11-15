@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '@/integrations/supabase/client';
 import { Layout } from '@/components/Layout';
+import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -198,18 +199,12 @@ export default function UserRoleManagement() {
   }
 
   return (
-    <Layout>
+    <AdminLayout>
       <Helmet>
         <title>Benutzerverwaltung - Admin Dashboard</title>
       </Helmet>
 
-      <div className="container mx-auto py-8 px-4">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Benutzerverwaltung</h1>
-          <p className="text-muted-foreground">
-            Verwalten Sie Benutzerrollen und Berechtigungen
-          </p>
-        </div>
+      <div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -365,6 +360,6 @@ export default function UserRoleManagement() {
           </CardContent>
         </Card>
       </div>
-    </Layout>
+    </AdminLayout>
   );
 }
