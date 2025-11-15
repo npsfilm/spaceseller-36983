@@ -39,22 +39,22 @@ export const CategoryCard = ({
       className="h-full"
     >
       <div
-        className="h-full cursor-pointer rounded-xl border border-border bg-card hover:border-primary hover:shadow-md transition-all duration-300 group"
+        className="h-full cursor-pointer rounded-lg border border-border bg-card hover:border-primary hover:shadow-md transition-all duration-300 group"
         onClick={onClick}
       >
-        <div className="flex flex-col items-center text-center space-y-5 p-8">
+        <div className="flex flex-col items-center text-center space-y-3 p-6">
           {/* Icon Container */}
-          <div className="p-4 rounded-xl bg-primary/5 group-hover:bg-primary/10 transition-colors duration-300">
-            <Icon className="h-12 w-12 text-primary" strokeWidth={1.5} />
+          <div className="p-3 rounded-lg bg-primary/5 group-hover:bg-primary/10 transition-colors duration-300">
+            <Icon className="h-8 w-8 text-primary" strokeWidth={1.5} />
           </div>
           
           {/* Title */}
-          <h3 className="text-2xl font-bold text-foreground">
+          <h3 className="text-lg font-bold text-foreground">
             {title}
           </h3>
           
           {/* Description */}
-          <p className="text-sm text-muted-foreground leading-relaxed">
+          <p className="text-xs text-muted-foreground leading-relaxed">
             {description}
           </p>
           
