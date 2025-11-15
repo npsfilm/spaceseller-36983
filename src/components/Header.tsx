@@ -105,6 +105,18 @@ export const Header = () => {
                             Fotografen
                           </Link>
                         </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link to="/freelancer-dashboard" className="cursor-pointer">
+                            <Camera className="mr-2 h-4 w-4" />
+                            Freelancer Dashboard
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link to="/photographer-settings" className="cursor-pointer">
+                            <SettingsIcon className="mr-2 h-4 w-4" />
+                            Fotografen-Einstellungen
+                          </Link>
+                        </DropdownMenuItem>
                       </>
                     )}
                     <DropdownMenuSeparator />
