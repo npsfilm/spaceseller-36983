@@ -9,7 +9,7 @@ import { validatePassword } from '@/lib/passwordValidation';
 import { validateEmail } from '@/lib/emailValidation';
 import { z } from 'zod';
 import { Lock, Mail, Eye, EyeOff, Shield } from 'lucide-react';
-import confetti from 'canvas-confetti';
+
 import { BenefitsCarousel } from '@/components/auth/BenefitsCarousel';
 import { FloatingLabelInput } from '@/components/auth/FloatingLabelInput';
 import { PasswordRequirements } from '@/components/auth/PasswordRequirements';
@@ -61,14 +61,6 @@ export default function Auth() {
     }
   }, [email]);
 
-  const triggerSuccessConfetti = () => {
-    confetti({
-      particleCount: 100,
-      spread: 70,
-      origin: { y: 0.6 },
-      colors: ['hsl(var(--primary))', 'hsl(var(--accent))', '#ffffff'],
-    });
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,11 +98,6 @@ export default function Auth() {
             });
           }
         } else {
-          toast({
-            title: 'Erfolgreich angemeldet',
-            description: 'Willkommen zurück!'
-          });
-          triggerSuccessConfetti();
           // Navigate to home which will handle role-based redirect
           setTimeout(() => {
             navigate('/');
@@ -133,11 +120,6 @@ export default function Auth() {
             });
           }
         } else {
-          toast({
-            title: 'Konto erstellt',
-            description: 'Ihr Konto wurde erfolgreich erstellt!'
-          });
-          triggerSuccessConfetti();
           navigate('/onboarding');
         }
       }
