@@ -54,16 +54,14 @@ export const ProtectedRoute = ({ children, requireOnboarding = false, requireAdm
   }, [requireAdmin, adminLoading, isAdmin, user, navigate]);
 
   useEffect(() => {
-    if (requirePhotographer && !photographerLoading && !isPhotographer && user) {
+    if (requirePhotographer && !photographerLoading && !isPhotographer && user && !isAdmin) {
       navigate('/');
     }
-  }, [requirePhotographer, photographerLoading, isPhotographer, user, navigate]);
+  }, [requirePhotographer, photographerLoading, isPhotographer, isAdmin, user, navigate]);
 
   useEffect(() => {
     if (requireClient && !adminLoading && !photographerLoading && user) {
-      if (isAdmin) {
-        navigate('/admin-backend');
-      } else if (isPhotographer) {
+      if (isPhotographer && !isAdmin) {
         navigate('/freelancer-dashboard');
       }
     }
@@ -85,11 +83,11 @@ export const ProtectedRoute = ({ children, requireOnboarding = false, requireAdm
     return null;
   }
 
-  if (requirePhotographer && !isPhotographer) {
+  if (requirePhotographer && !isPhotographer && !isAdmin) {
     return null;
   }
 
-  if (requireClient && (isAdmin || isPhotographer)) {
+  if (requireClient && isPhotographer && !isAdmin) {
     return null;
   }
 
