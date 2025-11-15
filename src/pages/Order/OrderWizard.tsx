@@ -6,8 +6,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { ProgressIndicator } from './components/ProgressIndicator';
-import { CategorySelectionStep } from './steps/CategorySelectionStep';
-import { LocationCheckStep } from './steps/LocationCheckStep';
 import { ServiceSelectionStep } from './steps/ServiceSelectionStep';
 import { UpgradesStep } from './steps/UpgradesStep';
 import { ConfigurationStep } from './steps/ConfigurationStep';
@@ -422,31 +420,13 @@ export const OrderWizard = () => {
                   exit="exit"
                   transition={{ duration: 0.2 }}
                 >
-                  {/* Step 1: Category + Service Selection */}
-                  {orderState.step === 1 && !orderState.selectedCategory && (
-                    <CategorySelectionStep
-                      services={services}
-                      onSelectCategory={selectCategory}
-                    />
-                  )}
-
-                  {orderState.step === 1 && orderState.selectedCategory === 'photography' && !orderState.locationValidated && (
-                    <LocationCheckStep
-                      address={orderState.address}
-                      onUpdateAddress={handleUpdateAddressField}
-                      onLocationValidated={handleLocationValidated}
-                      onBack={backToCategories}
-                    />
-                  )}
-
-                  {orderState.step === 1 && orderState.selectedCategory && (orderState.selectedCategory !== 'photography' || orderState.locationValidated) && (
+                  {/* Step 1: Unified Service Selection */}
+                  {orderState.step === 1 && (
                     <ServiceSelectionStep
                       services={services}
                       selectedServices={orderState.selectedServices}
                       onUpdateServices={updateSelectedServices}
                       onNext={nextStep}
-                      category={orderState.selectedCategory}
-                      onBackToCategories={orderState.selectedCategory === 'photography' ? backToLocationCheck : backToCategories}
                     />
                   )}
 

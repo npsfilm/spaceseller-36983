@@ -1,8 +1,8 @@
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { PackageCard } from '../components/PackageCard';
-import { CompactServiceCard } from '../components/CompactServiceCard';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { ArrowRight, Camera, Sparkles, Home, MapPin, ChevronDown } from 'lucide-react';
+import { useState } from 'react';
 import type { Service, ServiceConfig } from '../OrderWizard';
 
 interface ServiceSelectionStepProps {
@@ -10,274 +10,287 @@ interface ServiceSelectionStepProps {
   selectedServices: Record<string, ServiceConfig>;
   onUpdateServices: (services: Record<string, ServiceConfig>) => void;
   onNext: () => void;
-  category: string;
-  onBackToCategories: () => void;
 }
+
+type CategoryFilter = 'alle' | 'photography' | 'editing' | 'virtual_staging' | 'floor_plan';
 
 export const ServiceSelectionStep = ({
   services,
   selectedServices,
   onUpdateServices,
-  onNext,
-  category,
-  onBackToCategories
+  onNext
 }: ServiceSelectionStepProps) => {
-  // Filter services by selected category
-  const categoryServices = services.filter(s => s.category === category);
-  
-  // For packages, we'll use category-specific logic
-  const photographyServices = services.filter(s => s.category === 'photography');
-  const editingServices = services.filter(s => s.category === 'editing');
-  const virtualStagingServices = services.filter(s => s.category === 'virtual_staging');
-  const floorPlanServices = services.filter(s => s.category === 'floor_plan');
+  const [activeFilter, setActiveFilter] = useState<CategoryFilter>('alle');
+  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({
+    photography: true,
+    editing: true,
+    virtual_staging: true,
+    floor_plan: true
+  });
+
+  const categories = [
+    { id: 'alle' as CategoryFilter, label: 'Alle', icon: null },
+    { id: 'photography' as CategoryFilter, label: 'Fotografie', icon: Camera },
+    { id: 'editing' as CategoryFilter, label: 'Bearbeitung', icon: Sparkles },
+    { id: 'virtual_staging' as CategoryFilter, label: 'Virtual Staging', icon: Home },
+    { id: 'floor_plan' as CategoryFilter, label: 'Grundrisse', icon: MapPin }
+  ];
 
   const handleServiceToggle = (serviceId: string) => {
+    const service = services.find(s => s.id === serviceId);
+    if (!service) return;
+
     const updated = { ...selectedServices };
+    
     if (updated[serviceId]) {
       delete updated[serviceId];
     } else {
+      // If selecting a photography package, deselect other photography packages
+      if (service.category === 'photography' && service.name.includes('Paket')) {
+        Object.keys(updated).forEach(key => {
+          const existingService = services.find(s => s.id === key);
+          if (existingService?.category === 'photography' && existingService.name.includes('Paket')) {
+            delete updated[key];
+          }
+        });
+      }
+      
       updated[serviceId] = {
         serviceId,
         quantity: 1,
         turnaround: 'standard'
       };
     }
+    
     onUpdateServices(updated);
   };
 
-  const handlePackageSelect = (packageServices: string[]) => {
-    const updated = { ...selectedServices };
-    packageServices.forEach(serviceId => {
-      if (!updated[serviceId]) {
-        updated[serviceId] = {
-          serviceId,
-          quantity: 1,
-          turnaround: 'standard'
-        };
-      }
+  const toggleCategoryExpansion = (category: string) => {
+    setExpandedCategories(prev => ({
+      ...prev,
+      [category]: !prev[category]
+    }));
+  };
+
+  const getSelectedPackageInCategory = (category: string) => {
+    return Object.keys(selectedServices).find(serviceId => {
+      const service = services.find(s => s.id === serviceId);
+      return service?.category === category && service.name.includes('Paket');
     });
-    onUpdateServices(updated);
   };
 
-  // Category-specific packages - now showing actual photography packages
-  const getCategoryPackages = () => {
-    switch (category) {
-      case 'photography':
-        // Group services by type using new naming convention
-        const immobilienServices = photographyServices.filter(s => s.name.includes('Bilder Paket'));
-        const drohnenServices = photographyServices.filter(s => s.name.includes('Sky'));
-        const kombiServices = photographyServices.filter(s => s.name.includes('Kombi'));
-        
-        const packages = [];
-        
-        // Immobilienshooting group
-        if (immobilienServices.length > 0) {
-          packages.push({
-            name: '📸 Immobilienshooting',
-            description: 'Professionelle Innen- und Außenaufnahmen',
-            services: immobilienServices,
-            badge: '⭐ Beliebt',
-            savings: 0
-          });
-        }
-        
-        // Drohnenshooting group
-        if (drohnenServices.length > 0) {
-          packages.push({
-            name: '🚁 Drohnenshooting',
-            description: 'Beeindruckende Luftaufnahmen',
-            services: drohnenServices,
-            badge: 'Premium',
-            savings: 0
-          });
-        }
-        
-        // Kombi-Paket group with savings calculation
-        if (kombiServices.length > 0) {
-          packages.push({
-            name: '🎯 Kombi-Paket',
-            description: 'Immobilien + Drohne zum Sparpreis',
-            services: kombiServices,
-            badge: '⭐ Beste Wahl',
-            savings: 0, // Savings are built into the price
-            showSavings: true // Flag to show regular price
-          });
-        }
-        
-        return packages;
-      case 'editing':
-        return [
-          {
-            name: 'Bildbearbeitung',
-            description: 'Professionelle Nachbearbeitung',
-            services: editingServices,
-            badge: 'Standard',
-            savings: 0
-          }
-        ];
-      case 'virtual_staging':
-        return [
-          {
-            name: 'Virtual Staging',
-            description: 'Digitale Möblierung mit Mengenrabatt',
-            services: virtualStagingServices,
-            badge: 'Flexibel',
-            savings: 0
-          }
-        ];
-      case 'floor_plan':
-        return [
-          {
-            name: 'Grundrisse',
-            description: '2D oder 3D Grundrisse',
-            services: floorPlanServices,
-            badge: 'Professionell',
-            savings: 0
-          }
-        ];
-      default:
-        return [];
+  const photographyServices = services.filter(s => s.category === 'photography');
+  const editingServices = services.filter(s => s.category === 'editing');
+  const virtualStagingServices = services.filter(s => s.category === 'virtual_staging');
+  const floorPlanServices = services.filter(s => s.category === 'floor_plan');
+
+  const categoryGroups = [
+    { 
+      id: 'photography', 
+      name: '📸 Fotografie', 
+      services: photographyServices,
+      color: 'from-blue-500/10 to-blue-500/5'
+    },
+    { 
+      id: 'editing', 
+      name: '✨ Bildbearbeitung', 
+      services: editingServices,
+      color: 'from-purple-500/10 to-purple-500/5'
+    },
+    { 
+      id: 'virtual_staging', 
+      name: '🏠 Virtual Staging', 
+      services: virtualStagingServices,
+      color: 'from-green-500/10 to-green-500/5'
+    },
+    { 
+      id: 'floor_plan', 
+      name: '📐 Grundrisse', 
+      services: floorPlanServices,
+      color: 'from-orange-500/10 to-orange-500/5'
     }
-  };
-
-  const popularPackages = getCategoryPackages();
-
-  // Category titles for display
-  const categoryTitles: Record<string, string> = {
-    photography: 'Fotografie Services',
-    editing: 'Bildbearbeitung Services',
-    virtual_staging: 'Virtual Staging Services',
-    floor_plan: 'Grundriss Services'
-  };
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
-  };
-
-  const hasSelection = Object.keys(selectedServices).length > 0;
+  ];
 
   return (
-    <div className="space-y-8">
-      {/* Header with Back Button */}
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center space-y-4"
-      >
-        <Button
-          variant="ghost"
-          onClick={onBackToCategories}
-          className="gap-2"
-        >
-          ← Zurück zur Kategorieauswahl
-        </Button>
-        <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent">
-          {categoryTitles[category]}
+    <div className="flex flex-col h-full">
+      {/* Header */}
+      <div className="px-6 py-4 border-b border-border">
+        <h1 className="text-2xl font-bold text-foreground mb-2">
+          Wählen Sie Ihre Services
         </h1>
-        <p className="text-lg text-muted-foreground">
-          Wählen Sie ein Paket oder einzelne Services
+        <p className="text-sm text-muted-foreground">
+          Alle Services auf einen Blick – wählen Sie, was Sie benötigen
         </p>
-      </motion.div>
+      </div>
 
-      {/* Package Recommendations - PROMINENT */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-      >
-        <div className="flex items-center gap-3 mb-8 justify-center">
-          <Sparkles className="h-6 w-6 text-accent" />
-          <h2 className="text-2xl font-bold">Schnellauswahl - Beliebte Pakete</h2>
+      {/* Category Filter Tabs */}
+      <div className="px-6 py-3 border-b border-border bg-muted/30">
+        <div className="flex gap-2 overflow-x-auto">
+          {categories.map((cat) => {
+            const Icon = cat.icon;
+            return (
+              <Button
+                key={cat.id}
+                variant={activeFilter === cat.id ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setActiveFilter(cat.id)}
+                className="flex items-center gap-2 whitespace-nowrap"
+              >
+                {Icon && <Icon className="w-4 h-4" />}
+                {cat.label}
+              </Button>
+            );
+          })}
         </div>
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {popularPackages.map((pkg, index) => (
-            <PackageCard
-              key={pkg.name}
-              package={pkg}
-              onSelect={() => handlePackageSelect(pkg.services.map(s => s.id))}
-              delay={index * 0.1}
-            />
-          ))}
-        </div>
-      </motion.section>
+      </div>
 
-      {/* Decorative Divider */}
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.4 }}
-        className="relative py-8"
-      >
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-border"></div>
-        </div>
-        <div className="relative flex justify-center">
-          <span className="bg-background px-4 text-sm text-muted-foreground font-medium">
-            ODER
-          </span>
-        </div>
-      </motion.div>
+      {/* Services Grid */}
+      <div className="flex-1 overflow-y-auto px-6 py-4">
+        <div className="space-y-6 max-w-6xl mx-auto">
+          {categoryGroups
+            .filter(group => activeFilter === 'alle' || group.id === activeFilter)
+            .filter(group => group.services.length > 0)
+            .map((group) => {
+              const selectedPackage = getSelectedPackageInCategory(group.id);
+              const isExpanded = expandedCategories[group.id];
+              const hasPackages = group.services.some(s => s.name.includes('Paket'));
 
-      {/* Individual Service Selection - Always Visible */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        className="space-y-8 bg-muted/30 rounded-lg p-8"
-      >
-        <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold mb-2">Alle verfügbaren Services</h2>
-          <p className="text-muted-foreground">Wählen Sie nur die Services, die Sie benötigen</p>
-        </div>
+              return (
+                <div key={group.id} className="space-y-3">
+                  {/* Category Header */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <h2 className="text-lg font-bold text-foreground">{group.name}</h2>
+                      {selectedPackage && (
+                        <Badge variant="secondary" className="text-xs">
+                          1 ausgewählt
+                        </Badge>
+                      )}
+                    </div>
+                    {selectedPackage && hasPackages && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleCategoryExpansion(group.id)}
+                        className="text-xs"
+                      >
+                        {isExpanded ? 'Andere Pakete ausblenden' : 'Andere Pakete anzeigen'}
+                        <ChevronDown className={`w-4 h-4 ml-1 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                      </Button>
+                    )}
+                  </div>
 
-        <div className="space-y-4">
-          <div className="flex items-center gap-3 border-b border-border pb-3">
-            <h3 className="text-xl font-bold">Alle Services</h3>
-            <span className="text-sm text-muted-foreground">
-              ({categoryServices.length} verfügbar)
-            </span>
+                  {/* Services Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {group.services
+                      .filter(service => {
+                        // If a package is selected in this category and category is collapsed
+                        if (selectedPackage && !isExpanded && hasPackages) {
+                          // Only show the selected package
+                          return service.id === selectedPackage;
+                        }
+                        return true;
+                      })
+                      .map((service) => {
+                        const isSelected = !!selectedServices[service.id];
+                        const isPackage = service.name.includes('Paket') || service.name.includes('Kombi') || service.name.includes('Sky');
+
+                        return (
+                          <motion.div
+                            key={service.id}
+                            layout
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="relative"
+                          >
+                            <div
+                              onClick={() => handleServiceToggle(service.id)}
+                              className={`
+                                relative p-4 rounded-lg border-2 cursor-pointer transition-all
+                                ${isSelected 
+                                  ? 'border-primary bg-primary/5 shadow-lg scale-[1.02]' 
+                                  : 'border-border bg-card hover:border-primary/30 hover:shadow-md'
+                                }
+                              `}
+                            >
+                              {/* Selected Checkmark */}
+                              {isSelected && (
+                                <div className="absolute -top-2 -right-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                                  <Sparkles className="w-3 h-3 text-primary-foreground" />
+                                </div>
+                              )}
+
+                              {/* Package Badge */}
+                              {isPackage && (
+                                <Badge variant="secondary" className="absolute top-2 left-2 text-xs">
+                                  Paket
+                                </Badge>
+                              )}
+
+                              {/* Content */}
+                              <div className="space-y-2 mt-6">
+                                <h3 className="font-bold text-sm text-foreground line-clamp-2">
+                                  {service.name}
+                                </h3>
+                                
+                                {service.description && (
+                                  <p className="text-xs text-muted-foreground line-clamp-2">
+                                    {service.description}
+                                  </p>
+                                )}
+
+                                {/* Features */}
+                                {service.features && Array.isArray(service.features) && service.features.length > 0 && (
+                                  <div className="space-y-1">
+                                    {service.features.slice(0, 2).map((feature, idx) => (
+                                      <div key={idx} className="flex items-center gap-1 text-xs text-muted-foreground">
+                                        <div className="w-1 h-1 rounded-full bg-primary/60" />
+                                        <span className="line-clamp-1">{feature}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+
+                                {/* Price */}
+                                <div className="pt-2 mt-2 border-t border-border">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-lg font-bold text-foreground">
+                                      €{service.base_price}
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {service.unit}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                  </div>
+                </div>
+              );
+            })}
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="px-6 py-4 border-t border-border bg-card">
+        <div className="flex items-center justify-between max-w-6xl mx-auto">
+          <div className="text-sm text-muted-foreground">
+            {Object.keys(selectedServices).length} Service(s) ausgewählt
           </div>
-          
-          <div className="grid md:grid-cols-2 gap-4">
-            {categoryServices.map((service) => (
-              <CompactServiceCard
-                key={service.id}
-                service={service}
-                isSelected={!!selectedServices[service.id]}
-                onToggle={handleServiceToggle}
-              />
-            ))}
-          </div>
+          <Button
+            onClick={onNext}
+            disabled={Object.keys(selectedServices).length === 0}
+            size="lg"
+            className="gap-2"
+          >
+            Weiter zur Konfiguration
+            <ArrowRight className="w-4 h-4" />
+          </Button>
         </div>
-      </motion.section>
-
-      {/* Navigation */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="flex justify-end pt-8"
-      >
-        <Button
-          size="lg"
-          onClick={onNext}
-          disabled={!hasSelection}
-          className="gap-2"
-        >
-          Weiter zur Konfiguration
-          <ArrowRight className="h-5 w-5" />
-        </Button>
-      </motion.div>
+      </div>
     </div>
   );
 };
