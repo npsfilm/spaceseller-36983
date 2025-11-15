@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '@/integrations/supabase/client';
-import { Layout } from '@/components/Layout';
+import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -229,20 +229,14 @@ export default function PhotographerManagement() {
   };
 
   return (
-    <Layout>
+    <AdminLayout>
       <Helmet>
         <meta name="robots" content="noindex, nofollow" />
         <title>Fotografen-Verwaltung - spaceseller</title>
       </Helmet>
 
-      <div className="container mx-auto py-8 px-4">
+      <div>
         <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Fotografen-Verwaltung</h1>
-            <p className="text-muted-foreground mt-2">
-              Verwalten Sie Fotografen und überwachen Sie deren Performance
-            </p>
-          </div>
 
           <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
             <DialogTrigger asChild>
@@ -418,6 +412,6 @@ export default function PhotographerManagement() {
           </CardContent>
         </Card>
       </div>
-    </Layout>
+    </AdminLayout>
   );
 }
