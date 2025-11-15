@@ -7,10 +7,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { UserPlus, UserMinus, Camera, TrendingUp, CheckCircle, XCircle } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Slider } from '@/components/ui/slider';
+import { UserPlus, UserMinus, Camera, TrendingUp, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { z } from 'zod';
 
 interface Photographer {
   user_id: string;
@@ -40,7 +44,24 @@ export default function PhotographerManagement() {
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<string>('');
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('existing');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+
+  // New photographer form state
+  const [newPhotographer, setNewPhotographer] = useState({
+    email: '',
+    vorname: '',
+    nachname: '',
+    telefon: '',
+    strasse: '',
+    plz: '',
+    stadt: '',
+    land: 'Deutschland',
+    service_radius_km: 50
+  });
+
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetchPhotographers();
@@ -149,6 +170,97 @@ export default function PhotographerManagement() {
     }
   };
 
+  // Validation schema
+  const newPhotographerSchema = z.object({
+    email: z.string().email('Ungültige E-Mail-Adresse'),
+    vorname: z.string().min(1, 'Vorname ist erforderlich'),
+    nachname: z.string().min(1, 'Nachname ist erforderlich'),
+    telefon: z.string().optional(),
+    strasse: z.string().optional(),
+    plz: z.string().optional(),
+    stadt: z.string().optional(),
+    land: z.string().min(1, 'Land ist erforderlich'),
+    service_radius_km: z.number().min(10).max(200)
+  });
+
+  const validateNewPhotographerForm = () => {
+    try {
+      newPhotographerSchema.parse(newPhotographer);
+      setFormErrors({});
+      return true;
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const errors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          if (err.path[0]) {
+            errors[err.path[0].toString()] = err.message;
+          }
+        });
+        setFormErrors(errors);
+      }
+      return false;
+    }
+  };
+
+  const createNewPhotographer = async () => {
+    if (!validateNewPhotographerForm()) {
+      toast({
+        title: 'Validierungsfehler',
+        description: 'Bitte überprüfen Sie die Formulareingaben',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('create-photographer', {
+        body: newPhotographer
+      });
+
+      if (error) throw error;
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      toast({
+        title: 'Fotograf erstellt',
+        description: data.message || 'Der Fotograf wurde erfolgreich erstellt',
+      });
+
+      // Reset form
+      setNewPhotographer({
+        email: '',
+        vorname: '',
+        nachname: '',
+        telefon: '',
+        strasse: '',
+        plz: '',
+        stadt: '',
+        land: 'Deutschland',
+        service_radius_km: 50
+      });
+      setFormErrors({});
+      setAddDialogOpen(false);
+      setActiveTab('existing');
+      
+      // Refresh the photographers list
+      await fetchPhotographers();
+      await fetchAllUsers();
+    } catch (error: any) {
+      console.error('Error creating photographer:', error);
+      toast({
+        title: 'Fehler',
+        description: error.message || 'Fotograf konnte nicht erstellt werden',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const addPhotographerRole = async () => {
     if (!selectedUser) {
       toast({
@@ -245,32 +357,218 @@ export default function PhotographerManagement() {
                 Fotograf hinzufügen
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Fotograf hinzufügen</DialogTitle>
+                <DialogDescription>
+                  Wählen Sie einen bestehenden Benutzer oder erstellen Sie einen neuen Fotografen
+                </DialogDescription>
               </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">
-                    Benutzer auswählen
-                  </label>
-                  <Select value={selectedUser} onValueChange={setSelectedUser}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Benutzer auswählen..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {allUsers.map(user => (
-                        <SelectItem key={user.id} value={user.id}>
-                          {user.profiles?.vorname} {user.profiles?.nachname} - {user.email}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button onClick={addPhotographerRole} className="w-full">
-                  Fotograf hinzufügen
-                </Button>
-              </div>
+              
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="existing">Bestehender Benutzer</TabsTrigger>
+                  <TabsTrigger value="new">Neuer Fotograf</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="existing" className="space-y-4">
+                  <div className="py-4">
+                    <Select value={selectedUser} onValueChange={setSelectedUser}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Benutzer auswählen..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {allUsers.map((user) => (
+                          <SelectItem key={user.id} value={user.id}>
+                            {user.profiles?.vorname && user.profiles?.nachname 
+                              ? `${user.profiles.vorname} ${user.profiles.nachname} (${user.email})`
+                              : user.email
+                            }
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setAddDialogOpen(false);
+                        setSelectedUser('');
+                      }}
+                    >
+                      Abbrechen
+                    </Button>
+                    <Button
+                      onClick={addPhotographerRole}
+                      disabled={!selectedUser || isSubmitting}
+                    >
+                      {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Hinzufügen
+                    </Button>
+                  </DialogFooter>
+                </TabsContent>
+                
+                <TabsContent value="new" className="space-y-4">
+                  <div className="space-y-4 py-4">
+                    {/* Contact Information Section */}
+                    <div className="space-y-3">
+                      <h4 className="text-sm font-semibold">Kontaktdaten</h4>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="vorname">Vorname *</Label>
+                          <Input
+                            id="vorname"
+                            value={newPhotographer.vorname}
+                            onChange={(e) => setNewPhotographer({ ...newPhotographer, vorname: e.target.value })}
+                            placeholder="Max"
+                          />
+                          {formErrors.vorname && <p className="text-sm text-destructive">{formErrors.vorname}</p>}
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="nachname">Nachname *</Label>
+                          <Input
+                            id="nachname"
+                            value={newPhotographer.nachname}
+                            onChange={(e) => setNewPhotographer({ ...newPhotographer, nachname: e.target.value })}
+                            placeholder="Mustermann"
+                          />
+                          {formErrors.nachname && <p className="text-sm text-destructive">{formErrors.nachname}</p>}
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="email">E-Mail *</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={newPhotographer.email}
+                          onChange={(e) => setNewPhotographer({ ...newPhotographer, email: e.target.value })}
+                          placeholder="max@beispiel.de"
+                        />
+                        {formErrors.email && <p className="text-sm text-destructive">{formErrors.email}</p>}
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="telefon">Telefon</Label>
+                        <Input
+                          id="telefon"
+                          type="tel"
+                          value={newPhotographer.telefon}
+                          onChange={(e) => setNewPhotographer({ ...newPhotographer, telefon: e.target.value })}
+                          placeholder="+49 123 456789"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Address Section */}
+                    <div className="space-y-3">
+                      <h4 className="text-sm font-semibold">Adresse</h4>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="strasse">Straße & Hausnummer</Label>
+                        <Input
+                          id="strasse"
+                          value={newPhotographer.strasse}
+                          onChange={(e) => setNewPhotographer({ ...newPhotographer, strasse: e.target.value })}
+                          placeholder="Musterstraße 123"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="plz">PLZ</Label>
+                          <Input
+                            id="plz"
+                            value={newPhotographer.plz}
+                            onChange={(e) => setNewPhotographer({ ...newPhotographer, plz: e.target.value })}
+                            placeholder="12345"
+                          />
+                        </div>
+                        
+                        <div className="space-y-2 col-span-2">
+                          <Label htmlFor="stadt">Stadt</Label>
+                          <Input
+                            id="stadt"
+                            value={newPhotographer.stadt}
+                            onChange={(e) => setNewPhotographer({ ...newPhotographer, stadt: e.target.value })}
+                            placeholder="München"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="land">Land *</Label>
+                        <Select 
+                          value={newPhotographer.land} 
+                          onValueChange={(value) => setNewPhotographer({ ...newPhotographer, land: value })}
+                        >
+                          <SelectTrigger id="land">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Deutschland">Deutschland</SelectItem>
+                            <SelectItem value="Österreich">Österreich</SelectItem>
+                            <SelectItem value="Schweiz">Schweiz</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {/* Service Area Section */}
+                    <div className="space-y-3">
+                      <h4 className="text-sm font-semibold">Servicebereich</h4>
+                      
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="radius">Serviceradius</Label>
+                          <span className="text-sm text-muted-foreground">{newPhotographer.service_radius_km} km</span>
+                        </div>
+                        <Slider
+                          id="radius"
+                          min={10}
+                          max={200}
+                          step={5}
+                          value={[newPhotographer.service_radius_km]}
+                          onValueChange={(value) => setNewPhotographer({ ...newPhotographer, service_radius_km: value[0] })}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Der Fotograf kann Aufträge in diesem Umkreis annehmen
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t">
+                      <p className="text-sm text-muted-foreground">
+                        * Der Fotograf erhält eine E-Mail zum Festlegen seines Passworts
+                      </p>
+                    </div>
+                  </div>
+
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setAddDialogOpen(false);
+                        setFormErrors({});
+                        setActiveTab('existing');
+                      }}
+                    >
+                      Abbrechen
+                    </Button>
+                    <Button
+                      onClick={createNewPhotographer}
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Fotograf erstellen
+                    </Button>
+                  </DialogFooter>
+                </TabsContent>
+              </Tabs>
             </DialogContent>
           </Dialog>
         </div>
