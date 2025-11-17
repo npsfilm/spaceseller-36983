@@ -448,50 +448,75 @@ export const OrderWizard = () => {
 
                   {/* Step 2: Category Selection */}
                   {orderState.step === 2 && (
-                    <CategorySelectionStep
-                      services={services}
-                      onSelectCategory={(categoryId) => {
-                        setOrderState(prev => ({
-                          ...prev,
-                          selectedCategory: categoryId
-                        }));
-                        nextStep();
-                      }}
-                      onBack={prevStep}
-                      selectedCategory={orderState.selectedCategory}
-                    />
+                    <motion.div
+                      key="step-2"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                      className="h-full"
+                    >
+                      <CategorySelectionStep
+                        services={services}
+                        onSelectCategory={(categoryId) => {
+                          setOrderState(prev => ({
+                            ...prev,
+                            selectedCategory: categoryId
+                          }));
+                          nextStep();
+                        }}
+                        onBack={prevStep}
+                        selectedCategory={orderState.selectedCategory}
+                      />
+                    </motion.div>
                   )}
 
                   {/* Step 3: Service Selection */}
                   {orderState.step === 3 && (
-                    <ServiceSelectionStep
-                      services={services.filter(s => {
-                        const category = orderState.selectedCategory;
-                        if (category === 'onsite') {
-                          return ['photography', 'drone', 'virtual_tour'].includes(s.category);
-                        }
-                        if (category === 'rendering_editing') {
-                          return ['editing', 'floor_plan', 'rendering'].includes(s.category);
-                        }
-                        if (category === 'virtual_staging') {
-                          return s.category === 'virtual_staging';
-                        }
-                        if (category === 'energy_certificate') {
-                          return s.category === 'energy_certificate';
-                        }
-                        return true;
-                      })}
-                      selectedServices={orderState.selectedServices}
-                      onUpdateServices={updateSelectedServices}
-                      onNext={nextStep}
-                      onBack={prevStep}
-                      photographyAvailable={orderState.photographyAvailable}
-                    />
+                    <motion.div
+                      key="step-3"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                      className="h-full"
+                    >
+                      <ServiceSelectionStep
+                        services={services.filter(s => {
+                          const category = orderState.selectedCategory;
+                          if (category === 'onsite') {
+                            return ['photography', 'drone', 'virtual_tour'].includes(s.category);
+                          }
+                          if (category === 'rendering_editing') {
+                            return ['editing', 'floor_plan', 'rendering'].includes(s.category);
+                          }
+                          if (category === 'virtual_staging') {
+                            return s.category === 'virtual_staging';
+                          }
+                          if (category === 'energy_certificate') {
+                            return s.category === 'energy_certificate';
+                          }
+                          return true;
+                        })}
+                        selectedServices={orderState.selectedServices}
+                        onUpdateServices={updateSelectedServices}
+                        onNext={nextStep}
+                        onBack={prevStep}
+                        photographyAvailable={orderState.photographyAvailable}
+                      />
+                    </motion.div>
                   )}
 
                   {/* Step 4: Configuration + Upgrades Combined */}
                   {orderState.step === 4 && (
-                    <div className="space-y-4">
+                    <motion.div
+                      key="step-4"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                      className="space-y-4"
+                    >
                       <div>
                         <h2 className="text-2xl font-bold mb-1">Konfiguration & Upgrades</h2>
                         <p className="text-sm text-muted-foreground mb-4">
@@ -526,12 +551,19 @@ export const OrderWizard = () => {
                           />
                         </div>
                       </div>
-                    </div>
+                    </motion.div>
                   )}
 
                   {/* Step 5: Property Details + Upload Combined */}
                   {orderState.step === 5 && (
-                    <div className="space-y-4">
+                    <motion.div
+                      key="step-5"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                      className="space-y-4"
+                    >
                       <div>
                         <h2 className="text-2xl font-bold mb-1">Objektdaten</h2>
                         <p className="text-sm text-muted-foreground mb-4">
@@ -566,24 +598,33 @@ export const OrderWizard = () => {
                             onBack={prevStep}
                             hasEditingServices={Object.values(orderState.selectedServices).some(config => {
                               const service = services.find(s => s.id === config.serviceId);
-                              return service?.category !== 'photography';
+                              return service?.category === 'editing' || service?.category === 'virtual_staging';
                             })}
                           />
                         </div>
                       </div>
-                    </div>
+                    </motion.div>
                   )}
 
                   {/* Step 6: Review */}
                   {orderState.step === 6 && (
-                    <ReviewStep
-                      services={services}
-                      orderState={orderState}
-                      onUpdateInstructions={updateSpecialInstructions}
-                      onBack={prevStep}
-                      onSubmit={submitOrder}
-                      calculateTotal={calculateTotal}
-                    />
+                    <motion.div
+                      key="step-6"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                      className="h-full"
+                    >
+                      <ReviewStep
+                        services={services}
+                        orderState={orderState}
+                        onUpdateInstructions={updateSpecialInstructions}
+                        onBack={prevStep}
+                        onSubmit={submitOrder}
+                        calculateTotal={calculateTotal}
+                      />
+                    </motion.div>
                   )}
                 </motion.div>
               </AnimatePresence>
