@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { OrderLayout } from '@/components/OrderLayout';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -489,14 +491,7 @@ export const OrderWizard = () => {
 
                   {/* Step 4: Configuration + Upgrades Combined */}
                   {orderState.step === 4 && (
-                    <motion.div
-                      key="step-4"
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
-                      transition={{ duration: 0.3, ease: "easeInOut" }}
-                      className="space-y-4"
-                    >
+                    <div className="space-y-4">
                       <div>
                         <h2 className="text-2xl font-bold mb-1">Konfiguration & Upgrades</h2>
                         <p className="text-sm text-muted-foreground mb-4">
@@ -531,19 +526,12 @@ export const OrderWizard = () => {
                           />
                         </div>
                       </div>
-                    </motion.div>
+                    </div>
                   )}
 
                   {/* Step 5: Property Details + Upload Combined */}
                   {orderState.step === 5 && (
-                    <motion.div
-                      key="step-5"
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
-                      transition={{ duration: 0.3, ease: "easeInOut" }}
-                      className="space-y-4"
-                    >
+                    <div className="space-y-4">
                       <div>
                         <h2 className="text-2xl font-bold mb-1">Objektdaten</h2>
                         <p className="text-sm text-muted-foreground mb-4">
@@ -583,31 +571,63 @@ export const OrderWizard = () => {
                           />
                         </div>
                       </div>
-                    </motion.div>
+                    </div>
                   )}
 
                   {/* Step 6: Review */}
                   {orderState.step === 6 && (
-                    <motion.div
-                      key="step-6"
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
-                      transition={{ duration: 0.3, ease: "easeInOut" }}
-                      className="h-full"
-                    >
-                      <ReviewStep
-                        services={services}
-                        orderState={orderState}
-                        onUpdateInstructions={updateSpecialInstructions}
-                        onBack={prevStep}
-                        onSubmit={submitOrder}
-                        calculateTotal={calculateTotal}
-                      />
-                    </motion.div>
+                    <ReviewStep
+                      services={services}
+                      orderState={orderState}
+                      onUpdateInstructions={updateSpecialInstructions}
+                      onBack={prevStep}
+                      onSubmit={submitOrder}
+                      calculateTotal={calculateTotal}
+                    />
                   )}
                 </motion.div>
               </AnimatePresence>
+            </div>
+
+            {/* Centralized Bottom Navigation */}
+            <div className="border-t border-border bg-card p-4">
+              <div className="container mx-auto max-w-6xl flex items-center justify-between">
+                {/* Back Button */}
+                {orderState.step > 1 && (
+                  <Button
+                    variant="outline"
+                    onClick={prevStep}
+                    className="gap-2"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    Zurück
+                  </Button>
+                )}
+                {orderState.step === 1 && <div />}
+
+                {/* Next/Submit Button */}
+                <Button
+                  variant="cta"
+                  onClick={() => {
+                    if (orderState.step === 6) {
+                      submitOrder();
+                    } else if (orderState.step === 3 && hasSelectedServices) {
+                      nextStep();
+                    } else if (orderState.step !== 3) {
+                      nextStep();
+                    }
+                  }}
+                  disabled={
+                    (orderState.step === 1 && !orderState.locationValidated) ||
+                    (orderState.step === 2 && !orderState.selectedCategory) ||
+                    (orderState.step === 3 && !hasSelectedServices)
+                  }
+                  className="gap-2"
+                >
+                  {orderState.step === 6 ? 'Bestellung aufgeben' : 'Weiter'}
+                  {orderState.step < 6 && <ArrowRight className="w-4 h-4" />}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
