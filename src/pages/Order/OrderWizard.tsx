@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { ProgressIndicator } from './components/ProgressIndicator';
+import { LocationCheckStep } from './steps/LocationCheckStep';
 import { ServiceSelectionStep } from './steps/ServiceSelectionStep';
 import { UpgradesStep } from './steps/UpgradesStep';
 import { ConfigurationStep } from './steps/ConfigurationStep';
@@ -60,9 +61,9 @@ export interface OrderState {
 }
 
 const STEPS = [
-  { number: 1, title: 'Services', description: 'Auswahl' },
-  { number: 2, title: 'Konfiguration', description: 'Details' },
-  { number: 3, title: 'Objektdaten', description: 'Adresse & Upload' },
+  { number: 1, title: 'Standort', description: 'Adresseingabe' },
+  { number: 2, title: 'Services', description: 'Auswahl' },
+  { number: 3, title: 'Konfiguration', description: 'Details' },
   { number: 4, title: 'Prüfung', description: 'Abschluss' }
 ];
 
@@ -420,8 +421,26 @@ export const OrderWizard = () => {
                   exit="exit"
                   transition={{ duration: 0.2 }}
                 >
-                  {/* Step 1: Unified Service Selection */}
+                  {/* Step 1: Location Check (Address Input) */}
                   {orderState.step === 1 && (
+                    <LocationCheckStep
+                      address={orderState.address}
+                      onUpdateAddress={handleUpdateAddressField}
+                      onLocationValidated={(travelCost, distance) => {
+                        setOrderState(prev => ({
+                          ...prev,
+                          travelCost,
+                          distance,
+                          locationValidated: true
+                        }));
+                        nextStep();
+                      }}
+                      onBack={() => navigate('/dashboard')}
+                    />
+                  )}
+
+                  {/* Step 2: Unified Service Selection */}
+                  {orderState.step === 2 && (
                     <ServiceSelectionStep
                       services={services}
                       selectedServices={orderState.selectedServices}
@@ -430,8 +449,8 @@ export const OrderWizard = () => {
                     />
                   )}
 
-                  {/* Step 2: Configuration + Upgrades Combined */}
-                  {orderState.step === 2 && (
+                  {/* Step 3: Configuration + Upgrades Combined */}
+                  {orderState.step === 3 && (
                     <div className="space-y-4">
                       <div>
                         <h2 className="text-2xl font-bold mb-1">Konfiguration & Upgrades</h2>
@@ -470,8 +489,8 @@ export const OrderWizard = () => {
                     </div>
                   )}
 
-                  {/* Step 3: Property Details + Upload Combined */}
-                  {orderState.step === 3 && (
+                  {/* Step 4: Property Details + Upload Combined */}
+                  {orderState.step === 4 && (
                     <div className="space-y-4">
                       <div>
                         <h2 className="text-2xl font-bold mb-1">Objektdaten</h2>
@@ -515,8 +534,8 @@ export const OrderWizard = () => {
                     </div>
                   )}
 
-                  {/* Step 4: Review */}
-                  {orderState.step === 4 && (
+                  {/* Step 5: Review */}
+                  {orderState.step === 5 && (
                     <ReviewStep
                       services={services}
                       orderState={orderState}
@@ -540,6 +559,8 @@ export const OrderWizard = () => {
             total={calculateTotal()}
             step={orderState.step}
             travelCost={orderState.travelCost}
+            address={orderState.address}
+            locationValidated={orderState.locationValidated}
           />
         </div>
       </div>

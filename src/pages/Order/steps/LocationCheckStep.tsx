@@ -319,9 +319,9 @@ export const LocationCheckStep = ({
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
           <MapPin className="h-8 w-8 text-primary" />
         </div>
-        <h2 className="text-3xl font-bold">Wo befindet sich die Immobilie?</h2>
+        <h2 className="text-3xl font-bold">Wo befindet sich Ihre Immobilie?</h2>
         <p className="text-muted-foreground">
-          Geben Sie die vollständige Adresse mit Hausnummer ein
+          Geben Sie die vollständige Adresse inkl. Hausnummer ein, um zu starten
         </p>
       </div>
 
@@ -398,7 +398,7 @@ export const LocationCheckStep = ({
 
       <div className="flex gap-4 pt-6">
         <Button variant="outline" onClick={onBack} className="w-32">
-          Zurück
+          Zurück zum Dashboard
         </Button>
         <Button
           onClick={() => onLocationValidated(validationResult!.travelCost, validationResult!.distance)}
@@ -406,7 +406,7 @@ export const LocationCheckStep = ({
           className="flex-1"
           size="lg"
         >
-          Weiter zu Services
+          Weiter zur Service-Auswahl
         </Button>
       </div>
     </motion.div>
