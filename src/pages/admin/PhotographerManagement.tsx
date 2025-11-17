@@ -260,11 +260,29 @@ export default function PhotographerManagement() {
       await fetchAllUsers();
     } catch (error: any) {
       console.error('Error creating photographer:', error);
-      toast({
-        title: 'Fehler',
-        description: error.message || 'Fotograf konnte nicht erstellt werden',
-        variant: 'destructive',
-      });
+      
+      // Check if error is about duplicate email
+      const errorMessage = error.message || "";
+      if (errorMessage.includes("already been registered") || errorMessage.includes("email address has already")) {
+        toast({
+          variant: "destructive",
+          title: "E-Mail bereits registriert",
+          description: "Ein Benutzer mit dieser E-Mail-Adresse existiert bereits. Bitte verwenden Sie den Tab 'Vorhandener Benutzer', um diesem die Fotograf-Rolle zuzuweisen.",
+        });
+        // Switch to existing user tab
+        setActiveTab("existing");
+        // Try to find and select the user
+        const existingUser = allUsers.find(u => u.email.toLowerCase() === newPhotographer.email.toLowerCase());
+        if (existingUser) {
+          setSelectedUser(existingUser.id);
+        }
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Fehler",
+          description: errorMessage || "Fotograf konnte nicht erstellt werden",
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
