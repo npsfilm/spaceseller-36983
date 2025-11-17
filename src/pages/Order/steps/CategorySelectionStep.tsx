@@ -15,6 +15,7 @@ interface CategorySelectionStepProps {
   selectedCategory?: string;
 }
 
+// Category Selection Step - with back button and selection animation
 export const CategorySelectionStep = ({
   services,
   onSelectCategory,
