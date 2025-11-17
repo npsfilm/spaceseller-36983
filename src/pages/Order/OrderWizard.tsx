@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { ProgressIndicator } from './components/ProgressIndicator';
 import { LocationCheckStep } from './steps/LocationCheckStep';
+import { CategorySelectionStep } from './steps/CategorySelectionStep';
 import { ServiceSelectionStep } from './steps/ServiceSelectionStep';
 import { UpgradesStep } from './steps/UpgradesStep';
 import { ConfigurationStep } from './steps/ConfigurationStep';
@@ -63,9 +64,11 @@ export interface OrderState {
 
 const STEPS = [
   { number: 1, title: 'Standort', description: 'Adresseingabe' },
-  { number: 2, title: 'Services', description: 'Auswahl' },
-  { number: 3, title: 'Konfiguration', description: 'Details' },
-  { number: 4, title: 'Prüfung', description: 'Abschluss' }
+  { number: 2, title: 'Kategorie', description: 'Dienstleistungsart' },
+  { number: 3, title: 'Services', description: 'Auswahl' },
+  { number: 4, title: 'Konfiguration', description: 'Details' },
+  { number: 5, title: 'Objektdaten', description: 'Upload' },
+  { number: 6, title: 'Prüfung', description: 'Abschluss' }
 ];
 
 export const OrderWizard = () => {
@@ -443,10 +446,39 @@ export const OrderWizard = () => {
                     />
                   )}
 
-                  {/* Step 2: Unified Service Selection */}
+                  {/* Step 2: Category Selection */}
                   {orderState.step === 2 && (
-                    <ServiceSelectionStep
+                    <CategorySelectionStep
                       services={services}
+                      onSelectCategory={(categoryId) => {
+                        setOrderState(prev => ({
+                          ...prev,
+                          selectedCategory: categoryId
+                        }));
+                        nextStep();
+                      }}
+                    />
+                  )}
+
+                  {/* Step 3: Service Selection */}
+                  {orderState.step === 3 && (
+                    <ServiceSelectionStep
+                      services={services.filter(s => {
+                        const category = orderState.selectedCategory;
+                        if (category === 'onsite') {
+                          return ['photography', 'drone', 'virtual_tour'].includes(s.category);
+                        }
+                        if (category === 'rendering_editing') {
+                          return ['editing', 'floor_plan', 'rendering'].includes(s.category);
+                        }
+                        if (category === 'virtual_staging') {
+                          return s.category === 'virtual_staging';
+                        }
+                        if (category === 'energy_certificate') {
+                          return s.category === 'energy_certificate';
+                        }
+                        return true;
+                      })}
                       selectedServices={orderState.selectedServices}
                       onUpdateServices={updateSelectedServices}
                       onNext={nextStep}
@@ -454,8 +486,8 @@ export const OrderWizard = () => {
                     />
                   )}
 
-                  {/* Step 3: Configuration + Upgrades Combined */}
-                  {orderState.step === 3 && (
+                  {/* Step 4: Configuration + Upgrades Combined */}
+                  {orderState.step === 4 && (
                     <div className="space-y-4">
                       <div>
                         <h2 className="text-2xl font-bold mb-1">Konfiguration & Upgrades</h2>
@@ -494,8 +526,8 @@ export const OrderWizard = () => {
                     </div>
                   )}
 
-                  {/* Step 4: Property Details + Upload Combined */}
-                  {orderState.step === 4 && (
+                  {/* Step 5: Property Details + Upload Combined */}
+                  {orderState.step === 5 && (
                     <div className="space-y-4">
                       <div>
                         <h2 className="text-2xl font-bold mb-1">Objektdaten</h2>
@@ -539,8 +571,8 @@ export const OrderWizard = () => {
                     </div>
                   )}
 
-                  {/* Step 5: Review */}
-                  {orderState.step === 5 && (
+                  {/* Step 6: Review */}
+                  {orderState.step === 6 && (
                     <ReviewStep
                       services={services}
                       orderState={orderState}
