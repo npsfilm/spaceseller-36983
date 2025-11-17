@@ -14,6 +14,7 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
   const getActiveTab = () => {
     if (location.pathname === "/admin-backend") return "orders";
     if (location.pathname === "/admin-backend/photographers") return "photographers";
+    if (location.pathname === "/admin-backend/locations") return "locations";
     if (location.pathname === "/admin-backend/users") return "users";
     if (location.pathname === "/freelancer-dashboard") return "freelancer";
     return "orders";
@@ -26,7 +27,7 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
           <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
           
           <Tabs value={getActiveTab()} className="w-full">
-            <TabsList className="grid w-full max-w-4xl grid-cols-4">
+            <TabsList className="grid w-full max-w-5xl grid-cols-5">
               <TabsTrigger 
                 value="orders"
                 onClick={() => navigate("/admin-backend")}
@@ -38,6 +39,12 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
                 onClick={() => navigate("/admin-backend/photographers")}
               >
                 Fotografen
+              </TabsTrigger>
+              <TabsTrigger 
+                value="locations"
+                onClick={() => navigate("/admin-backend/locations")}
+              >
+                Standorte
               </TabsTrigger>
               <TabsTrigger 
                 value="users"
