@@ -484,6 +484,7 @@ export const OrderWizard = () => {
                       selectedServices={orderState.selectedServices}
                       onUpdateServices={updateSelectedServices}
                       onNext={nextStep}
+                      onBack={prevStep}
                       photographyAvailable={orderState.photographyAvailable}
                     />
                   )}

@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowRight, Camera, Sparkles, Home, MapPin, ChevronDown } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Camera, Sparkles, Home, MapPin, ChevronDown } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import type { Service, ServiceConfig } from '../OrderWizard';
 
@@ -10,6 +10,7 @@ interface ServiceSelectionStepProps {
   selectedServices: Record<string, ServiceConfig>;
   onUpdateServices: (services: Record<string, ServiceConfig>) => void;
   onNext: () => void;
+  onBack?: () => void;
   photographyAvailable: boolean;
 }
 
@@ -20,6 +21,7 @@ export const ServiceSelectionStep = ({
   selectedServices,
   onUpdateServices,
   onNext,
+  onBack,
   photographyAvailable
 }: ServiceSelectionStepProps) => {
   const [activeFilter, setActiveFilter] = useState<CategoryFilter>('photography');
@@ -136,6 +138,20 @@ export const ServiceSelectionStep = ({
 
   return (
     <div className="flex flex-col h-full">
+      {/* Back Button */}
+      {onBack && (
+        <div className="px-6 pt-4">
+          <Button
+            variant="ghost"
+            onClick={onBack}
+            className="gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Zurück
+          </Button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="px-6 py-4 border-b border-border">
         <h1 className="text-2xl font-bold text-foreground mb-2">

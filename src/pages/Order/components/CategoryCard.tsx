@@ -18,6 +18,7 @@ const cardVariants = {
   animate: { opacity: 1, y: 0 }
 };
 
+// Category Card with glow animation on selection
 export const CategoryCard = ({
   icon: Icon,
   image,
