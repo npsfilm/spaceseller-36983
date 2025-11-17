@@ -448,15 +448,7 @@ export const OrderWizard = () => {
 
                   {/* Step 2: Category Selection */}
                   {orderState.step === 2 && (
-                    <motion.div
-                      key="step-2"
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
-                      transition={{ duration: 0.3, ease: "easeInOut" }}
-                      className="h-full"
-                    >
-                      <CategorySelectionStep
+                    <CategorySelectionStep
                         services={services}
                         onSelectCategory={(categoryId) => {
                           setOrderState(prev => ({
@@ -465,23 +457,13 @@ export const OrderWizard = () => {
                           }));
                           nextStep();
                         }}
-                        onBack={prevStep}
-                        selectedCategory={orderState.selectedCategory}
-                      />
-                    </motion.div>
+                      selectedCategory={orderState.selectedCategory}
+                    />
                   )}
 
                   {/* Step 3: Service Selection */}
                   {orderState.step === 3 && (
-                    <motion.div
-                      key="step-3"
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
-                      transition={{ duration: 0.3, ease: "easeInOut" }}
-                      className="h-full"
-                    >
-                      <ServiceSelectionStep
+                    <ServiceSelectionStep
                         services={services.filter(s => {
                           const category = orderState.selectedCategory;
                           if (category === 'onsite') {
@@ -501,10 +483,8 @@ export const OrderWizard = () => {
                         selectedServices={orderState.selectedServices}
                         onUpdateServices={updateSelectedServices}
                         onNext={nextStep}
-                        onBack={prevStep}
-                        photographyAvailable={orderState.photographyAvailable}
-                      />
-                    </motion.div>
+                      photographyAvailable={orderState.photographyAvailable}
+                    />
                   )}
 
                   {/* Step 4: Configuration + Upgrades Combined */}
