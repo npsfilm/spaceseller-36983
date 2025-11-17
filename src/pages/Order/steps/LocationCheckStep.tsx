@@ -51,6 +51,7 @@ export const LocationCheckStep = ({
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Initialize address input from existing address
   useEffect(() => {
@@ -76,6 +77,15 @@ export const LocationCheckStep = ({
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
   }, []);
 
   const parseAddressFromSuggestion = (suggestion: AddressSuggestion) => {
@@ -133,12 +143,15 @@ export const LocationCheckStep = ({
     setAddressInput(value);
     setValidationResult(null);
     
-    // Debounce the API call
-    const timeoutId = setTimeout(() => {
+    // Cancel previous timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    
+    // Set new timeout
+    timeoutRef.current = setTimeout(() => {
       fetchAddressSuggestions(value);
     }, 300);
-
-    return () => clearTimeout(timeoutId);
   };
 
   const handleSuggestionSelect = (suggestion: AddressSuggestion) => {
