@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import mbxGeocoding from '@mapbox/mapbox-sdk/services/geocoding';
 import mbxDirections from '@mapbox/mapbox-sdk/services/directions';
 import { MAPBOX_CONFIG } from '@/config/mapbox';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AddressSuggestion {
   place_name: string;
@@ -25,7 +26,7 @@ interface LocationCheckStepProps {
     stadt: string;
   };
   onUpdateAddress: (field: string, value: string) => void;
-  onLocationValidated: (travelCost: number, distance: number) => void;
+  onLocationValidated: (travelCost: number, distance: number, photographyAvailable: boolean) => void;
   onBack: () => void;
 }
 
@@ -40,6 +41,7 @@ export const LocationCheckStep = ({
     valid: boolean;
     travelCost: number;
     distance: number;
+    photographyAvailable: boolean;
     message: string;
   } | null>(null);
   
@@ -157,6 +159,7 @@ export const LocationCheckStep = ({
         valid: false,
         travelCost: 0,
         distance: 0,
+        photographyAvailable: false,
         message: 'Bitte geben Sie eine vollständige Adresse mit Hausnummer ein.'
       });
     }
@@ -188,6 +191,7 @@ export const LocationCheckStep = ({
         valid: false,
         travelCost: 0,
         distance: 0,
+        photographyAvailable: false,
         message: 'Bitte geben Sie eine vollständige Adresse ein.'
       });
       return;
@@ -198,6 +202,7 @@ export const LocationCheckStep = ({
         valid: false,
         travelCost: 0,
         distance: 0,
+        photographyAvailable: false,
         message: 'Bitte geben Sie eine Adresse mit Hausnummer ein.'
       });
       return;
@@ -209,6 +214,7 @@ export const LocationCheckStep = ({
         valid: false,
         travelCost: 0,
         distance: 0,
+        photographyAvailable: false,
         message: 'Mapbox Token nicht konfiguriert. Bitte fügen Sie Ihren Mapbox Token in src/config/mapbox.ts hinzu.'
       });
       return;
@@ -219,14 +225,7 @@ export const LocationCheckStep = ({
     try {
       // Lazy initialize Mapbox clients
       const geocodingClient = mbxGeocoding({ accessToken: MAPBOX_CONFIG.accessToken });
-      const directionsClient = mbxDirections({ accessToken: MAPBOX_CONFIG.accessToken });
       const destinationAddress = `${address.strasse} ${address.hausnummer || ''}, ${address.plz} ${address.stadt}, Deutschland`.trim();
-      
-      // Geocode base address
-      const baseResponse = await geocodingClient.forwardGeocode({
-        query: MAPBOX_CONFIG.baseAddress,
-        limit: 1
-      }).send();
       
       // Geocode destination address
       const destResponse = await geocodingClient.forwardGeocode({
@@ -234,63 +233,69 @@ export const LocationCheckStep = ({
         limit: 1
       }).send();
       
-      if (!baseResponse.body.features.length || !destResponse.body.features.length) {
+      if (!destResponse.body.features.length) {
         setValidationResult({
           valid: false,
           travelCost: 0,
           distance: 0,
+          photographyAvailable: false,
           message: 'Adresse konnte nicht gefunden werden. Bitte überprüfen Sie Ihre Eingabe.'
         });
         setIsValidating(false);
         return;
       }
       
-      const baseCoords = baseResponse.body.features[0].geometry.coordinates;
       const destCoords = destResponse.body.features[0].geometry.coordinates;
       
-      // Calculate route
-      const routeResponse = await directionsClient.getDirections({
-        profile: 'driving',
-        waypoints: [
-          { coordinates: baseCoords },
-          { coordinates: destCoords }
-        ]
-      }).send();
-      
-      if (!routeResponse.body.routes.length) {
+      // Call find-available-photographers edge function
+      const { data: photographersData, error: photographersError } = await supabase.functions.invoke(
+        'find-available-photographers',
+        {
+          body: {
+            latitude: destCoords[1],
+            longitude: destCoords[0],
+            max_distance_km: 150 // Maximum search radius
+          }
+        }
+      );
+
+      if (photographersError) {
+        console.error('Error finding photographers:', photographersError);
         setValidationResult({
           valid: false,
           travelCost: 0,
           distance: 0,
-          message: 'Keine Route gefunden. Bitte kontaktieren Sie uns für weitere Informationen.'
+          photographyAvailable: false,
+          message: 'Fehler bei der Fotografen-Suche. Bitte versuchen Sie es erneut.'
         });
         setIsValidating(false);
         return;
       }
-      
-      const distanceMeters = routeResponse.body.routes[0].distance;
-      const distanceKm = Math.round(distanceMeters / 1000);
-      
-      // Check if within service area (max 120km)
-      if (distanceKm > 120) {
+
+      const photographyAvailable = photographersData?.photographers?.length > 0;
+
+      if (!photographyAvailable) {
+        // Photography not available, BUT digital services are
         setValidationResult({
-          valid: false,
+          valid: true, // Allow proceeding
           travelCost: 0,
-          distance: distanceKm,
-          message: "Dieser Standort liegt außerhalb unseres aktuellen Servicebereichs für Fotografie. Wir arbeiten stetig am Ausbau unseres Servicebereichs. Unsere digitalen Dienstleistungen bieten wir deutschlandweit an."
+          distance: 0,
+          photographyAvailable: false,
+          message: "📍 Standort bestätigt!\n\n⚠️ Fotografie vor Ort ist für Ihren Standort aktuell nicht verfügbar.\n\n✅ Sie können aber unsere digitalen Dienstleistungen nutzen:\n• Bildbearbeitung\n• Virtual Staging\n• Grundrisse"
         });
-        setIsValidating(false);
-        return;
+      } else {
+        // Photography available
+        const nearest = photographersData.photographers[0];
+        const travelCost = calculateTravelCost(nearest.distance_km);
+        
+        setValidationResult({
+          valid: true,
+          travelCost,
+          distance: nearest.distance_km,
+          photographyAvailable: true,
+          message: `✅ Perfekt! Wir bieten Fotografie in ${address.stadt} an.`
+        });
       }
-      
-      const travelCost = calculateTravelCost(distanceKm);
-      
-      setValidationResult({
-        valid: true,
-        travelCost,
-        distance: distanceKm,
-        message: `Perfekt! Wir bieten Fotografie in ${address.stadt} an.`
-      });
       
     } catch (error) {
       console.error('Location validation error:', error);
@@ -298,6 +303,7 @@ export const LocationCheckStep = ({
         valid: false,
         travelCost: 0,
         distance: 0,
+        photographyAvailable: false,
         message: 'Fehler bei der Adressvalidierung. Bitte versuchen Sie es erneut oder kontaktieren Sie uns.'
       });
     } finally {
@@ -431,7 +437,7 @@ export const LocationCheckStep = ({
           </Button>
           
           <Button
-            onClick={() => onLocationValidated(validationResult!.travelCost, validationResult!.distance)}
+            onClick={() => onLocationValidated(validationResult!.travelCost, validationResult!.distance, validationResult!.photographyAvailable)}
             disabled={!canProceed}
             className="h-14 text-base font-semibold rounded-xl flex-1 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80"
             size="lg"

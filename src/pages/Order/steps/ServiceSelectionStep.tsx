@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Camera, Sparkles, Home, MapPin, ChevronDown } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Service, ServiceConfig } from '../OrderWizard';
 
 interface ServiceSelectionStepProps {
@@ -10,6 +10,7 @@ interface ServiceSelectionStepProps {
   selectedServices: Record<string, ServiceConfig>;
   onUpdateServices: (services: Record<string, ServiceConfig>) => void;
   onNext: () => void;
+  photographyAvailable: boolean;
 }
 
 type CategoryFilter = 'photography' | 'editing' | 'virtual_staging' | 'floor_plan';
@@ -18,7 +19,8 @@ export const ServiceSelectionStep = ({
   services,
   selectedServices,
   onUpdateServices,
-  onNext
+  onNext,
+  photographyAvailable
 }: ServiceSelectionStepProps) => {
   const [activeFilter, setActiveFilter] = useState<CategoryFilter>('photography');
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({
@@ -27,6 +29,13 @@ export const ServiceSelectionStep = ({
     virtual_staging: true,
     floor_plan: true
   });
+
+  // Set default filter to editing if photography is not available
+  useEffect(() => {
+    if (!photographyAvailable && activeFilter === 'photography') {
+      setActiveFilter('editing');
+    }
+  }, [photographyAvailable, activeFilter]);
 
   const categories = [
     { id: 'photography' as CategoryFilter, label: 'Fotografie', icon: Camera },
@@ -110,6 +119,21 @@ export const ServiceSelectionStep = ({
     }
   ];
 
+  // Filter out photography if not available
+  const availableCategories = categories.filter(cat => {
+    if (cat.id === 'photography' && !photographyAvailable) {
+      return false;
+    }
+    return true;
+  });
+
+  const availableCategoryGroups = categoryGroups.filter(group => {
+    if (group.id === 'photography' && !photographyAvailable) {
+      return false;
+    }
+    return true;
+  });
+
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
@@ -122,10 +146,30 @@ export const ServiceSelectionStep = ({
         </p>
       </div>
 
+      {/* Warning Banner when photography not available */}
+      {!photographyAvailable && (
+        <div className="mx-6 mt-4 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+          <div className="flex items-start gap-3">
+            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-amber-500/10 flex-shrink-0">
+              <Camera className="h-5 w-5 text-amber-600" />
+            </div>
+            <div>
+              <p className="font-semibold text-amber-900">
+                Fotografie vor Ort nicht verfügbar
+              </p>
+              <p className="text-sm text-amber-700 mt-1">
+                Für Ihren Standort können wir aktuell keine Vor-Ort-Fotografie anbieten. 
+                Sie können aber alle digitalen Dienstleistungen nutzen.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Category Filter Tabs */}
       <div className="px-6 py-3 border-b border-border bg-muted/30">
         <div className="flex gap-2 overflow-x-auto">
-          {categories.map((cat) => {
+          {availableCategories.map((cat) => {
             const Icon = cat.icon;
             return (
               <Button
@@ -146,7 +190,7 @@ export const ServiceSelectionStep = ({
       {/* Services Grid */}
       <div className="flex-1 overflow-y-auto px-6 py-4">
         <div className="space-y-6 max-w-6xl mx-auto">
-          {categoryGroups
+          {availableCategoryGroups
             .filter(group => group.id === activeFilter)
             .filter(group => group.services.length > 0)
             .map((group) => {
