@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
-import { UserPlus, UserMinus, Camera, TrendingUp, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { UserPlus, UserMinus, Camera, TrendingUp, CheckCircle, XCircle, Loader2, Pencil } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
 
@@ -62,6 +62,21 @@ export default function PhotographerManagement() {
   });
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
+  // Edit photographer state
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingPhotographer, setEditingPhotographer] = useState<{
+    user_id: string;
+    vorname: string;
+    nachname: string;
+    telefon: string;
+    strasse: string;
+    plz: string;
+    stadt: string;
+    land: string;
+    service_radius_km: number;
+  } | null>(null);
+  const [editFormErrors, setEditFormErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetchPhotographers();
@@ -367,6 +382,122 @@ export default function PhotographerManagement() {
     if (rate >= 80) return 'bg-green-500/10 text-green-500 border-green-500/20';
     if (rate >= 60) return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20';
     return 'bg-red-500/10 text-red-500 border-red-500/20';
+  };
+
+  // Edit photographer validation schema (similar to new but without email)
+  const editPhotographerSchema = z.object({
+    vorname: z.string().min(1, 'Vorname ist erforderlich').max(100, 'Vorname zu lang'),
+    nachname: z.string().min(1, 'Nachname ist erforderlich').max(100, 'Nachname zu lang'),
+    telefon: z.string().max(50, 'Telefon zu lang').optional(),
+    strasse: z.string().max(255, 'Straße zu lang').optional(),
+    plz: z.string().max(20, 'PLZ zu lang').optional(),
+    stadt: z.string().max(100, 'Stadt zu lang').optional(),
+    land: z.string().min(1, 'Land ist erforderlich').max(100, 'Land zu lang'),
+    service_radius_km: z.number().min(10, 'Mindestens 10 km').max(200, 'Maximal 200 km')
+  });
+
+  const validateEditForm = () => {
+    if (!editingPhotographer) return false;
+    
+    try {
+      editPhotographerSchema.parse(editingPhotographer);
+      setEditFormErrors({});
+      return true;
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const errors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          if (err.path[0]) {
+            errors[err.path[0].toString()] = err.message;
+          }
+        });
+        setEditFormErrors(errors);
+      }
+      return false;
+    }
+  };
+
+  const openEditDialog = async (userId: string) => {
+    try {
+      // Fetch full photographer details including address
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('vorname, nachname, telefon, strasse, plz, stadt, land, service_radius_km')
+        .eq('id', userId)
+        .single();
+
+      if (error) throw error;
+
+      setEditingPhotographer({
+        user_id: userId,
+        vorname: profile.vorname || '',
+        nachname: profile.nachname || '',
+        telefon: profile.telefon || '',
+        strasse: profile.strasse || '',
+        plz: profile.plz || '',
+        stadt: profile.stadt || '',
+        land: profile.land || 'Deutschland',
+        service_radius_km: profile.service_radius_km || 50
+      });
+      setEditDialogOpen(true);
+    } catch (error) {
+      console.error('Error fetching photographer details:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Fehler',
+        description: 'Fotograf-Details konnten nicht geladen werden',
+      });
+    }
+  };
+
+  const updatePhotographer = async () => {
+    if (!editingPhotographer || !validateEditForm()) {
+      toast({
+        title: 'Validierungsfehler',
+        description: 'Bitte überprüfen Sie die Formulareingaben',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          vorname: editingPhotographer.vorname,
+          nachname: editingPhotographer.nachname,
+          telefon: editingPhotographer.telefon || null,
+          strasse: editingPhotographer.strasse || null,
+          plz: editingPhotographer.plz || null,
+          stadt: editingPhotographer.stadt || null,
+          land: editingPhotographer.land,
+          service_radius_km: editingPhotographer.service_radius_km
+        })
+        .eq('id', editingPhotographer.user_id);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Erfolg',
+        description: 'Fotograf wurde erfolgreich aktualisiert',
+      });
+
+      setEditDialogOpen(false);
+      setEditingPhotographer(null);
+      setEditFormErrors({});
+      await fetchPhotographers();
+    } catch (error: any) {
+      console.error('Error updating photographer:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Fehler',
+        description: error.message || 'Fotograf konnte nicht aktualisiert werden',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -720,15 +851,26 @@ export default function PhotographerManagement() {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removePhotographerRole(photographer.user_id)}
-                            className="gap-2 text-destructive hover:text-destructive"
-                          >
-                            <UserMinus className="h-4 w-4" />
-                            Entfernen
-                          </Button>
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openEditDialog(photographer.user_id)}
+                              className="gap-2"
+                            >
+                              <Pencil className="h-4 w-4" />
+                              Bearbeiten
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removePhotographerRole(photographer.user_id)}
+                              className="gap-2 text-destructive hover:text-destructive"
+                            >
+                              <UserMinus className="h-4 w-4" />
+                              Entfernen
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -738,6 +880,199 @@ export default function PhotographerManagement() {
             )}
           </CardContent>
         </Card>
+
+        {/* Edit Photographer Dialog */}
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Fotograf bearbeiten</DialogTitle>
+              <DialogDescription>
+                Aktualisieren Sie die Informationen des Fotografen
+              </DialogDescription>
+            </DialogHeader>
+
+            {editingPhotographer && (
+              <div className="space-y-6">
+                {/* Contact Information */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium">Kontaktinformationen</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-vorname">
+                        Vorname <span className="text-destructive">*</span>
+                      </Label>
+                      <Input
+                        id="edit-vorname"
+                        value={editingPhotographer.vorname}
+                        onChange={(e) => setEditingPhotographer({
+                          ...editingPhotographer,
+                          vorname: e.target.value
+                        })}
+                        className={editFormErrors.vorname ? 'border-destructive' : ''}
+                      />
+                      {editFormErrors.vorname && (
+                        <p className="text-sm text-destructive">{editFormErrors.vorname}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-nachname">
+                        Nachname <span className="text-destructive">*</span>
+                      </Label>
+                      <Input
+                        id="edit-nachname"
+                        value={editingPhotographer.nachname}
+                        onChange={(e) => setEditingPhotographer({
+                          ...editingPhotographer,
+                          nachname: e.target.value
+                        })}
+                        className={editFormErrors.nachname ? 'border-destructive' : ''}
+                      />
+                      {editFormErrors.nachname && (
+                        <p className="text-sm text-destructive">{editFormErrors.nachname}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-telefon">Telefon</Label>
+                    <Input
+                      id="edit-telefon"
+                      type="tel"
+                      value={editingPhotographer.telefon}
+                      onChange={(e) => setEditingPhotographer({
+                        ...editingPhotographer,
+                        telefon: e.target.value
+                      })}
+                      className={editFormErrors.telefon ? 'border-destructive' : ''}
+                    />
+                    {editFormErrors.telefon && (
+                      <p className="text-sm text-destructive">{editFormErrors.telefon}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Address Information */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium">Adresse</h3>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-strasse">Straße</Label>
+                    <Input
+                      id="edit-strasse"
+                      value={editingPhotographer.strasse}
+                      onChange={(e) => setEditingPhotographer({
+                        ...editingPhotographer,
+                        strasse: e.target.value
+                      })}
+                      className={editFormErrors.strasse ? 'border-destructive' : ''}
+                    />
+                    {editFormErrors.strasse && (
+                      <p className="text-sm text-destructive">{editFormErrors.strasse}</p>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-plz">PLZ</Label>
+                      <Input
+                        id="edit-plz"
+                        value={editingPhotographer.plz}
+                        onChange={(e) => setEditingPhotographer({
+                          ...editingPhotographer,
+                          plz: e.target.value
+                        })}
+                        className={editFormErrors.plz ? 'border-destructive' : ''}
+                      />
+                      {editFormErrors.plz && (
+                        <p className="text-sm text-destructive">{editFormErrors.plz}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-stadt">Stadt</Label>
+                      <Input
+                        id="edit-stadt"
+                        value={editingPhotographer.stadt}
+                        onChange={(e) => setEditingPhotographer({
+                          ...editingPhotographer,
+                          stadt: e.target.value
+                        })}
+                        className={editFormErrors.stadt ? 'border-destructive' : ''}
+                      />
+                      {editFormErrors.stadt && (
+                        <p className="text-sm text-destructive">{editFormErrors.stadt}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-land">
+                      Land <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="edit-land"
+                      value={editingPhotographer.land}
+                      onChange={(e) => setEditingPhotographer({
+                        ...editingPhotographer,
+                        land: e.target.value
+                      })}
+                      className={editFormErrors.land ? 'border-destructive' : ''}
+                    />
+                    {editFormErrors.land && (
+                      <p className="text-sm text-destructive">{editFormErrors.land}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Service Area */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium">Servicebereich</h3>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-service-radius">
+                      Service Radius (km): {editingPhotographer.service_radius_km} km
+                    </Label>
+                    <Slider
+                      id="edit-service-radius"
+                      min={10}
+                      max={200}
+                      step={5}
+                      value={[editingPhotographer.service_radius_km]}
+                      onValueChange={(value) => setEditingPhotographer({
+                        ...editingPhotographer,
+                        service_radius_km: value[0]
+                      })}
+                      className="w-full"
+                    />
+                    {editFormErrors.service_radius_km && (
+                      <p className="text-sm text-destructive">{editFormErrors.service_radius_km}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setEditDialogOpen(false);
+                  setEditingPhotographer(null);
+                  setEditFormErrors({});
+                }}
+                disabled={isSubmitting}
+              >
+                Abbrechen
+              </Button>
+              <Button
+                onClick={updatePhotographer}
+                disabled={isSubmitting}
+              >
+                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Speichern
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </AdminLayout>
   );
