@@ -246,4 +246,42 @@
     background-size: 200% 200%;
     animation: gradient-shift 15s ease infinite;
   }
+
+  /* Category card selection animations */
+  @keyframes glow-border {
+    0% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 hsl(var(--primary) / 0);
+    }
+    50% {
+      transform: scale(1.02);
+      box-shadow: 0 0 30px 5px hsl(var(--primary) / 0.3);
+    }
+    100% {
+      transform: scale(1);
+      box-shadow: 0 0 30px 5px hsl(var(--primary) / 0.3);
+    }
+  }
+
+  @keyframes check-in {
+    0% {
+      transform: scale(0);
+      opacity: 0;
+    }
+    50% {
+      transform: scale(1.2);
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  .animate-glow-border {
+    animation: glow-border 0.4s ease-out forwards;
+  }
+
+  .animate-check-in {
+    animation: check-in 0.3s ease-out forwards;
+  }
 }

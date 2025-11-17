@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { Camera, Sparkles, Home, FileText } from 'lucide-react';
+import { Camera, Sparkles, Home, FileText, ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { CategoryCard } from '../components/CategoryCard';
 import type { Service } from '../OrderWizard';
 import augsburgHouseExterior from '@/assets/augsburg-house-exterior.jpg';
@@ -10,11 +11,15 @@ import heroProperty from '@/assets/hero-property.jpg';
 interface CategorySelectionStepProps {
   services: Service[];
   onSelectCategory: (category: string) => void;
+  onBack?: () => void;
+  selectedCategory?: string;
 }
 
 export const CategorySelectionStep = ({
   services,
-  onSelectCategory
+  onSelectCategory,
+  onBack,
+  selectedCategory
 }: CategorySelectionStepProps) => {
   // New 4 categories with updated copywriting
   const categories = [
@@ -63,6 +68,18 @@ export const CategorySelectionStep = ({
   return (
     <div className="min-h-screen py-16 px-4">
       <div className="space-y-12 max-w-7xl mx-auto">
+        {/* Back Button */}
+        {onBack && (
+          <Button
+            variant="ghost"
+            onClick={onBack}
+            className="gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Zurück
+          </Button>
+        )}
+
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -95,6 +112,7 @@ export const CategorySelectionStep = ({
                 startingPrice={startingPrice}
                 onClick={() => onSelectCategory(category.id)}
                 delay={index * 0.1}
+                isSelected={selectedCategory === category.id}
               />
             );
           })}

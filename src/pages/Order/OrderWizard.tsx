@@ -457,6 +457,8 @@ export const OrderWizard = () => {
                         }));
                         nextStep();
                       }}
+                      onBack={prevStep}
+                      selectedCategory={orderState.selectedCategory}
                     />
                   )}
 
