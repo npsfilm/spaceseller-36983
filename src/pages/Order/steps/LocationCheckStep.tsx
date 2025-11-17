@@ -281,7 +281,7 @@ export const LocationCheckStep = ({
           travelCost: 0,
           distance: 0,
           photographyAvailable: false,
-          message: "📍 Standort bestätigt!\n\n⚠️ Fotografie vor Ort ist für Ihren Standort aktuell nicht verfügbar.\n\n✅ Sie können aber unsere digitalen Dienstleistungen nutzen:\n• Bildbearbeitung\n• Virtual Staging\n• Grundrisse"
+          message: "✅ Adresse bestätigt!\n\nFür diesen Standort bieten wir ausschließlich digitale Services an:\n\n• Professionelle Bildbearbeitung\n• Virtual Staging\n• 2D & 3D Grundrisse\n\nUnser Fotografen-Netzwerk wird kontinuierlich erweitert."
         });
       } else {
         // Photography available
