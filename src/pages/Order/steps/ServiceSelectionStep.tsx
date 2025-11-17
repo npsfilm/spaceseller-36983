@@ -12,7 +12,7 @@ interface ServiceSelectionStepProps {
   onNext: () => void;
 }
 
-type CategoryFilter = 'alle' | 'photography' | 'editing' | 'virtual_staging' | 'floor_plan';
+type CategoryFilter = 'photography' | 'editing' | 'virtual_staging' | 'floor_plan';
 
 export const ServiceSelectionStep = ({
   services,
@@ -20,7 +20,7 @@ export const ServiceSelectionStep = ({
   onUpdateServices,
   onNext
 }: ServiceSelectionStepProps) => {
-  const [activeFilter, setActiveFilter] = useState<CategoryFilter>('alle');
+  const [activeFilter, setActiveFilter] = useState<CategoryFilter>('photography');
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({
     photography: true,
     editing: true,
@@ -29,7 +29,6 @@ export const ServiceSelectionStep = ({
   });
 
   const categories = [
-    { id: 'alle' as CategoryFilter, label: 'Alle', icon: null },
     { id: 'photography' as CategoryFilter, label: 'Fotografie', icon: Camera },
     { id: 'editing' as CategoryFilter, label: 'Bearbeitung', icon: Sparkles },
     { id: 'virtual_staging' as CategoryFilter, label: 'Virtual Staging', icon: Home },
@@ -148,7 +147,7 @@ export const ServiceSelectionStep = ({
       <div className="flex-1 overflow-y-auto px-6 py-4">
         <div className="space-y-6 max-w-6xl mx-auto">
           {categoryGroups
-            .filter(group => activeFilter === 'alle' || group.id === activeFilter)
+            .filter(group => group.id === activeFilter)
             .filter(group => group.services.length > 0)
             .map((group) => {
               const selectedPackage = getSelectedPackageInCategory(group.id);
