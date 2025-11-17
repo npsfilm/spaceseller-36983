@@ -45,6 +45,7 @@ export interface OrderState {
   selectedServices: Record<string, ServiceConfig>;
   selectedUpgrades: SelectedUpgrade[];
   virtualStagingCount: number;
+  photographyAvailable: boolean;
   address: {
     strasse: string;
     hausnummer: string;
@@ -75,6 +76,7 @@ export const OrderWizard = () => {
     selectedServices: {},
     selectedUpgrades: [],
     virtualStagingCount: 0,
+    photographyAvailable: true,
     address: {
       strasse: '',
       hausnummer: '',
@@ -218,12 +220,13 @@ export const OrderWizard = () => {
     }));
   };
 
-  const handleLocationValidated = (travelCost: number, distance: number) => {
+  const handleLocationValidated = (travelCost: number, distance: number, photographyAvailable: boolean) => {
     setOrderState(prev => ({
       ...prev,
       locationValidated: true,
       travelCost,
-      distance
+      distance,
+      photographyAvailable
     }));
   };
 
@@ -426,11 +429,12 @@ export const OrderWizard = () => {
                     <LocationCheckStep
                       address={orderState.address}
                       onUpdateAddress={handleUpdateAddressField}
-                      onLocationValidated={(travelCost, distance) => {
+                      onLocationValidated={(travelCost, distance, photographyAvailable) => {
                         setOrderState(prev => ({
                           ...prev,
                           travelCost,
                           distance,
+                          photographyAvailable,
                           locationValidated: true
                         }));
                         nextStep();
@@ -446,6 +450,7 @@ export const OrderWizard = () => {
                       selectedServices={orderState.selectedServices}
                       onUpdateServices={updateSelectedServices}
                       onNext={nextStep}
+                      photographyAvailable={orderState.photographyAvailable}
                     />
                   )}
 
