@@ -39,10 +39,29 @@ serve(async (req) => {
     // Get the JWT token from the request
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      throw new Error('No authorization header');
+      console.error('[create-photographer] No authorization header');
+      return new Response(
+        JSON.stringify({ error: 'No authorization header' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    // Create regular client to verify user
+    // Extract the JWT token (remove 'Bearer ' prefix)
+    const jwt = authHeader.replace('Bearer ', '');
+
+    // Verify the JWT token using admin client
+    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(jwt);
+    if (userError || !user) {
+      console.error('[create-photographer] User verification failed:', userError);
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('[create-photographer] User verified:', user.id);
+
+    // Create regular client to check admin status
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -52,16 +71,6 @@ serve(async (req) => {
         }
       }
     );
-
-    // Verify the calling user is authenticated
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
-      console.error('[create-photographer] User verification failed:', userError);
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
 
     // Verify the user is an admin
     const { data: isAdmin, error: adminError } = await supabase.rpc('is_admin', {
