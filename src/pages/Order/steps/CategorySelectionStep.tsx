@@ -11,7 +11,6 @@ import heroProperty from '@/assets/hero-property.jpg';
 interface CategorySelectionStepProps {
   services: Service[];
   onSelectCategory: (category: string) => void;
-  onBack?: () => void;
   selectedCategory?: string;
 }
 
@@ -19,7 +18,6 @@ interface CategorySelectionStepProps {
 export const CategorySelectionStep = ({
   services,
   onSelectCategory,
-  onBack,
   selectedCategory
 }: CategorySelectionStepProps) => {
   // New 4 categories with updated copywriting
@@ -69,32 +67,15 @@ export const CategorySelectionStep = ({
   return (
     <div className="min-h-screen py-16 px-4">
       <div className="space-y-12 max-w-7xl mx-auto">
-        {/* Back Button */}
-        {onBack && (
-          <Button
-            variant="ghost"
-            onClick={onBack}
-            className="gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Zurück
-          </Button>
-        )}
-
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="text-center space-y-3"
-        >
+        <div className="text-center space-y-3">
           <h1 className="text-3xl md:text-4xl font-bold text-foreground">
             Welche Art von Dienstleistung möchten Sie bestellen?
           </h1>
           <p className="text-base text-muted-foreground max-w-3xl mx-auto">
             Wählen Sie die Kategorie im Einklang mit der Marketingstrategie für Ihre Immobilie
           </p>
-        </motion.div>
+        </div>
 
         {/* Category Grid - 4 cards side by side */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
