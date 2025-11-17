@@ -77,25 +77,37 @@ Deno.serve(async (req) => {
 
     console.log('Finding photographers near:', { latitude, longitude, scheduled_date, max_distance_km });
 
-    // Get all photographers with location data
-    const { data: photographers, error: photogError } = await supabaseClient
+    // Get all photographer user_ids
+    const { data: photographerRoles, error: rolesError } = await supabaseClient
       .from('user_roles')
-      .select(`
-        user_id,
-        profiles!inner(
-          id,
-          vorname,
-          nachname,
-          email,
-          location_lat,
-          location_lng,
-          service_radius_km,
-          city
-        )
-      `)
-      .eq('role', 'photographer')
-      .not('profiles.location_lat', 'is', null)
-      .not('profiles.location_lng', 'is', null);
+      .select('user_id')
+      .eq('role', 'photographer');
+
+    if (rolesError) {
+      console.error('Error fetching photographer roles:', rolesError);
+      throw rolesError;
+    }
+
+    const photographerIds = photographerRoles?.map(r => r.user_id) || [];
+    console.log(`Found ${photographerIds.length} photographers`);
+
+    if (photographerIds.length === 0) {
+      return new Response(
+        JSON.stringify({ photographers: [] }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        }
+      );
+    }
+
+    // Get profiles with location data for these photographers
+    const { data: photographers, error: photogError } = await supabaseClient
+      .from('profiles')
+      .select('id, vorname, nachname, email, location_lat, location_lng, service_radius_km, city')
+      .in('id', photographerIds)
+      .not('location_lat', 'is', null)
+      .not('location_lng', 'is', null);
 
     if (photogError) {
       console.error('Error fetching photographers:', photogError);
@@ -107,11 +119,7 @@ Deno.serve(async (req) => {
     // Calculate distances and filter by service radius
     const matches: PhotographerMatch[] = [];
 
-    for (const photog of photographers || []) {
-      const profile = Array.isArray(photog.profiles) ? photog.profiles[0] : photog.profiles;
-      
-      if (!profile) continue;
-      
+    for (const profile of photographers || []) {
       const distance = calculateDistance(
         latitude,
         longitude,
