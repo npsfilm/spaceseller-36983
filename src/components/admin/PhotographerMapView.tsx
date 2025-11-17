@@ -57,34 +57,17 @@ export const PhotographerMapView = ({ photographers }: PhotographerMapViewProps)
 
       setIsLoadingIsochrones(true);
 
-      // Fetch isochrones for all photographers with service radii
+      // Fetch realistic isochrones for all photographers (max 60 min = ~100km driving)
       const isochronePromises = photographersWithLocation
         .filter((p) => p.service_radius_km)
         .map(async (p) => {
           try {
-            // For radii >100km, use fallback circle (Isochrone API limited to ~60 min)
-            if (p.service_radius_km! > 100) {
-              const center = turf.point([p.location_lng!, p.location_lat!]);
-              const circle = turf.circle(center, p.service_radius_km!, {
-                steps: 64,
-                units: 'kilometers' as const,
-              });
-              return [{
-                ...circle,
-                properties: {
-                  photographerId: p.id,
-                  name: `${p.vorname} ${p.nachname}`,
-                  radius: p.service_radius_km,
-                  isApproximate: true,
-                },
-              }];
-            }
-
-            // Fetch realistic driving-distance isochrone
+            // Always fetch the maximum realistic isochrone (cap at 100km)
+            const effectiveRadius = Math.min(p.service_radius_km!, 100);
             const isochroneData = await fetchDrivingIsochrone(
               p.location_lng!,
               p.location_lat!,
-              p.service_radius_km!,
+              effectiveRadius,
               MAPBOX_CONFIG.accessToken
             );
 
@@ -95,61 +78,98 @@ export const PhotographerMapView = ({ photographers }: PhotographerMapViewProps)
                 photographerId: p.id,
                 name: `${p.vorname} ${p.nachname}`,
                 radius: p.service_radius_km,
-                isApproximate: false,
               },
             }));
           } catch (error) {
             console.error(`Failed to fetch isochrone for ${p.vorname}:`, error);
-            // Fallback to circle on error
-            const center = turf.point([p.location_lng!, p.location_lat!]);
-            const circle = turf.circle(center, p.service_radius_km!, {
-              steps: 64,
-              units: 'kilometers' as const,
-            });
-            return [{
-              ...circle,
-              properties: {
-                photographerId: p.id,
-                name: `${p.vorname} ${p.nachname}`,
-                radius: p.service_radius_km,
-                isApproximate: true,
-              },
-            }];
+            return [];
           }
         });
 
       const isochroneResults = await Promise.all(isochronePromises);
-      const circleFeatures = isochroneResults.filter(Boolean).flat();
+      const isochroneFeatures = isochroneResults.flat();
+
+      // For radii >100km, also create full-radius circles (dashed, transparent)
+      const fullRadiusFeatures = photographersWithLocation
+        .filter((p) => p.service_radius_km && p.service_radius_km > 100)
+        .map((p) => {
+          const center = turf.point([p.location_lng!, p.location_lat!]);
+          const circle = turf.circle(center, p.service_radius_km!, {
+            steps: 64,
+            units: 'kilometers' as const,
+          });
+          return {
+            ...circle,
+            properties: {
+              photographerId: p.id,
+              name: `${p.vorname} ${p.nachname}`,
+              radius: p.service_radius_km,
+            },
+          };
+        });
 
       setIsLoadingIsochrones(false);
 
-      if (circleFeatures.length > 0) {
-        map.current.addSource('service-areas', {
+      // Add realistic driving-distance isochrones (solid, prominent)
+      if (isochroneFeatures.length > 0) {
+        map.current.addSource('service-areas-isochrones', {
           type: 'geojson',
           data: {
             type: 'FeatureCollection',
-            features: circleFeatures,
+            features: isochroneFeatures,
           },
         });
 
         map.current.addLayer({
           id: 'service-areas-fill',
           type: 'fill',
-          source: 'service-areas',
+          source: 'service-areas-isochrones',
           paint: {
             'fill-color': '#264334',
-            'fill-opacity': 0.1,
+            'fill-opacity': 0.25,
           },
         });
 
         map.current.addLayer({
           id: 'service-areas-outline',
           type: 'line',
-          source: 'service-areas',
+          source: 'service-areas-isochrones',
+          paint: {
+            'line-color': '#264334',
+            'line-width': 2.5,
+          },
+        });
+      }
+
+      // Add full theoretical radius circles (dashed, subtle) for large radii
+      if (fullRadiusFeatures.length > 0) {
+        map.current.addSource('full-radius-circles', {
+          type: 'geojson',
+          data: {
+            type: 'FeatureCollection',
+            features: fullRadiusFeatures,
+          },
+        });
+
+        map.current.addLayer({
+          id: 'full-radius-fill',
+          type: 'fill',
+          source: 'full-radius-circles',
+          paint: {
+            'fill-color': '#264334',
+            'fill-opacity': 0.08,
+          },
+        });
+
+        map.current.addLayer({
+          id: 'full-radius-outline',
+          type: 'line',
+          source: 'full-radius-circles',
           paint: {
             'line-color': '#264334',
             'line-width': 2,
-            'line-opacity': 0.4,
+            'line-dasharray': [3, 3],
+            'line-opacity': 0.5,
           },
         });
       }
@@ -198,30 +218,29 @@ export const PhotographerMapView = ({ photographers }: PhotographerMapViewProps)
 
         markers.push(marker);
       });
+
+      // Add navigation controls
+      map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
     });
 
-    // Add navigation controls
-    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-
-    // Cleanup
+    // Cleanup function
     return () => {
-      markers.forEach(marker => marker.remove());
+      markers.forEach((marker) => marker.remove());
       map.current?.remove();
-      map.current = null;
     };
   }, [photographers]);
 
   return (
-    <div className="relative w-full h-[500px]">
+    <div className="relative w-full h-[600px] rounded-lg overflow-hidden border border-border">
+      <div ref={mapContainer} className="w-full h-full" />
       {isLoadingIsochrones && (
-        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-background/95 backdrop-blur-sm px-4 py-2 rounded-lg shadow-lg z-10 border">
-          <span className="text-sm font-medium text-foreground">Berechne Service-Bereiche...</span>
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-background/95 backdrop-blur-sm px-4 py-2 rounded-lg shadow-lg border border-border">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            <span>Berechne Service-Bereiche...</span>
+          </div>
         </div>
       )}
-      <div 
-        ref={mapContainer} 
-        className="w-full h-full rounded-xl overflow-hidden border"
-      />
     </div>
   );
 };
