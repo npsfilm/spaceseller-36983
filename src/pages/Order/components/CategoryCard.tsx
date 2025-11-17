@@ -10,6 +10,7 @@ interface CategoryCardProps {
   startingPrice: number;
   onClick: () => void;
   delay?: number;
+  isSelected?: boolean;
 }
 
 const cardVariants = {
@@ -25,15 +26,15 @@ export const CategoryCard = ({
   serviceCount,
   startingPrice,
   onClick,
-  delay = 0
+  delay = 0,
+  isSelected = false
 }: CategoryCardProps) => {
   return (
     <motion.div
       variants={cardVariants}
       initial="initial"
       animate="animate"
-      whileHover={{ y: -4, scale: 1.01 }}
-      whileTap={{ scale: 0.95 }}
+      whileHover={{ y: -8, scale: 1.02 }}
       transition={{ 
         delay, 
         duration: 0.3, 
@@ -42,7 +43,11 @@ export const CategoryCard = ({
       className="h-full"
     >
       <div
-        className="relative h-full cursor-pointer rounded-lg border-2 border-border bg-card hover:border-primary hover:shadow-lg active:border-primary/70 transition-all duration-300 group overflow-hidden"
+        className={`relative h-full cursor-pointer rounded-lg border-2 bg-card hover:shadow-lg transition-all duration-300 group overflow-hidden ${
+          isSelected 
+            ? 'border-primary animate-glow-border' 
+            : 'border-border hover:border-primary/30'
+        }`}
         onClick={onClick}
       >
         {/* Prominent Image at Top */}
@@ -63,10 +68,22 @@ export const CategoryCard = ({
             <Icon className="h-8 w-8 text-primary" strokeWidth={1.5} />
           </div>
           
-          {/* Title */}
-          <h3 className="text-lg font-bold text-foreground">
-            {title}
-          </h3>
+          {/* Title with Check Icon */}
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-bold text-foreground">
+              {title}
+            </h3>
+            {isSelected && (
+              <svg 
+                className="h-4 w-4 text-primary-foreground bg-primary rounded-full p-1 animate-check-in" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+              </svg>
+            )}
+          </div>
           
           {/* Description */}
           <p className="text-xs text-muted-foreground leading-relaxed">
