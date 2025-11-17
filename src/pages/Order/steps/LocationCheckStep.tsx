@@ -281,7 +281,7 @@ export const LocationCheckStep = ({
           travelCost: 0,
           distance: 0,
           photographyAvailable: false,
-          message: "✅ Adresse bestätigt!\n\nFür diesen Standort bieten wir ausschließlich digitale Services an:\n\n• Professionelle Bildbearbeitung\n• Virtual Staging\n• 2D & 3D Grundrisse\n\nUnser Fotografen-Netzwerk wird kontinuierlich erweitert."
+          message: "✅ Fotografie vor Ort ist in Ihrer Region aktuell noch nicht verfügbar. Unsere digitalen Dienstleistungen bieten wir aber selbstverständlich für Sie an."
         });
       } else {
         // Photography available
@@ -293,7 +293,7 @@ export const LocationCheckStep = ({
           travelCost,
           distance: nearest.distance_km,
           photographyAvailable: true,
-          message: `✅ Perfekt! Wir bieten Fotografie in ${address.stadt} an.`
+          message: "✅ Fotografie vor Ort in Ihrer Region verfügbar."
         });
       }
       
