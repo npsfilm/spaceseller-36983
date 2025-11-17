@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ProgressIndicator } from './components/ProgressIndicator';
 import { LocationCheckStep } from './steps/LocationCheckStep';
 import { CategorySelectionStep } from './steps/CategorySelectionStep';
+import { ProductConfigurationStep } from './steps/ProductConfigurationStep';
 
 export interface Service {
   id: string;
@@ -35,11 +36,21 @@ export interface OrderState {
   travelCost: number;
   distance: number;
   locationValidated: boolean;
+  selectedAreaRange: string | null;
+  selectedProducts: {
+    [serviceId: string]: {
+      quantity: number;
+      unitPrice: number;
+      totalPrice: number;
+    }
+  };
+  selectedPackage: string | null;
 }
 
 const STEPS = [
   { number: 1, title: 'Standort', description: 'Adresseingabe' },
-  { number: 2, title: 'Kategorie', description: 'Dienstleistungsart' }
+  { number: 2, title: 'Kategorie', description: 'Dienstleistungsart' },
+  { number: 3, title: 'Konfiguration', description: 'Produkt- und Paketauswahl' }
 ];
 
 export const OrderWizard = () => {
@@ -58,7 +69,10 @@ export const OrderWizard = () => {
     draftOrderId: null,
     travelCost: 0,
     distance: 0,
-    locationValidated: false
+    locationValidated: false,
+    selectedAreaRange: null,
+    selectedProducts: {},
+    selectedPackage: null
   });
 
   const { user } = useAuth();
@@ -111,7 +125,7 @@ export const OrderWizard = () => {
   };
 
   const nextStep = () => {
-    setOrderState(prev => ({ ...prev, step: Math.min(prev.step + 1, 2) }));
+    setOrderState(prev => ({ ...prev, step: Math.min(prev.step + 1, 3) }));
   };
 
   const prevStep = () => {
@@ -235,20 +249,43 @@ export const OrderWizard = () => {
               />
             )}
 
-            {/* Step 2: Category Selection - Auto-submit after selection */}
+            {/* Step 2: Category Selection */}
             {orderState.step === 2 && (
               <CategorySelectionStep
                 services={services}
-                onSelectCategory={async (categoryId) => {
+                onSelectCategory={(categoryId) => {
                   setOrderState(prev => ({
                     ...prev,
                     selectedCategory: categoryId
                   }));
-                  
-                  // Auto-submit order after category selection
-                  await submitSimplifiedOrder(categoryId);
+                  nextStep();
                 }}
-                selectedCategory={orderState.selectedCategory}
+                selectedCategory={orderState.selectedCategory || undefined}
+              />
+            )}
+
+            {/* Step 3: Product Configuration */}
+            {orderState.step === 3 && (
+              <ProductConfigurationStep
+                category={orderState.selectedCategory}
+                services={services}
+                selectedAreaRange={orderState.selectedAreaRange}
+                selectedProducts={orderState.selectedProducts}
+                selectedPackage={orderState.selectedPackage}
+                travelCost={orderState.travelCost}
+                onAreaRangeChange={(range) => setOrderState(prev => ({ ...prev, selectedAreaRange: range }))}
+                onProductToggle={(serviceId, quantity, unitPrice) => {
+                  setOrderState(prev => {
+                    const newProducts = { ...prev.selectedProducts };
+                    if (quantity === 0) {
+                      delete newProducts[serviceId];
+                    } else {
+                      newProducts[serviceId] = { quantity, unitPrice, totalPrice: quantity * unitPrice };
+                    }
+                    return { ...prev, selectedProducts: newProducts };
+                  });
+                }}
+                onPackageSelect={(packageId) => setOrderState(prev => ({ ...prev, selectedPackage: packageId }))}
               />
             )}
           </div>
@@ -256,30 +293,32 @@ export const OrderWizard = () => {
 
         {/* Bottom Navigation */}
         <div className="border-t border-border bg-card p-4">
-          <div className="container mx-auto max-w-4xl flex items-center justify-between">
-            {/* Back Button - only show in step 2 */}
-            {orderState.step === 2 ? (
-              <Button
-                variant="outline"
-                onClick={prevStep}
-                className="gap-2"
-              >
+          <div className="container mx-auto max-w-6xl flex items-center justify-between">
+            {orderState.step > 1 ? (
+              <Button variant="outline" onClick={prevStep} className="gap-2">
                 <ArrowLeft className="w-4 h-4" />
                 Zurück
               </Button>
-            ) : (
-              <div />
+            ) : <div />}
+
+            {orderState.step === 1 && (
+              <Button variant="cta" onClick={nextStep} disabled={!orderState.locationValidated} className="gap-2">
+                Weiter
+                <ArrowRight className="w-4 h-4" />
+              </Button>
             )}
 
-            {/* Next Button - Step 1 only (Step 2 auto-submits) */}
-            {orderState.step === 1 && (
-              <Button
-                variant="cta"
-                onClick={nextStep}
-                disabled={!orderState.locationValidated}
-                className="gap-2"
-              >
+            {orderState.step === 2 && orderState.selectedCategory && (
+              <Button variant="cta" onClick={nextStep} className="gap-2">
                 Weiter
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            )}
+
+            {orderState.step === 3 && (
+              <Button variant="cta" onClick={() => submitSimplifiedOrder(orderState.selectedCategory!)} 
+                disabled={Object.keys(orderState.selectedProducts).length === 0 && !orderState.selectedPackage} className="gap-2">
+                Bestellung aufgeben
                 <ArrowRight className="w-4 h-4" />
               </Button>
             )}
