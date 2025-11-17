@@ -1,8 +1,9 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import * as turf from '@turf/turf';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { MAPBOX_CONFIG } from '@/config/mapbox';
+import { fetchDrivingIsochrone } from '@/lib/mapbox-isochrone';
 
 interface Photographer {
   id: string;
@@ -22,6 +23,7 @@ interface PhotographerMapViewProps {
 export const PhotographerMapView = ({ photographers }: PhotographerMapViewProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
+  const [isLoadingIsochrones, setIsLoadingIsochrones] = useState(false);
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -50,27 +52,76 @@ export const PhotographerMapView = ({ photographers }: PhotographerMapViewProps)
 
     const markers: mapboxgl.Marker[] = [];
 
-    map.current.on('load', () => {
+    map.current.on('load', async () => {
       if (!map.current) return;
 
-      // Add circles for service areas
-      const circleFeatures = photographersWithLocation
+      setIsLoadingIsochrones(true);
+
+      // Fetch isochrones for all photographers with service radii
+      const isochronePromises = photographersWithLocation
         .filter((p) => p.service_radius_km)
-        .map((p) => {
-          const center = turf.point([p.location_lng!, p.location_lat!]);
-          const radius = p.service_radius_km!;
-          const options = { steps: 64, units: 'kilometers' as const };
-          const circle = turf.circle(center, radius, options);
-          
-          return {
-            ...circle,
-            properties: {
-              photographerId: p.id,
-              name: `${p.vorname} ${p.nachname}`,
-              radius: radius,
-            },
-          };
+        .map(async (p) => {
+          try {
+            // For radii >100km, use fallback circle (Isochrone API limited to ~60 min)
+            if (p.service_radius_km! > 100) {
+              const center = turf.point([p.location_lng!, p.location_lat!]);
+              const circle = turf.circle(center, p.service_radius_km!, {
+                steps: 64,
+                units: 'kilometers' as const,
+              });
+              return [{
+                ...circle,
+                properties: {
+                  photographerId: p.id,
+                  name: `${p.vorname} ${p.nachname}`,
+                  radius: p.service_radius_km,
+                  isApproximate: true,
+                },
+              }];
+            }
+
+            // Fetch realistic driving-distance isochrone
+            const isochroneData = await fetchDrivingIsochrone(
+              p.location_lng!,
+              p.location_lat!,
+              p.service_radius_km!,
+              MAPBOX_CONFIG.accessToken
+            );
+
+            return isochroneData.features.map((feature: any) => ({
+              ...feature,
+              properties: {
+                ...feature.properties,
+                photographerId: p.id,
+                name: `${p.vorname} ${p.nachname}`,
+                radius: p.service_radius_km,
+                isApproximate: false,
+              },
+            }));
+          } catch (error) {
+            console.error(`Failed to fetch isochrone for ${p.vorname}:`, error);
+            // Fallback to circle on error
+            const center = turf.point([p.location_lng!, p.location_lat!]);
+            const circle = turf.circle(center, p.service_radius_km!, {
+              steps: 64,
+              units: 'kilometers' as const,
+            });
+            return [{
+              ...circle,
+              properties: {
+                photographerId: p.id,
+                name: `${p.vorname} ${p.nachname}`,
+                radius: p.service_radius_km,
+                isApproximate: true,
+              },
+            }];
+          }
         });
+
+      const isochroneResults = await Promise.all(isochronePromises);
+      const circleFeatures = isochroneResults.filter(Boolean).flat();
+
+      setIsLoadingIsochrones(false);
 
       if (circleFeatures.length > 0) {
         map.current.addSource('service-areas', {
@@ -161,9 +212,16 @@ export const PhotographerMapView = ({ photographers }: PhotographerMapViewProps)
   }, [photographers]);
 
   return (
-    <div 
-      ref={mapContainer} 
-      className="w-full h-[500px] rounded-xl overflow-hidden border"
-    />
+    <div className="relative w-full h-[500px]">
+      {isLoadingIsochrones && (
+        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-background/95 backdrop-blur-sm px-4 py-2 rounded-lg shadow-lg z-10 border">
+          <span className="text-sm font-medium text-foreground">Berechne Service-Bereiche...</span>
+        </div>
+      )}
+      <div 
+        ref={mapContainer} 
+        className="w-full h-full rounded-xl overflow-hidden border"
+      />
+    </div>
   );
 };
