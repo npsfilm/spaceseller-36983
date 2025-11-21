@@ -27,7 +27,7 @@ export const CategorySelectionStep = ({
       icon: Camera,
       image: augsburgHouseExterior,
       title: 'Aufnahme vor Ort',
-      description: 'Foto, Video, Drohne, virtuelle Tour, Aufmaß & Grundriss und virtuelles Staging zur Ergänzung Ihres Fotoshootings',
+      description: 'Foto, Video, Drohne, und virtuelle Tour vor Ort buchen',
       services: services.filter(s => 
         s.category === 'photography' || 
         s.category === 'drone' || 
