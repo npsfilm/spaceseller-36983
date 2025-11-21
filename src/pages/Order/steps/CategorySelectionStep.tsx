@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Camera, Sparkles, Home, FileText, ArrowLeft } from 'lucide-react';
+import { Camera, Sparkles, Home, FileText, Layout } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CategoryCard } from '../components/CategoryCard';
 import type { Service } from '../OrderWizard';
@@ -7,6 +7,7 @@ import augsburgHouseExterior from '@/assets/augsburg-house-exterior.jpg';
 import floorPlan3d from '@/assets/floor-plan-3d-isometric.jpg';
 import vsLivingAfter from '@/assets/vs-living-after.jpg';
 import heroProperty from '@/assets/hero-property.jpg';
+import afterInterior from '@/assets/after-interior.jpg';
 
 interface CategorySelectionStepProps {
   services: Service[];
@@ -20,7 +21,7 @@ export const CategorySelectionStep = ({
   onSelectCategory,
   selectedCategory
 }: CategorySelectionStepProps) => {
-  // New 4 categories with updated copywriting
+  // 5 categories with split editing and floor plans
   const categories = [
     {
       id: 'onsite',
@@ -35,13 +36,20 @@ export const CategorySelectionStep = ({
       )
     },
     {
-      id: 'rendering_editing',
+      id: 'photo_editing',
       icon: Sparkles,
+      image: afterInterior,
+      title: 'Fotobearbeitung',
+      description: 'Professionelle Bildoptimierung und Objektretusche Ihrer Fotos',
+      services: services.filter(s => s.category === 'editing')
+    },
+    {
+      id: 'floor_plans',
+      icon: Layout,
       image: floorPlan3d,
-      title: 'Rendering und Bearbeitung',
-      description: 'Grundrissbearbeitung auf Basis Ihrer bemaßten Grundrisse und Zeichnungen',
+      title: 'Grundriss',
+      description: '2D und 3D Grundrisse auf Basis Ihrer bemaßten Zeichnungen',
       services: services.filter(s => 
-        s.category === 'editing' || 
         s.category === 'floor_plan' || 
         s.category === 'rendering'
       )
@@ -77,9 +85,9 @@ export const CategorySelectionStep = ({
           </p>
         </div>
 
-        {/* Category Grid - 4 cards side by side with container */}
+        {/* Category Grid - 5 cards with container */}
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-6 lg:gap-8 justify-items-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 md:gap-6 lg:gap-8 justify-items-center">
             {categories.map((category, index) => {
             const startingPrice = category.services.length > 0 
               ? Math.min(...category.services.map(s => s.base_price))
