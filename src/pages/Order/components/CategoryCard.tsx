@@ -65,9 +65,9 @@ export const CategoryCard = ({
           </div>
         )}
         
-        {/* Prominent Image at Top - 3:5 Aspect Ratio */}
+        {/* Prominent Image at Top - 3:4 Aspect Ratio */}
         {image && (
-          <div className="w-full aspect-[3/5] overflow-hidden">
+          <div className="w-full aspect-[3/4] overflow-hidden">
             <img 
               src={image} 
               alt={title}
