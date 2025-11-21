@@ -77,9 +77,10 @@ export const CategorySelectionStep = ({
           </p>
         </div>
 
-        {/* Category Grid - 4 cards side by side */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {categories.map((category, index) => {
+        {/* Category Grid - 4 cards side by side with container */}
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-6 lg:gap-8 justify-items-center">
+            {categories.map((category, index) => {
             const startingPrice = category.services.length > 0 
               ? Math.min(...category.services.map(s => s.base_price))
               : 0;
@@ -97,7 +98,8 @@ export const CategorySelectionStep = ({
                 isSelected={selectedCategory === category.id}
               />
             );
-          })}
+            })}
+          </div>
         </div>
       </div>
     </div>
