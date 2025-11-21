@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Layout } from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { RoleSwitcher } from '@/components/RoleSwitcher';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -227,10 +226,7 @@ export default function FreelancerDashboard() {
 
       <div className="container mx-auto px-4 py-12">
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
-            <h1 className="text-4xl font-bold">Freelancer Dashboard</h1>
-            <RoleSwitcher />
-          </div>
+          <h1 className="text-4xl font-bold mb-2">Freelancer Dashboard</h1>
           <p className="text-muted-foreground">Verwalten Sie Ihre Shooting-Aufträge</p>
         </div>
 
