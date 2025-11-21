@@ -39,7 +39,7 @@ export const CategorySelectionStep = ({
       icon: Sparkles,
       image: floorPlan3d,
       title: 'Rendering und Bearbeitung',
-      description: 'Grundrissbearbeitung, Fotoretusche, Wohnflächenberechnung auf Basis Ihrer bemaßten Grundrisse und Renderings',
+      description: 'Grundrissbearbeitung auf Basis Ihrer bemaßten Grundrisse und Zeichnungen',
       services: services.filter(s => 
         s.category === 'editing' || 
         s.category === 'floor_plan' || 
