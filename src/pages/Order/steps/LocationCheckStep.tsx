@@ -306,7 +306,7 @@ export const LocationCheckStep = ({
           travelCost,
           distance: nearest.distance_km,
           photographyAvailable: true,
-          message: "✅ Fotografie vor Ort in Ihrer Region verfügbar."
+          message: "Fotografie vor Ort in Ihrer Region verfügbar."
         });
       }
       
