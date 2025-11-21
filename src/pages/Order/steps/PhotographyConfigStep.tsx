@@ -3,8 +3,8 @@ import { Camera, Plus, Check, Plane } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 
 interface PhotographyConfigStepProps {
   selectedPackage: string | null;
@@ -342,58 +342,71 @@ export const PhotographyConfigStep = ({
         </Tabs>
       </div>
 
-      {/* Package Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-        {filteredPackages.map((pkg) => (
-          <Card 
-            key={pkg.id}
-            className={`relative cursor-pointer transition-all hover:shadow-lg ${
-              selectedPackage === pkg.id 
-                ? 'border-primary border-2 shadow-md' 
-                : 'border-border hover:border-primary/50'
-            }`}
-            onClick={() => handlePackageSelect(pkg.id)}
-          >
-            {pkg.popular && (
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-semibold">
-                Beliebt
-              </div>
-            )}
-            
-            {selectedPackage === pkg.id && (
-              <div className="absolute top-4 right-4 w-6 h-6 bg-primary rounded-full flex items-center justify-center">
-                <Check className="w-4 h-4 text-primary-foreground" />
-              </div>
-            )}
+      {/* Package Cards Carousel */}
+      <div className="max-w-6xl mx-auto px-12">
+        <Carousel
+          opts={{
+            align: "start",
+            loop: true,
+          }}
+          className="w-full"
+        >
+          <CarouselContent>
+            {filteredPackages.map((pkg) => (
+              <CarouselItem key={pkg.id} className="md:basis-1/3">
+                <Card 
+                  className={`relative cursor-pointer transition-all hover:shadow-lg h-full ${
+                    selectedPackage === pkg.id 
+                      ? 'border-primary border-2 shadow-md' 
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                  onClick={() => handlePackageSelect(pkg.id)}
+                >
+                  {pkg.popular && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-semibold">
+                      Beliebt
+                    </div>
+                  )}
+                  
+                  {selectedPackage === pkg.id && (
+                    <div className="absolute top-4 right-4 w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                      <Check className="w-4 h-4 text-primary-foreground" />
+                    </div>
+                  )}
 
-            <CardHeader>
-              <CardTitle className="text-2xl">{pkg.name}</CardTitle>
-              <CardDescription className="text-sm">
-                {pkg.photoCount} {pkg.breakdown ? `(${pkg.breakdown})` : 'Fotos'}
-              </CardDescription>
-            </CardHeader>
+                  <CardHeader>
+                    <CardTitle className="text-2xl">{pkg.name}</CardTitle>
+                    <CardDescription className="text-sm">
+                      {pkg.photoCount} {pkg.breakdown ? `(${pkg.breakdown})` : 'Fotos'}
+                    </CardDescription>
+                  </CardHeader>
 
-            <CardContent className="space-y-4">
-              <div className="space-y-1">
-                <div className="text-4xl font-bold text-primary">
-                  {pkg.price}€
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  einmalig • {(pkg.price / pkg.photoCount).toFixed(2)}€/Foto
-                </p>
-              </div>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-1">
+                      <div className="text-4xl font-bold text-primary">
+                        {pkg.price}€
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        einmalig • {(pkg.price / pkg.photoCount).toFixed(2)}€/Foto
+                      </p>
+                    </div>
 
-              <ul className="space-y-2">
-                {pkg.features.map((feature, idx) => (
-                  <li key={idx} className="flex items-start gap-2 text-sm">
-                    <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-        ))}
+                    <ul className="space-y-2">
+                      {pkg.features.map((feature, idx) => (
+                        <li key={idx} className="flex items-start gap-2 text-sm">
+                          <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious />
+          <CarouselNext />
+        </Carousel>
       </div>
 
       {/* Add-ons Section */}
