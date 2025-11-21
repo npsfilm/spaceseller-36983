@@ -51,6 +51,20 @@ export const CategoryCard = ({
         }`}
         onClick={onClick}
       >
+        {/* Checkmark in Top Right Corner */}
+        {isSelected && (
+          <div className="absolute top-4 right-4 z-10">
+            <svg 
+              className="h-6 w-6 text-primary-foreground bg-primary rounded-full p-1 animate-check-in" 
+              fill="none" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+        )}
+        
         {/* Prominent Image at Top - 3:2 Aspect Ratio */}
         {image && (
           <div className="w-full aspect-[3/2] overflow-hidden">
@@ -64,22 +78,10 @@ export const CategoryCard = ({
         
         {/* Content Below Image */}
         <div className="flex flex-col items-center text-center space-y-3 p-5">
-          {/* Title with Check Icon */}
-          <div className="flex items-center gap-2">
-            <h3 className="text-lg font-bold text-foreground">
-              {title}
-            </h3>
-            {isSelected && (
-              <svg 
-                className="h-4 w-4 text-primary-foreground bg-primary rounded-full p-1 animate-check-in" 
-                fill="none" 
-                viewBox="0 0 24 24" 
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-              </svg>
-            )}
-          </div>
+          {/* Title */}
+          <h3 className="text-lg font-bold text-foreground">
+            {title}
+          </h3>
           
           {/* Description */}
           <p className="text-xs text-muted-foreground leading-relaxed">
