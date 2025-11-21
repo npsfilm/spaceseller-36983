@@ -344,34 +344,24 @@ export const PhotographyConfigStep = ({
         </Tabs>
       </div>
 
-      {/* Photo Count Slider */}
-      <Card className="max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle className="text-lg">Wie viele Fotos benötigen Sie?</CardTitle>
-          <CardDescription>
-            Wählen Sie die gewünschte Anzahl an Bildern
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-3xl font-bold text-primary">{photoCount} Fotos</span>
-            </div>
-            <Slider
-              value={[photoCount]}
-              onValueChange={(value) => setPhotoCount(value[0])}
-              min={5}
-              max={50}
-              step={1}
-              className="w-full"
-            />
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>5 Fotos</span>
-              <span>50 Fotos</span>
-            </div>
+      {/* Photo Count Slider - Only for photo packages */}
+      {packageType === 'photo' && (
+        <div className="max-w-2xl mx-auto flex items-center gap-4">
+          <div className="flex-shrink-0">
+            <span className="inline-flex items-center justify-center bg-primary text-primary-foreground font-bold rounded-full h-12 w-12 text-lg">
+              {photoCount}
+            </span>
           </div>
-        </CardContent>
-      </Card>
+          <Slider
+            value={[photoCount]}
+            onValueChange={(value) => setPhotoCount(value[0])}
+            min={6}
+            max={50}
+            step={1}
+            className="flex-1"
+          />
+        </div>
+      )}
 
       {/* Package Cards Carousel */}
       <div className="max-w-6xl mx-auto px-12">
