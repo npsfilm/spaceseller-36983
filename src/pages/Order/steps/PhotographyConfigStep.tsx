@@ -18,129 +18,229 @@ interface PackageTier {
   id: string;
   name: string;
   type: PackageType;
-  pricePerPhoto: number;
+  photoCount: number;
+  price: number;
+  breakdown?: string;
   features: string[];
   popular?: boolean;
 }
 
 const PACKAGE_TIERS: PackageTier[] = [
+  // Photo Packages (Immobilienshooting)
   {
-    id: 'basic',
-    name: 'Basis',
+    id: 'photo-basic-s',
+    name: 'Basic S',
     type: 'photo',
-    pricePerPhoto: 8.5,
-    features: [
-      'Professionelle Bildbearbeitung',
-      'Lieferung innerhalb 48h',
-      'Online-Galerie'
-    ]
+    photoCount: 6,
+    price: 199,
+    features: ['Professionelle Bildbearbeitung', 'HDR-Optimierung', 'Lieferung innerhalb 48h', 'Online-Galerie'],
   },
   {
-    id: 'standard',
+    id: 'photo-basic-m',
+    name: 'Basic M',
+    type: 'photo',
+    photoCount: 8,
+    price: 249,
+    features: ['Professionelle Bildbearbeitung', 'HDR-Optimierung', 'Lieferung innerhalb 48h', 'Online-Galerie'],
+  },
+  {
+    id: 'photo-standard',
     name: 'Standard',
     type: 'photo',
-    pricePerPhoto: 7.2,
+    photoCount: 10,
+    price: 299,
+    features: ['Professionelle Bildbearbeitung', 'HDR-Optimierung', 'Lieferung innerhalb 48h', 'Online-Galerie'],
     popular: true,
-    features: [
-      'Professionelle Bildbearbeitung',
-      'Lieferung innerhalb 48h',
-      'Online-Galerie',
-      'HDR-Bearbeitung inklusive'
-    ]
   },
   {
-    id: 'premium',
-    name: 'Premium',
+    id: 'photo-premium-s',
+    name: 'Premium S',
     type: 'photo',
-    pricePerPhoto: 6.5,
-    features: [
-      'Professionelle Bildbearbeitung',
-      'Express-Lieferung 24h',
-      'Online-Galerie',
-      'HDR-Bearbeitung inklusive',
-      'Twilight-Aufnahmen (2 Bilder)'
-    ]
+    photoCount: 15,
+    price: 399,
+    features: ['Professionelle Bildbearbeitung', 'HDR-Optimierung', 'Express-Lieferung 24h', 'Online-Galerie'],
   },
   {
-    id: 'drone_basic',
-    name: 'Basis',
-    type: 'drone',
-    pricePerPhoto: 12.0,
-    features: [
-      'Luftaufnahmen in 4K',
-      'Professionelle Bildbearbeitung',
-      'Lieferung innerhalb 48h',
-      'Online-Galerie'
-    ]
+    id: 'photo-premium-m',
+    name: 'Premium M',
+    type: 'photo',
+    photoCount: 20,
+    price: 499,
+    features: ['Professionelle Bildbearbeitung', 'HDR-Optimierung', 'Express-Lieferung 24h', 'Color Grading', 'Online-Galerie'],
   },
   {
-    id: 'drone_standard',
-    name: 'Standard',
+    id: 'photo-premium-l',
+    name: 'Premium L',
+    type: 'photo',
+    photoCount: 25,
+    price: 589,
+    features: ['Professionelle Bildbearbeitung', 'HDR-Optimierung', 'Express-Lieferung 24h', 'Color Grading', 'Online-Galerie'],
+  },
+  {
+    id: 'photo-deluxe-s',
+    name: 'Deluxe S',
+    type: 'photo',
+    photoCount: 40,
+    price: 799,
+    features: ['Professionelle Bildbearbeitung', 'HDR-Optimierung', 'Express-Lieferung 24h', 'Color Grading', 'Raw-Dateien', 'Online-Galerie'],
+  },
+  {
+    id: 'photo-deluxe-m',
+    name: 'Deluxe M',
+    type: 'photo',
+    photoCount: 50,
+    price: 949,
+    features: ['Professionelle Bildbearbeitung', 'HDR-Optimierung', 'Express-Lieferung 24h', 'Color Grading', 'Raw-Dateien', 'Online-Galerie'],
+  },
+  
+  // Drone Packages (Drohnenshooting)
+  {
+    id: 'drone-sky-s',
+    name: 'Sky S',
     type: 'drone',
-    pricePerPhoto: 10.5,
+    photoCount: 5,
+    price: 219,
+    features: ['Luftaufnahmen in 4K', 'Professionelle Bildbearbeitung', 'Online-Galerie'],
+  },
+  {
+    id: 'drone-sky-m',
+    name: 'Sky M',
+    type: 'drone',
+    photoCount: 8,
+    price: 249,
+    features: ['Luftaufnahmen in 4K', 'Professionelle Bildbearbeitung', 'HDR-Optimierung', 'Online-Galerie'],
+  },
+  {
+    id: 'drone-sky-l',
+    name: 'Sky L',
+    type: 'drone',
+    photoCount: 10,
+    price: 279,
+    features: ['Luftaufnahmen in 4K', 'Professionelle Bildbearbeitung', 'HDR-Optimierung', 'Online-Galerie'],
     popular: true,
-    features: [
-      'Luftaufnahmen in 4K',
-      'Professionelle Bildbearbeitung',
-      'Lieferung innerhalb 48h',
-      'Online-Galerie',
-      'HDR-Bearbeitung inklusive'
-    ]
   },
   {
-    id: 'drone_premium',
-    name: 'Premium',
+    id: 'drone-sky-xl-s',
+    name: 'Sky XL S',
     type: 'drone',
-    pricePerPhoto: 9.0,
-    features: [
-      'Luftaufnahmen in 4K',
-      'Professionelle Bildbearbeitung',
-      'Express-Lieferung 24h',
-      'Online-Galerie',
-      'HDR-Bearbeitung inklusive',
-      '360° Panorama'
-    ]
+    photoCount: 12,
+    price: 319,
+    features: ['Luftaufnahmen in 4K', 'Professionelle Bildbearbeitung', 'HDR-Optimierung', 'Online-Galerie'],
   },
   {
-    id: 'combo_basic',
-    name: 'Basis',
-    type: 'photo_drone',
-    pricePerPhoto: 9.5,
-    features: [
-      'Foto & Drohne kombiniert',
-      'Professionelle Bildbearbeitung',
-      'Lieferung innerhalb 48h',
-      'Online-Galerie'
-    ]
+    id: 'drone-sky-xl-m',
+    name: 'Sky XL M',
+    type: 'drone',
+    photoCount: 15,
+    price: 379,
+    features: ['Luftaufnahmen in 4K', 'Professionelle Bildbearbeitung', 'HDR-Optimierung', '360° Panorama', 'Online-Galerie'],
   },
   {
-    id: 'combo_standard',
-    name: 'Standard',
+    id: 'drone-sky-xl-l',
+    name: 'Sky XL L',
+    type: 'drone',
+    photoCount: 20,
+    price: 499,
+    features: ['Luftaufnahmen in 4K', 'Professionelle Bildbearbeitung', 'HDR-Optimierung', '360° Panorama', 'Online-Galerie'],
+  },
+  {
+    id: 'drone-sky-premium-s',
+    name: 'Sky Premium S',
+    type: 'drone',
+    photoCount: 25,
+    price: 589,
+    features: ['Luftaufnahmen in 4K', 'Professionelle Bildbearbeitung', 'HDR-Optimierung', '360° Panorama', 'Raw-Dateien', 'Online-Galerie'],
+  },
+  {
+    id: 'drone-sky-premium-m',
+    name: 'Sky Premium M',
+    type: 'drone',
+    photoCount: 30,
+    price: 679,
+    features: ['Luftaufnahmen in 4K', 'Professionelle Bildbearbeitung', 'HDR-Optimierung', '360° Panorama', 'Raw-Dateien', 'Online-Galerie'],
+  },
+  {
+    id: 'drone-sky-premium-l',
+    name: 'Sky Premium L',
+    type: 'drone',
+    photoCount: 40,
+    price: 849,
+    features: ['Luftaufnahmen in 4K', 'Professionelle Bildbearbeitung', 'HDR-Optimierung', '360° Panorama', 'Raw-Dateien', 'Online-Galerie'],
+  },
+  {
+    id: 'drone-sky-premium-xl',
+    name: 'Sky Premium XL',
+    type: 'drone',
+    photoCount: 50,
+    price: 999,
+    features: ['Luftaufnahmen in 4K', 'Professionelle Bildbearbeitung', 'HDR-Optimierung', '360° Panorama', 'Raw-Dateien', 'Online-Galerie'],
+  },
+
+  // Kombi Packages (Foto + Drohne)
+  {
+    id: 'kombi-s',
+    name: 'Kombi S',
     type: 'photo_drone',
-    pricePerPhoto: 8.2,
+    photoCount: 12,
+    price: 379,
+    breakdown: '8 Immo + 4 Drohne',
+    features: ['Foto & Drohne kombiniert', 'Professionelle Bildbearbeitung beider', 'HDR-Optimierung', 'Online-Galerie', 'Kombi-Rabatt inkl.'],
+  },
+  {
+    id: 'kombi-m',
+    name: 'Kombi M',
+    type: 'photo_drone',
+    photoCount: 15,
+    price: 449,
+    breakdown: '10 Immo + 5 Drohne',
+    features: ['Foto & Drohne kombiniert', 'Professionelle Bildbearbeitung beider', 'HDR-Optimierung', 'Online-Galerie', 'Kombi-Rabatt inkl.'],
     popular: true,
-    features: [
-      'Foto & Drohne kombiniert',
-      'Professionelle Bildbearbeitung',
-      'Lieferung innerhalb 48h',
-      'Online-Galerie',
-      'HDR-Bearbeitung inklusive'
-    ]
   },
   {
-    id: 'combo_premium',
-    name: 'Premium',
+    id: 'kombi-l',
+    name: 'Kombi L',
     type: 'photo_drone',
-    pricePerPhoto: 7.5,
-    features: [
-      'Foto & Drohne kombiniert',
-      'Professionelle Bildbearbeitung',
-      'Express-Lieferung 24h',
-      'Online-Galerie',
-      'HDR-Bearbeitung inklusive',
-      'Twilight-Aufnahmen (2 Bilder)'
-    ]
-  }
+    photoCount: 20,
+    price: 549,
+    breakdown: '15 Immo + 5 Drohne',
+    features: ['Foto & Drohne kombiniert', 'Professionelle Bildbearbeitung beider', 'HDR-Optimierung', 'Online-Galerie', 'Kombi-Rabatt inkl.'],
+  },
+  {
+    id: 'kombi-xl-s',
+    name: 'Kombi XL S',
+    type: 'photo_drone',
+    photoCount: 25,
+    price: 649,
+    breakdown: '20 Immo + 5 Drohne',
+    features: ['Foto & Drohne kombiniert', 'Professionelle Bildbearbeitung beider', 'HDR-Optimierung', 'Express 24h', 'Online-Galerie', 'Kombi-Rabatt inkl.'],
+  },
+  {
+    id: 'kombi-xl-m',
+    name: 'Kombi XL M',
+    type: 'photo_drone',
+    photoCount: 30,
+    price: 699,
+    breakdown: '20 Immo + 10 Drohne',
+    features: ['Foto & Drohne kombiniert', 'Professionelle Bildbearbeitung beider', 'HDR-Optimierung', 'Express 24h', 'Online-Galerie', 'Kombi-Rabatt inkl.'],
+  },
+  {
+    id: 'kombi-xl-l',
+    name: 'Kombi XL L',
+    type: 'photo_drone',
+    photoCount: 40,
+    price: 849,
+    breakdown: '30 Immo + 10 Drohne',
+    features: ['Foto & Drohne kombiniert', 'Professionelle Bildbearbeitung beider', 'HDR-Optimierung', 'Express 24h', 'Color Grading', 'Online-Galerie', 'Kombi-Rabatt inkl.'],
+  },
+  {
+    id: 'kombi-premium',
+    name: 'Kombi Premium',
+    type: 'photo_drone',
+    photoCount: 50,
+    price: 999,
+    breakdown: '40 Immo + 10 Drohne',
+    features: ['Foto & Drohne kombiniert', 'Professionelle Bildbearbeitung beider', 'HDR-Optimierung', 'Express 24h', 'Color Grading', 'Raw-Dateien', 'Online-Galerie', 'Kombi-Rabatt inkl.'],
+  },
 ];
 
 interface AddOn {
@@ -181,7 +281,6 @@ export const PhotographyConfigStep = ({
   onPackageSelect
 }: PhotographyConfigStepProps) => {
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([]);
-  const [photoCount, setPhotoCount] = useState<number>(20);
   const [packageType, setPackageType] = useState<PackageType>('photo');
 
   const handlePackageSelect = (packageId: string) => {
@@ -199,13 +298,11 @@ export const PhotographyConfigStep = ({
   const filteredPackages = PACKAGE_TIERS.filter(p => p.type === packageType);
   const selectedPackageData = filteredPackages.find(p => p.id === selectedPackage);
   
-  const calculatePrice = (pricePerPhoto: number) => Math.round(pricePerPhoto * photoCount);
-  
   const addOnsTotal = selectedAddOns.reduce((sum, id) => {
     const addOn = ADD_ONS.find(a => a.id === id);
     return sum + (addOn?.price || 0);
   }, 0);
-  const totalPrice = (selectedPackageData ? calculatePrice(selectedPackageData.pricePerPhoto) : 0) + addOnsTotal + travelCost;
+  const totalPrice = (selectedPackageData?.price || 0) + addOnsTotal + travelCost;
 
   return (
     <div className="space-y-8 py-8">
@@ -245,33 +342,9 @@ export const PhotographyConfigStep = ({
         </Tabs>
       </div>
 
-      {/* Photo Count Slider */}
-      <div className="max-w-2xl mx-auto space-y-4">
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-medium">Anzahl der Fotos</label>
-            <span className="text-2xl font-bold text-primary">{photoCount} Fotos</span>
-          </div>
-          <Slider
-            value={[photoCount]}
-            onValueChange={(values) => setPhotoCount(values[0])}
-            min={5}
-            max={50}
-            step={5}
-            className="w-full"
-          />
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>5 Fotos</span>
-            <span>50 Fotos</span>
-          </div>
-        </div>
-      </div>
-
       {/* Package Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-        {filteredPackages.map((pkg) => {
-          const packagePrice = calculatePrice(pkg.pricePerPhoto);
-          return (
+        {filteredPackages.map((pkg) => (
           <Card 
             key={pkg.id}
             className={`relative cursor-pointer transition-all hover:shadow-lg ${
@@ -296,17 +369,17 @@ export const PhotographyConfigStep = ({
             <CardHeader>
               <CardTitle className="text-2xl">{pkg.name}</CardTitle>
               <CardDescription className="text-sm">
-                {photoCount} Fotos • {pkg.pricePerPhoto.toFixed(2)}€ pro Foto
+                {pkg.photoCount} {pkg.breakdown ? `(${pkg.breakdown})` : 'Fotos'}
               </CardDescription>
             </CardHeader>
 
             <CardContent className="space-y-4">
               <div className="space-y-1">
                 <div className="text-4xl font-bold text-primary">
-                  {packagePrice}€
+                  {pkg.price}€
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  einmalig
+                  einmalig • {(pkg.price / pkg.photoCount).toFixed(2)}€/Foto
                 </p>
               </div>
 
@@ -320,8 +393,7 @@ export const PhotographyConfigStep = ({
               </ul>
             </CardContent>
           </Card>
-          );
-        })}
+        ))}
       </div>
 
       {/* Add-ons Section */}
@@ -381,8 +453,8 @@ export const PhotographyConfigStep = ({
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex justify-between text-sm">
-              <span>Paket: {selectedPackageData?.name} ({photoCount} Fotos)</span>
-              <span className="font-semibold">{calculatePrice(selectedPackageData.pricePerPhoto)}€</span>
+              <span>Paket: {selectedPackageData?.name} ({selectedPackageData.photoCount} Fotos)</span>
+              <span className="font-semibold">{selectedPackageData.price}€</span>
             </div>
             
             {selectedAddOns.length > 0 && (
