@@ -2,6 +2,8 @@ import { ReactNode } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Users } from "lucide-react";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -16,7 +18,6 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
     if (location.pathname === "/admin-backend/photographers") return "photographers";
     if (location.pathname === "/admin-backend/locations") return "locations";
     if (location.pathname === "/admin-backend/users") return "users";
-    if (location.pathname === "/freelancer-dashboard") return "freelancer";
     return "orders";
   };
 
@@ -24,10 +25,22 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
     <Layout>
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+            
+            <Button
+              variant="outline"
+              size="default"
+              onClick={() => navigate("/freelancer-dashboard")}
+              className="gap-2"
+            >
+              <Users className="h-4 w-4" />
+              Zu Freelancer-Ansicht wechseln
+            </Button>
+          </div>
           
           <Tabs value={getActiveTab()} className="w-full">
-            <TabsList className="grid w-full max-w-5xl grid-cols-5">
+            <TabsList className="grid w-full max-w-4xl grid-cols-4">
               <TabsTrigger 
                 value="orders"
                 onClick={() => navigate("/admin-backend")}
@@ -51,12 +64,6 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
                 onClick={() => navigate("/admin-backend/users")}
               >
                 Benutzer
-              </TabsTrigger>
-              <TabsTrigger 
-                value="freelancer"
-                onClick={() => navigate("/freelancer-dashboard")}
-              >
-                Freelancer
               </TabsTrigger>
             </TabsList>
           </Tabs>
