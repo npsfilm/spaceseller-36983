@@ -2,8 +2,7 @@ import { ReactNode } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Users } from "lucide-react";
+import { RoleSwitcher } from "@/components/RoleSwitcher";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -27,16 +26,7 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-            
-            <Button
-              variant="outline"
-              size="default"
-              onClick={() => navigate("/freelancer-dashboard")}
-              className="gap-2"
-            >
-              <Users className="h-4 w-4" />
-              Zu Freelancer-Ansicht wechseln
-            </Button>
+            <RoleSwitcher />
           </div>
           
           <Tabs value={getActiveTab()} className="w-full">
