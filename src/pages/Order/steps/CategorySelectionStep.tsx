@@ -78,7 +78,7 @@ export const CategorySelectionStep = ({
         </div>
 
         {/* Category Grid - 4 cards side by side */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 scale-[1.2] origin-top">
           {categories.map((category, index) => {
             const startingPrice = category.services.length > 0 
               ? Math.min(...category.services.map(s => s.base_price))

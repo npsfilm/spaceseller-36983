@@ -64,11 +64,6 @@ export const CategoryCard = ({
         
         {/* Content Below Image */}
         <div className="flex flex-col items-center text-center space-y-3 p-5">
-          {/* Icon Container */}
-          <div className="p-3 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300">
-            <Icon className="h-8 w-8 text-primary" strokeWidth={1.5} />
-          </div>
-          
           {/* Title with Check Icon */}
           <div className="flex items-center gap-2">
             <h3 className="text-lg font-bold text-foreground">
