@@ -258,7 +258,6 @@ export const OrderWizard = () => {
                     ...prev,
                     selectedCategory: categoryId
                   }));
-                  nextStep();
                 }}
                 selectedCategory={orderState.selectedCategory || undefined}
               />
