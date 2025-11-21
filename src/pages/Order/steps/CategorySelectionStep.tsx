@@ -66,7 +66,7 @@ export const CategorySelectionStep = ({
 
   return (
     <div className="min-h-screen py-16 px-1">
-      <div className="space-y-12 max-w-[1800px] mx-auto">
+      <div className="space-y-12 w-full mx-auto">
         {/* Header */}
         <div className="text-center space-y-3">
           <h1 className="text-3xl md:text-4xl font-bold text-foreground">
