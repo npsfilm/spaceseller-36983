@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { Camera, Plus, Check } from 'lucide-react';
+import { Camera, Plus, Check, Plane } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Slider } from '@/components/ui/slider';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface PhotographyConfigStepProps {
   selectedPackage: string | null;
@@ -10,23 +12,24 @@ interface PhotographyConfigStepProps {
   onPackageSelect: (packageId: string | null) => void;
 }
 
+type PackageType = 'photo' | 'drone' | 'photo_drone';
+
 interface PackageTier {
   id: string;
   name: string;
-  photoCount: number;
-  price: number;
+  type: PackageType;
+  pricePerPhoto: number;
   features: string[];
   popular?: boolean;
 }
 
-const PHOTOGRAPHY_PACKAGES: PackageTier[] = [
+const PACKAGE_TIERS: PackageTier[] = [
   {
     id: 'basic',
     name: 'Basis',
-    photoCount: 10,
-    price: 129,
+    type: 'photo',
+    pricePerPhoto: 8.5,
     features: [
-      '10 hochwertige Fotos',
       'Professionelle Bildbearbeitung',
       'Lieferung innerhalb 48h',
       'Online-Galerie'
@@ -35,11 +38,10 @@ const PHOTOGRAPHY_PACKAGES: PackageTier[] = [
   {
     id: 'standard',
     name: 'Standard',
-    photoCount: 20,
-    price: 199,
+    type: 'photo',
+    pricePerPhoto: 7.2,
     popular: true,
     features: [
-      '20 hochwertige Fotos',
       'Professionelle Bildbearbeitung',
       'Lieferung innerhalb 48h',
       'Online-Galerie',
@@ -49,10 +51,89 @@ const PHOTOGRAPHY_PACKAGES: PackageTier[] = [
   {
     id: 'premium',
     name: 'Premium',
-    photoCount: 35,
-    price: 299,
+    type: 'photo',
+    pricePerPhoto: 6.5,
     features: [
-      '35 hochwertige Fotos',
+      'Professionelle Bildbearbeitung',
+      'Express-Lieferung 24h',
+      'Online-Galerie',
+      'HDR-Bearbeitung inklusive',
+      'Twilight-Aufnahmen (2 Bilder)'
+    ]
+  },
+  {
+    id: 'drone_basic',
+    name: 'Basis',
+    type: 'drone',
+    pricePerPhoto: 12.0,
+    features: [
+      'Luftaufnahmen in 4K',
+      'Professionelle Bildbearbeitung',
+      'Lieferung innerhalb 48h',
+      'Online-Galerie'
+    ]
+  },
+  {
+    id: 'drone_standard',
+    name: 'Standard',
+    type: 'drone',
+    pricePerPhoto: 10.5,
+    popular: true,
+    features: [
+      'Luftaufnahmen in 4K',
+      'Professionelle Bildbearbeitung',
+      'Lieferung innerhalb 48h',
+      'Online-Galerie',
+      'HDR-Bearbeitung inklusive'
+    ]
+  },
+  {
+    id: 'drone_premium',
+    name: 'Premium',
+    type: 'drone',
+    pricePerPhoto: 9.0,
+    features: [
+      'Luftaufnahmen in 4K',
+      'Professionelle Bildbearbeitung',
+      'Express-Lieferung 24h',
+      'Online-Galerie',
+      'HDR-Bearbeitung inklusive',
+      '360° Panorama'
+    ]
+  },
+  {
+    id: 'combo_basic',
+    name: 'Basis',
+    type: 'photo_drone',
+    pricePerPhoto: 9.5,
+    features: [
+      'Foto & Drohne kombiniert',
+      'Professionelle Bildbearbeitung',
+      'Lieferung innerhalb 48h',
+      'Online-Galerie'
+    ]
+  },
+  {
+    id: 'combo_standard',
+    name: 'Standard',
+    type: 'photo_drone',
+    pricePerPhoto: 8.2,
+    popular: true,
+    features: [
+      'Foto & Drohne kombiniert',
+      'Professionelle Bildbearbeitung',
+      'Lieferung innerhalb 48h',
+      'Online-Galerie',
+      'HDR-Bearbeitung inklusive'
+    ]
+  },
+  {
+    id: 'combo_premium',
+    name: 'Premium',
+    type: 'photo_drone',
+    pricePerPhoto: 7.5,
+    features: [
+      'Foto & Drohne kombiniert',
       'Professionelle Bildbearbeitung',
       'Express-Lieferung 24h',
       'Online-Galerie',
@@ -100,6 +181,8 @@ export const PhotographyConfigStep = ({
   onPackageSelect
 }: PhotographyConfigStepProps) => {
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([]);
+  const [photoCount, setPhotoCount] = useState<number>(20);
+  const [packageType, setPackageType] = useState<PackageType>('photo');
 
   const handlePackageSelect = (packageId: string) => {
     onPackageSelect(packageId === selectedPackage ? null : packageId);
@@ -113,12 +196,16 @@ export const PhotographyConfigStep = ({
     );
   };
 
-  const selectedPackageData = PHOTOGRAPHY_PACKAGES.find(p => p.id === selectedPackage);
+  const filteredPackages = PACKAGE_TIERS.filter(p => p.type === packageType);
+  const selectedPackageData = filteredPackages.find(p => p.id === selectedPackage);
+  
+  const calculatePrice = (pricePerPhoto: number) => Math.round(pricePerPhoto * photoCount);
+  
   const addOnsTotal = selectedAddOns.reduce((sum, id) => {
     const addOn = ADD_ONS.find(a => a.id === id);
     return sum + (addOn?.price || 0);
   }, 0);
-  const totalPrice = (selectedPackageData?.price || 0) + addOnsTotal + travelCost;
+  const totalPrice = (selectedPackageData ? calculatePrice(selectedPackageData.pricePerPhoto) : 0) + addOnsTotal + travelCost;
 
   return (
     <div className="space-y-8 py-8">
@@ -133,9 +220,58 @@ export const PhotographyConfigStep = ({
         </p>
       </div>
 
+      {/* Package Type Filter */}
+      <div className="max-w-2xl mx-auto">
+        <Tabs value={packageType} onValueChange={(value) => {
+          setPackageType(value as PackageType);
+          onPackageSelect(null); // Reset selection when changing type
+        }}>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="photo" className="gap-2">
+              <Camera className="w-4 h-4" />
+              Foto
+            </TabsTrigger>
+            <TabsTrigger value="drone" className="gap-2">
+              <Plane className="w-4 h-4" />
+              Drohne
+            </TabsTrigger>
+            <TabsTrigger value="photo_drone" className="gap-2">
+              <Camera className="w-4 h-4" />
+              <Plus className="w-3 h-3" />
+              <Plane className="w-4 h-4" />
+              Foto + Drohne
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+
+      {/* Photo Count Slider */}
+      <div className="max-w-2xl mx-auto space-y-4">
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium">Anzahl der Fotos</label>
+            <span className="text-2xl font-bold text-primary">{photoCount} Fotos</span>
+          </div>
+          <Slider
+            value={[photoCount]}
+            onValueChange={(values) => setPhotoCount(values[0])}
+            min={5}
+            max={50}
+            step={5}
+            className="w-full"
+          />
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>5 Fotos</span>
+            <span>50 Fotos</span>
+          </div>
+        </div>
+      </div>
+
       {/* Package Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-        {PHOTOGRAPHY_PACKAGES.map((pkg) => (
+        {filteredPackages.map((pkg) => {
+          const packagePrice = calculatePrice(pkg.pricePerPhoto);
+          return (
           <Card 
             key={pkg.id}
             className={`relative cursor-pointer transition-all hover:shadow-lg ${
@@ -160,14 +296,14 @@ export const PhotographyConfigStep = ({
             <CardHeader>
               <CardTitle className="text-2xl">{pkg.name}</CardTitle>
               <CardDescription className="text-sm">
-                {pkg.photoCount} Fotos inklusive
+                {photoCount} Fotos • {pkg.pricePerPhoto.toFixed(2)}€ pro Foto
               </CardDescription>
             </CardHeader>
 
             <CardContent className="space-y-4">
               <div className="space-y-1">
                 <div className="text-4xl font-bold text-primary">
-                  {pkg.price}€
+                  {packagePrice}€
                 </div>
                 <p className="text-sm text-muted-foreground">
                   einmalig
@@ -184,7 +320,8 @@ export const PhotographyConfigStep = ({
               </ul>
             </CardContent>
           </Card>
-        ))}
+          );
+        })}
       </div>
 
       {/* Add-ons Section */}
@@ -244,8 +381,8 @@ export const PhotographyConfigStep = ({
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex justify-between text-sm">
-              <span>Paket: {selectedPackageData?.name}</span>
-              <span className="font-semibold">{selectedPackageData?.price}€</span>
+              <span>Paket: {selectedPackageData?.name} ({photoCount} Fotos)</span>
+              <span className="font-semibold">{calculatePrice(selectedPackageData.pricePerPhoto)}€</span>
             </div>
             
             {selectedAddOns.length > 0 && (
