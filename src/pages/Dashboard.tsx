@@ -3,7 +3,6 @@ import { Suspense, lazy } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
-import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -73,12 +72,9 @@ const DashboardContent = () => {
         >
           {/* Header */}
           <motion.div variants={fadeInUp}>
-            <div className="flex items-center justify-between mb-2">
-              <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
-                Dashboard
-              </h1>
-              <RoleSwitcher />
-            </div>
+            <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
+              Dashboard
+            </h1>
             <p className="text-muted-foreground">
               {hasNoOrders 
                 ? "Willkommen! Beginnen Sie mit Ihrer ersten Bestellung."
