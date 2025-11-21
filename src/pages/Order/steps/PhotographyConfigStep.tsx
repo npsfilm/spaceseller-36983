@@ -3,6 +3,7 @@ import { Camera, Plus, Check, Plane } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 
@@ -282,6 +283,7 @@ export const PhotographyConfigStep = ({
 }: PhotographyConfigStepProps) => {
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([]);
   const [packageType, setPackageType] = useState<PackageType>('photo');
+  const [photoCount, setPhotoCount] = useState<number>(10);
 
   const handlePackageSelect = (packageId: string) => {
     onPackageSelect(packageId === selectedPackage ? null : packageId);
@@ -341,6 +343,35 @@ export const PhotographyConfigStep = ({
           </TabsList>
         </Tabs>
       </div>
+
+      {/* Photo Count Slider */}
+      <Card className="max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle className="text-lg">Wie viele Fotos benötigen Sie?</CardTitle>
+          <CardDescription>
+            Wählen Sie die gewünschte Anzahl an Bildern
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-3xl font-bold text-primary">{photoCount} Fotos</span>
+            </div>
+            <Slider
+              value={[photoCount]}
+              onValueChange={(value) => setPhotoCount(value[0])}
+              min={5}
+              max={50}
+              step={1}
+              className="w-full"
+            />
+            <div className="flex justify-between text-sm text-muted-foreground">
+              <span>5 Fotos</span>
+              <span>50 Fotos</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Package Cards Carousel */}
       <div className="max-w-6xl mx-auto px-12">
