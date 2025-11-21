@@ -350,7 +350,7 @@ export const LocationCheckStep = ({
           </div>
         </div>
 
-        <div className="bg-card/50 backdrop-blur-lg border border-border/50 rounded-2xl shadow-xl p-8 md:p-10 space-y-8">
+        <div className="relative z-30 bg-card border border-border/50 rounded-2xl shadow-xl p-8 md:p-10 space-y-8">
           <div className="space-y-4">
             <Label htmlFor="address" className="text-base font-semibold">
               Adresse mit Hausnummer *
