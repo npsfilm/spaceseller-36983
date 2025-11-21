@@ -41,10 +41,10 @@ export const CategoryCard = ({
         duration: 0.3, 
         ease: "easeOut"
       }}
-      className="h-full"
+      className="h-full flex justify-center"
     >
       <div
-        className={`relative h-full cursor-pointer rounded-lg border-2 bg-card hover:shadow-lg transition-all duration-300 group overflow-hidden ${
+        className={`relative h-full w-[300px] cursor-pointer rounded-lg border-2 bg-card hover:shadow-lg transition-all duration-300 group overflow-hidden ${
           isSelected 
             ? 'border-primary animate-glow-border' 
             : 'border-border hover:border-primary/30'
@@ -67,7 +67,7 @@ export const CategoryCard = ({
         
         {/* Prominent Image at Top - 3:4 Aspect Ratio */}
         {image && (
-          <div className="w-full aspect-[3/4] overflow-hidden">
+          <div className="w-[300px] h-[400px] mx-auto overflow-hidden">
             <img 
               src={image} 
               alt={title}
