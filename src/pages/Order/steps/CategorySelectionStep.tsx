@@ -1,10 +1,9 @@
 import { motion } from 'framer-motion';
-import { Camera, Sparkles, Home, FileText, Layout } from 'lucide-react';
+import { Camera, Sparkles, Home, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CategoryCard } from '../components/CategoryCard';
 import type { Service } from '../OrderWizard';
 import augsburgHouseExterior from '@/assets/augsburg-house-exterior.jpg';
-import floorPlan3d from '@/assets/floor-plan-3d-isometric.jpg';
 import vsLivingAfter from '@/assets/vs-living-after.jpg';
 import heroProperty from '@/assets/hero-property.jpg';
 import afterInterior from '@/assets/after-interior.jpg';
@@ -21,7 +20,7 @@ export const CategorySelectionStep = ({
   onSelectCategory,
   selectedCategory
 }: CategorySelectionStepProps) => {
-  // 5 categories with split editing and floor plans
+  // 4 categories with separate photo editing
   const categories = [
     {
       id: 'onsite',
@@ -42,17 +41,6 @@ export const CategorySelectionStep = ({
       title: 'Fotobearbeitung',
       description: 'Professionelle Bildoptimierung und Objektretusche Ihrer Fotos',
       services: services.filter(s => s.category === 'editing')
-    },
-    {
-      id: 'floor_plans',
-      icon: Layout,
-      image: floorPlan3d,
-      title: 'Grundriss',
-      description: '2D und 3D Grundrisse auf Basis Ihrer bemaßten Zeichnungen',
-      services: services.filter(s => 
-        s.category === 'floor_plan' || 
-        s.category === 'rendering'
-      )
     },
     {
       id: 'virtual_staging',
@@ -85,9 +73,9 @@ export const CategorySelectionStep = ({
           </p>
         </div>
 
-        {/* Category Grid - 5 cards with container */}
+        {/* Category Grid - 4 cards with container */}
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 md:gap-6 lg:gap-8 justify-items-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-6 lg:gap-8 justify-items-center">
             {categories.map((category, index) => {
             const startingPrice = category.services.length > 0 
               ? Math.min(...category.services.map(s => s.base_price))
