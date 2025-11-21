@@ -229,7 +229,7 @@ export const OrderWizard = () => {
 
         {/* Step Content */}
         <div className="flex-1 overflow-y-auto">
-          <div className={orderState.step === 2 ? "w-full" : "container mx-auto max-w-4xl p-6"}>
+          <div className={orderState.step === 2 ? "w-full px-[15%]" : "container mx-auto max-w-4xl p-6"}>
             {/* Step 1: Location Check */}
             {orderState.step === 1 && (
               <LocationCheckStep
