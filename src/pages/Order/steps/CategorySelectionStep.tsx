@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Camera, Sparkles, Home, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { CategoryCard } from '../components/CategoryCard';
 import type { Service } from '../OrderWizard';
 import augsburgHouseExterior from '@/assets/augsburg-house-exterior.jpg';
@@ -20,14 +21,15 @@ export const CategorySelectionStep = ({
   onSelectCategory,
   selectedCategory
 }: CategorySelectionStepProps) => {
-  // 4 categories with separate photo editing
+  // 4 categories with benefit-focused descriptions
   const categories = [
     {
       id: 'onsite',
       icon: Camera,
       image: augsburgHouseExterior,
       title: 'Aufnahme vor Ort',
-      description: 'Foto, Video, Drohne, und virtuelle Tour vor Ort buchen',
+      description: 'Professionelle Aufnahmen direkt bei Ihrer Immobilie – Foto, Video & Drohne',
+      isPopular: true,
       services: services.filter(s => 
         s.category === 'photography' || 
         s.category === 'drone' || 
@@ -39,7 +41,7 @@ export const CategorySelectionStep = ({
       icon: Sparkles,
       image: afterInterior,
       title: 'Fotobearbeitung',
-      description: 'Professionelle Bildoptimierung und Objektretusche Ihrer Fotos',
+      description: 'Lassen Sie Ihre Fotos professionell aufwerten und Objekte entfernen',
       services: services.filter(s => s.category === 'editing')
     },
     {
@@ -47,7 +49,7 @@ export const CategorySelectionStep = ({
       icon: Home,
       image: vsLivingAfter,
       title: 'Virtuelles Staging',
-      description: 'Virtuelles Staging aus Ihren hochgeladenen Fotos',
+      description: 'Verwandeln Sie leere Räume in einladende Wohnträume',
       services: services.filter(s => s.category === 'virtual_staging')
     },
     {
@@ -55,27 +57,30 @@ export const CategorySelectionStep = ({
       icon: FileText,
       image: heroProperty,
       title: 'Energieausweis',
-      description: 'Rechtliche Dokumente und Bescheinigungen für den Energieverbrauch',
+      description: 'Gesetzlich vorgeschriebene Energieausweise schnell und unkompliziert',
       services: services.filter(s => s.category === 'energy_certificate')
     }
   ];
 
   return (
-    <div className="min-h-screen py-16">
-      <div className="space-y-12 w-full">
-        {/* Header */}
-        <div className="text-center space-y-3">
-          <h1 className="text-3xl md:text-4xl font-bold text-foreground">
-            Welche Art von Dienstleistung möchten Sie bestellen?
+    <div className="min-h-screen py-20">
+      <div className="space-y-16 w-full">
+        {/* Enhanced Header with Step Badge */}
+        <div className="text-center space-y-4">
+          <Badge variant="secondary" className="mb-2">
+            Schritt 2 von 3
+          </Badge>
+          <h1 className="text-3xl md:text-5xl font-bold text-foreground">
+            Wählen Sie Ihre perfekte Dienstleistung
           </h1>
-          <p className="text-base text-muted-foreground max-w-3xl mx-auto">
-            Wählen Sie die Kategorie im Einklang mit der Marketingstrategie für Ihre Immobilie
+          <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto">
+            Professionelle Immobilien-Services für maximale Verkaufschancen
           </p>
         </div>
 
-        {/* Category Grid - 4 cards with container */}
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-6 lg:gap-8 justify-items-center">
+        {/* Category Grid - 4 cards with enhanced spacing */}
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 justify-items-center">
             {categories.map((category, index) => {
             const startingPrice = category.services.length > 0 
               ? Math.min(...category.services.map(s => s.base_price))
@@ -92,11 +97,25 @@ export const CategorySelectionStep = ({
                 onClick={() => onSelectCategory(category.id)}
                 delay={index * 0.1}
                 isSelected={selectedCategory === category.id}
+                isPopular={category.isPopular}
               />
             );
             })}
           </div>
         </div>
+
+        {/* Selection Hint */}
+        {selectedCategory && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center"
+          >
+            <p className="text-sm text-muted-foreground">
+              ✓ Kategorie ausgewählt – Klicken Sie auf "Weiter" um fortzufahren
+            </p>
+          </motion.div>
+        )}
       </div>
     </div>
   );
