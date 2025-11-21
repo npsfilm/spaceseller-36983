@@ -15,7 +15,7 @@ interface ProgressIndicatorProps {
 
 export const ProgressIndicator = ({ steps, currentStep, onStepClick }: ProgressIndicatorProps) => {
   return (
-    <div className="relative bg-card border-b border-border">
+    <div className="relative bg-card/95 backdrop-blur-md border-b-2 border-primary/10 shadow-md z-10 min-h-[60px]">
       {/* Compact Desktop View */}
       <div className="hidden md:flex items-center justify-between px-6 py-3">
         {steps.map((step, index) => {
