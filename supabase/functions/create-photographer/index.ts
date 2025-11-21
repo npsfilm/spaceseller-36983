@@ -123,12 +123,13 @@ serve(async (req) => {
 
     console.log('[create-photographer] User created successfully:', newUser.user.id);
 
-    // Create profile record
+    // Wait a moment for the trigger to create the profile
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Update the profile record (created by trigger) with additional details
     const { error: profileError } = await supabaseAdmin
       .from('profiles')
-      .insert({
-        id: newUser.user.id,
-        email: photographerData.email,
+      .update({
         vorname: photographerData.vorname,
         nachname: photographerData.nachname,
         telefon: photographerData.telefon || null,
@@ -138,19 +139,20 @@ serve(async (req) => {
         land: photographerData.land || 'Deutschland',
         service_radius_km: photographerData.service_radius_km || 50,
         onboarding_completed: true
-      });
+      })
+      .eq('id', newUser.user.id);
 
     if (profileError) {
-      console.error('[create-photographer] Failed to create profile:', profileError);
+      console.error('[create-photographer] Failed to update profile:', profileError);
       // Rollback: delete the auth user
       await supabaseAdmin.auth.admin.deleteUser(newUser.user.id);
       return new Response(
-        JSON.stringify({ error: 'Failed to create user profile' }),
+        JSON.stringify({ error: 'Failed to update user profile' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('[create-photographer] Profile created successfully');
+    console.log('[create-photographer] Profile updated successfully');
 
     // Assign photographer role
     const { error: roleError } = await supabaseAdmin
