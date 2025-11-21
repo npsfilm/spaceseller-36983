@@ -65,8 +65,8 @@ export const CategorySelectionStep = ({
   ];
 
   return (
-    <div className="min-h-screen py-16 px-4">
-      <div className="space-y-12 max-w-7xl mx-auto">
+    <div className="min-h-screen py-16 px-2">
+      <div className="space-y-12 max-w-[1400px] mx-auto px-2">
         {/* Header */}
         <div className="text-center space-y-3">
           <h1 className="text-3xl md:text-4xl font-bold text-foreground">
@@ -78,7 +78,7 @@ export const CategorySelectionStep = ({
         </div>
 
         {/* Category Grid - 4 cards side by side */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {categories.map((category, index) => {
             const startingPrice = category.services.length > 0 
               ? Math.min(...category.services.map(s => s.base_price))

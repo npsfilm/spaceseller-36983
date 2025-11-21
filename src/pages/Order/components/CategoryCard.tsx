@@ -51,9 +51,9 @@ export const CategoryCard = ({
         }`}
         onClick={onClick}
       >
-        {/* Prominent Image at Top */}
+        {/* Prominent Image at Top - 3:2 Aspect Ratio */}
         {image && (
-          <div className="w-full h-48 overflow-hidden">
+          <div className="w-full aspect-[3/2] overflow-hidden">
             <img 
               src={image} 
               alt={title}
