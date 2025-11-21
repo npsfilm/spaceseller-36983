@@ -371,7 +371,7 @@ export const LocationCheckStep = ({
               {showSuggestions && suggestions.length > 0 && (
                 <div
                   ref={suggestionsRef}
-                  className="absolute z-50 w-full mt-2 bg-card/95 backdrop-blur-lg border-2 border-border rounded-xl shadow-2xl max-h-80 overflow-auto"
+                  className="absolute z-50 w-full mt-2 bg-background border-2 border-border rounded-xl shadow-2xl max-h-80 overflow-auto"
                 >
                   {suggestions.map((suggestion, index) => (
                     <button
