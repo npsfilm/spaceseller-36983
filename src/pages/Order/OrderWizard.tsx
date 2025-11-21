@@ -47,11 +47,45 @@ export interface OrderState {
   selectedPackage: string | null;
 }
 
-const STEPS = [
-  { number: 1, title: 'Standort', description: 'Adresseingabe' },
-  { number: 2, title: 'Kategorie', description: 'Dienstleistungsart' },
-  { number: 3, title: 'Konfiguration', description: 'Produkt- und Paketauswahl' }
-];
+// Dynamic step configurations based on category
+const getStepsForCategory = (category: string | null) => {
+  if (category === 'onsite') {
+    // Photography services need location, category, configuration
+    return [
+      { number: 1, title: 'Standort', description: 'Objektadresse' },
+      { number: 2, title: 'Kategorie', description: 'Dienstleistung' },
+      { number: 3, title: 'Konfiguration', description: 'Aufnahmepaket' }
+    ];
+  } else if (category === 'photo_editing') {
+    // Photo editing: location, category, upload & configuration
+    return [
+      { number: 1, title: 'Standort', description: 'Adresseingabe' },
+      { number: 2, title: 'Kategorie', description: 'Dienstleistung' },
+      { number: 3, title: 'Konfiguration', description: 'Bild-Upload & Optionen' }
+    ];
+  } else if (category === 'virtual_staging') {
+    // Virtual staging: location, category, upload & style selection
+    return [
+      { number: 1, title: 'Standort', description: 'Adresseingabe' },
+      { number: 2, title: 'Kategorie', description: 'Dienstleistung' },
+      { number: 3, title: 'Konfiguration', description: 'Raum-Upload & Stil' }
+    ];
+  } else if (category === 'energy_certificate') {
+    // Energy certificate: location, category, document upload
+    return [
+      { number: 1, title: 'Standort', description: 'Objektadresse' },
+      { number: 2, title: 'Kategorie', description: 'Dienstleistung' },
+      { number: 3, title: 'Konfiguration', description: 'Dokumenten-Upload' }
+    ];
+  }
+  
+  // Default steps before category is selected
+  return [
+    { number: 1, title: 'Standort', description: 'Adresseingabe' },
+    { number: 2, title: 'Kategorie', description: 'Dienstleistungsart' },
+    { number: 3, title: 'Konfiguration', description: 'Auswahl' }
+  ];
+};
 
 export const OrderWizard = () => {
   const [services, setServices] = useState<Service[]>([]);
@@ -222,7 +256,7 @@ export const OrderWizard = () => {
       <div className="h-full flex flex-col">
         {/* Progress Indicator */}
         <ProgressIndicator
-          steps={STEPS}
+          steps={getStepsForCategory(orderState.selectedCategory)}
           currentStep={orderState.step}
           onStepClick={() => {}}
         />
