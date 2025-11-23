@@ -27,6 +27,9 @@ describe('AdminOrderService', () => {
           status: 'submitted',
           total_amount: 100,
           created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          delivery_deadline: null,
+          special_instructions: null,
           user_id: 'user1',
         },
         {
@@ -35,6 +38,9 @@ describe('AdminOrderService', () => {
           status: 'in_progress',
           total_amount: 200,
           created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          delivery_deadline: null,
+          special_instructions: null,
           user_id: 'user2',
         },
         {
@@ -43,6 +49,9 @@ describe('AdminOrderService', () => {
           status: 'completed',
           total_amount: 300,
           created_at: today.toISOString(),
+          updated_at: today.toISOString(),
+          delivery_deadline: null,
+          special_instructions: null,
           user_id: 'user3',
         },
       ];
@@ -73,12 +82,16 @@ describe('AdminOrderService', () => {
         status: 'submitted',
         total_amount: 100,
         created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        delivery_deadline: null,
+        special_instructions: null,
         user_id: 'user1',
         profiles: {
           email: 'test@example.com',
           vorname: 'John',
           nachname: 'Doe',
           firma: 'Test GmbH',
+          telefon: null,
         },
       },
       {
@@ -87,12 +100,16 @@ describe('AdminOrderService', () => {
         status: 'in_progress',
         total_amount: 200,
         created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        delivery_deadline: null,
+        special_instructions: null,
         user_id: 'user2',
         profiles: {
           email: 'jane@company.com',
           vorname: 'Jane',
           nachname: 'Smith',
           firma: 'Company AG',
+          telefon: null,
         },
       },
     ];

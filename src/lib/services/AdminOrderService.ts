@@ -1,19 +1,9 @@
 import { supabase } from '@/integrations/supabase/client';
+import type { Order as OrderBase } from '@/types/orders';
 
-export interface Order {
-  id: string;
-  order_number: string;
-  status: string;
-  total_amount: number;
-  created_at: string;
-  user_id: string;
-  profiles?: {
-    email: string;
-    vorname: string;
-    nachname: string;
-    firma: string;
-    telefon?: string;
-  };
+// Extend base Order type to match AdminOrderService needs
+export interface Order extends OrderBase {
+  // All properties from OrderBase are included
 }
 
 export interface DashboardStats {

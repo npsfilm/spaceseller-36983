@@ -6,11 +6,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Progress } from '@/components/ui/progress';
 import { Upload, Image as ImageIcon, FolderOpen } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import type { OrderUpload, FileValidationResult, FileUploadError } from '@/types/uploads';
 
 interface FileUploadZoneProps {
   orderId: string;
-  uploads: any[];
-  onUploadComplete: (uploads: any[]) => void;
+  uploads: OrderUpload[];
+  onUploadComplete: (uploads: OrderUpload[]) => void;
 }
 
 export const FileUploadZone = ({ orderId, uploads, onUploadComplete }: FileUploadZoneProps) => {
@@ -24,7 +25,7 @@ export const FileUploadZone = ({ orderId, uploads, onUploadComplete }: FileUploa
     if (!user) return;
 
     setUploading(true);
-    const newUploads = [];
+    const newUploads: OrderUpload[] = [];
 
     for (let i = 0; i < acceptedFiles.length; i++) {
       const file = acceptedFiles[i];
@@ -33,7 +34,7 @@ export const FileUploadZone = ({ orderId, uploads, onUploadComplete }: FileUploa
 
       try {
         // SERVER-SIDE VALIDATION FIRST
-        const { data: validationResult, error: validationError } = await supabase.functions.invoke(
+        const { data: validationResult, error: validationError } = await supabase.functions.invoke<FileValidationResult>(
           'validate-file-upload',
           {
             body: {
@@ -82,11 +83,12 @@ export const FileUploadZone = ({ orderId, uploads, onUploadComplete }: FileUploa
           .from('order-uploads')
           .getPublicUrl(fileName);
 
-        newUploads.push({ ...insertData, publicUrl });
-      } catch (error: any) {
+        newUploads.push({ ...insertData, publicUrl } as OrderUpload);
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unbekannter Fehler';
         toast({
           title: 'Upload fehlgeschlagen',
-          description: `Fehler beim Hochladen von ${file.name}`,
+          description: `Fehler beim Hochladen von ${file.name}: ${errorMessage}`,
           variant: 'destructive'
         });
       }
