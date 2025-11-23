@@ -631,6 +631,45 @@ export type Database = {
         }
         Relationships: []
       }
+      user_consents: {
+        Row: {
+          consent_type: string
+          created_at: string | null
+          granted: boolean
+          granted_at: string | null
+          id: string
+          ip_address: string | null
+          revoked_at: string | null
+          updated_at: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          consent_type: string
+          created_at?: string | null
+          granted?: boolean
+          granted_at?: string | null
+          id?: string
+          ip_address?: string | null
+          revoked_at?: string | null
+          updated_at?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          consent_type?: string
+          created_at?: string | null
+          granted?: boolean
+          granted_at?: string | null
+          id?: string
+          ip_address?: string | null
+          revoked_at?: string | null
+          updated_at?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -660,6 +699,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      anonymize_user_data: { Args: { _user_id: string }; Returns: undefined }
       check_rate_limit: {
         Args: {
           _endpoint: string
@@ -670,6 +710,7 @@ export type Database = {
         Returns: boolean
       }
       cleanup_expired_reset_tokens: { Args: never; Returns: undefined }
+      cleanup_old_orders: { Args: never; Returns: undefined }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
       generate_order_number: { Args: never; Returns: string }
       has_role: {
