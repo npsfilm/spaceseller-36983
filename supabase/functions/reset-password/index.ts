@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { Logger } from '../_shared/logger.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -159,6 +160,12 @@ const handler = async (req: Request): Promise<Response> => {
     if (updateError) {
       throw new Error("Failed to update password");
     }
+    
+    Logger.security('Password successfully reset', { 
+      action: 'password_reset_success', 
+      userId: tokenData.user_id,
+      ipAddress 
+    });
 
     // Mark token as used
     const { error: markUsedError } = await supabaseAdmin

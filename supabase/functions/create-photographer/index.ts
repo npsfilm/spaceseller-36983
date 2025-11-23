@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { Logger } from '../_shared/logger.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -167,6 +168,13 @@ serve(async (req) => {
     if (resetError) {
       // Continue anyway - admin can resend manually
     }
+    
+    Logger.security('Photographer created', { 
+      action: 'photographer_created', 
+      userId: newUser.user.id,
+      email: photographerData.email,
+      createdBy: user.id
+    });
 
     return new Response(
       JSON.stringify({ 

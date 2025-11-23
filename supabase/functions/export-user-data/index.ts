@@ -1,6 +1,7 @@
 import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.79.0';
 import { exportUserDataSchema } from '../_shared/validation.ts';
+import { Logger } from '../_shared/logger.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -73,6 +74,8 @@ serve(async (req) => {
       deliverables: deliverablesData.data || [],
       consents: consentsData.data || []
     };
+
+    Logger.security('User data exported', { action: 'gdpr_data_export', userId: user.id });
 
     return new Response(
       JSON.stringify({

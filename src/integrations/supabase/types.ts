@@ -713,6 +713,16 @@ export type Database = {
       cleanup_old_orders: { Args: never; Returns: undefined }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
       generate_order_number: { Args: never; Returns: string }
+      get_recent_security_events: {
+        Args: { hours_back?: number }
+        Returns: {
+          created_at: string
+          event_type: string
+          ip_address: string
+          metadata: Json
+          user_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

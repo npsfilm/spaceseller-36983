@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { Resend } from "https://esm.sh/resend@4.0.0";
 import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
+import { Logger } from '../_shared/logger.ts';
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -92,6 +93,7 @@ const handler = async (req: Request): Promise<Response> => {
     const { email } = validation.data;
 
     if (!email) {
+      Logger.warn('Password reset requested without email', { action: 'password_reset_request', ipAddress });
       return new Response(
         JSON.stringify({ error: "Email is required" }),
         {
@@ -100,6 +102,8 @@ const handler = async (req: Request): Promise<Response> => {
         }
       );
     }
+    
+    Logger.security('Password reset requested', { action: 'password_reset_request', email, ipAddress });
 
     // Check if user exists (supabaseAdmin already created above for rate limiting)
     const { data: { users }, error: userError } = await supabaseAdmin.auth.admin.listUsers();
