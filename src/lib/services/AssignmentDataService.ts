@@ -86,7 +86,8 @@ export class AssignmentDataService {
       throw new Error(`Failed to fetch assignments: ${error.message}`);
     }
 
-    return (data as any) || [];
+    // Type assertion is safe here because the select query structure matches Assignment interface
+    return (data as unknown as Assignment[]) || [];
   }
 
   /**

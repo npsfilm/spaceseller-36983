@@ -11,9 +11,10 @@ import { OrderStatusUpdate } from './OrderStatusUpdate';
 import { DeliverableUploadSection } from './DeliverableUploadSection';
 import { PhotographerAssignmentSection } from './PhotographerAssignmentSection';
 import { useToast } from '@/hooks/use-toast';
+import type { Order } from '@/types/orders';
 
 interface OrderDetailModalProps {
-  order: any;
+  order: Order;
   open: boolean;
   onClose: () => void;
   onUpdate: () => void;

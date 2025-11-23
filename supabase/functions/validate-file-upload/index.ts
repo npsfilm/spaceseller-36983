@@ -70,14 +70,16 @@ const handler = async (req: Request): Promise<Response> => {
         headers: { "Content-Type": "application/json", ...corsHeaders },
       }
     );
-  } catch (error: any) {
-    console.error('File validation error:', {
-      message: error.message,
-      timestamp: new Date().toISOString()
-    });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unbekannter Fehler';
+    const errorName = error instanceof Error ? error.name : 'UnknownError';
     
     return new Response(
-      JSON.stringify({ error: "Validierung fehlgeschlagen", details: error.message }),
+      JSON.stringify({ 
+        error: "Validierung fehlgeschlagen", 
+        details: errorMessage,
+        type: errorName
+      }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },

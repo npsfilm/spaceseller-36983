@@ -39,10 +39,10 @@ export const AssignPhotographerForm = ({ users, onSuccess, onCancel }: AssignPho
       setSelectedUser('');
       onSuccess();
     } catch (error) {
-      console.error('Error adding photographer:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Fotograf konnte nicht hinzugefügt werden';
       toast({
         title: 'Fehler',
-        description: 'Fotograf konnte nicht hinzugefügt werden',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
