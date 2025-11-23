@@ -49,12 +49,10 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
     if (rateLimitError) {
-      console.error('Rate limit check error:', rateLimitError);
       // Continue anyway - don't block on rate limit errors
     }
 
     if (isRateLimited === true) {
-      console.log('Rate limit exceeded for IP:', ipAddress);
       return new Response(
         JSON.stringify({ 
           error: "Too many password reset requests. Please try again in 15 minutes." 
@@ -86,7 +84,6 @@ const handler = async (req: Request): Promise<Response> => {
     const { data: { users }, error: userError } = await supabaseAdmin.auth.admin.listUsers();
     
     if (userError) {
-      console.error("Error fetching users:", userError);
       // Don't reveal if user exists or not for security
       return new Response(
         JSON.stringify({ message: "If an account exists, a password reset email will be sent." }),
@@ -100,7 +97,6 @@ const handler = async (req: Request): Promise<Response> => {
     const user = users.find(u => u.email?.toLowerCase() === email.toLowerCase());
 
     if (!user) {
-      console.log("User not found for email:", email);
       // Don't reveal if user exists or not for security
       return new Response(
         JSON.stringify({ message: "If an account exists, a password reset email will be sent." }),
@@ -125,7 +121,6 @@ const handler = async (req: Request): Promise<Response> => {
       });
 
     if (insertError) {
-      console.error("Error storing reset token:", insertError);
       throw new Error("Failed to create password reset token");
     }
 
@@ -294,11 +289,8 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     if (emailError) {
-      console.error("Error sending email:", emailError);
       throw new Error("Failed to send password reset email");
     }
-
-    console.log("Password reset email sent successfully to:", email);
 
     return new Response(
       JSON.stringify({ message: "If an account exists, a password reset email will be sent." }),
@@ -308,7 +300,6 @@ const handler = async (req: Request): Promise<Response> => {
       }
     );
   } catch (error: any) {
-    console.error("Error in request-password-reset function:", error);
     return new Response(
       JSON.stringify({ error: "An error occurred while processing your request" }),
       {

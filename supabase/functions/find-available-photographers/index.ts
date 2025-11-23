@@ -75,8 +75,6 @@ Deno.serve(async (req) => {
       max_distance_km = 100,
     }: FindPhotographersRequest = await req.json();
 
-    console.log('Finding photographers near:', { latitude, longitude, scheduled_date, max_distance_km });
-
     // Get all photographer user_ids
     const { data: photographerRoles, error: rolesError } = await supabaseClient
       .from('user_roles')
@@ -84,12 +82,10 @@ Deno.serve(async (req) => {
       .eq('role', 'photographer');
 
     if (rolesError) {
-      console.error('Error fetching photographer roles:', rolesError);
       throw rolesError;
     }
 
     const photographerIds = photographerRoles?.map(r => r.user_id) || [];
-    console.log(`Found ${photographerIds.length} photographers`);
 
     if (photographerIds.length === 0) {
       return new Response(
@@ -110,11 +106,8 @@ Deno.serve(async (req) => {
       .not('location_lng', 'is', null);
 
     if (photogError) {
-      console.error('Error fetching photographers:', photogError);
       throw photogError;
     }
-
-    console.log(`Found ${photographers?.length || 0} photographers with location data`);
 
     // Calculate distances and filter by service radius
     const matches: PhotographerMatch[] = [];
@@ -163,8 +156,6 @@ Deno.serve(async (req) => {
     // Sort by distance
     matches.sort((a, b) => a.distance_km - b.distance_km);
 
-    console.log(`Found ${matches.length} matching photographers`);
-
     return new Response(
       JSON.stringify({ photographers: matches }),
       {
@@ -173,7 +164,6 @@ Deno.serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error('Error finding photographers:', error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
       {
