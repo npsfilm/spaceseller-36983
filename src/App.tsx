@@ -20,6 +20,7 @@ import Admin from "./pages/Admin";
 import PhotographerManagement from "./pages/admin/PhotographerManagement";
 import PhotographerLocations from "./pages/admin/PhotographerLocations";
 import UserRoleManagement from "./pages/admin/UserRoleManagement";
+import SecurityMonitor from "./pages/admin/SecurityMonitor";
 import FreelancerDashboard from "./pages/FreelancerDashboard";
 import Dashboard from "./pages/Dashboard";
 import ResetPassword from "./pages/ResetPassword";
@@ -49,6 +50,7 @@ const App = () => (
             <Route path="/admin-backend/photographers" element={<ProtectedRoute requireOnboarding requireAdmin><PhotographerManagement /></ProtectedRoute>} />
             <Route path="/admin-backend/locations" element={<ProtectedRoute requireOnboarding requireAdmin><PhotographerLocations /></ProtectedRoute>} />
             <Route path="/admin-backend/users" element={<ProtectedRoute requireOnboarding requireAdmin><UserRoleManagement /></ProtectedRoute>} />
+            <Route path="/admin-backend/security" element={<ProtectedRoute requireOnboarding requireAdmin><SecurityMonitor /></ProtectedRoute>} />
             <Route path="/freelancer-dashboard" element={<ProtectedRoute requireOnboarding requirePhotographer><FreelancerDashboard /></ProtectedRoute>} />
             <Route path="/photographer-settings" element={<ProtectedRoute requireOnboarding requirePhotographer><PhotographerSettings /></ProtectedRoute>} />
             <Route path="/impressum" element={<Impressum />} />

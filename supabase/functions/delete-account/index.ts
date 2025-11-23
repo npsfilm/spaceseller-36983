@@ -1,6 +1,7 @@
 import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.79.0';
 import { deleteAccountSchema } from '../_shared/validation.ts';
+import { Logger } from '../_shared/logger.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -55,6 +56,8 @@ serve(async (req) => {
     if (deleteError) {
       throw new Error(`Failed to delete user: ${deleteError.message}`);
     }
+
+    Logger.security('Account deleted', { action: 'gdpr_account_deletion', userId: user.id });
 
     return new Response(
       JSON.stringify({
