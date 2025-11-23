@@ -2,9 +2,7 @@ import { motion } from "framer-motion";
 import { Suspense, lazy } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { useAuth } from "@/contexts/AuthContext";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useUserStatus } from "@/lib/hooks/useDashboardData";
 
 // Lazy load components
 const DashboardStats = lazy(() => import("@/components/dashboard/DashboardStats"));
@@ -29,24 +27,7 @@ const fadeInUp = {
 };
 
 const DashboardContent = () => {
-  const { user } = useAuth();
-
-  const { data: orderCount, isLoading } = useQuery({
-    queryKey: ['order-count', user?.id],
-    queryFn: async () => {
-      if (!user) return 0;
-
-      const { count, error } = await supabase
-        .from('orders')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .neq('status', 'draft');
-
-      if (error) throw error;
-      return count || 0;
-    },
-    enabled: !!user
-  });
+  const { hasNoOrders, isNewUser, isLoading } = useUserStatus();
 
   if (isLoading) {
     return (
@@ -57,9 +38,6 @@ const DashboardContent = () => {
       </div>
     );
   }
-
-  const hasNoOrders = orderCount === 0;
-  const isNewUser = orderCount !== undefined && orderCount < 3;
 
   return (
     <div className="min-h-screen bg-background">

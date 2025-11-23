@@ -1,7 +1,5 @@
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { PlusCircle, Package, Upload, MessageCircle } from "lucide-react";
-import { motion } from "framer-motion";
+import { QuickActionCard } from "./QuickActionCard";
 
 const actions = [
   {
@@ -34,22 +32,14 @@ export default function QuickActions() {
   return (
     <div className="flex flex-wrap gap-4">
       {actions.map((action, index) => (
-        <motion.div
+        <QuickActionCard
           key={action.label}
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: index * 0.1, duration: 0.3 }}
-        >
-          <Link to={action.href}>
-            <Button 
-              size="lg" 
-              className={`bg-gradient-to-r ${action.gradient} text-white hover:opacity-90 transition-opacity`}
-            >
-              <action.icon className="w-5 h-5 mr-2" />
-              {action.label}
-            </Button>
-          </Link>
-        </motion.div>
+          label={action.label}
+          icon={action.icon}
+          href={action.href}
+          gradient={action.gradient}
+          index={index}
+        />
       ))}
     </div>
   );
