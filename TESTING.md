@@ -20,6 +20,9 @@ npm run test:ui
 
 # Generate coverage report
 npm run test:coverage
+
+# Run security scanner (Phase 15)
+npm run security:scan
 ```
 
 ### Test Structure
@@ -231,10 +234,39 @@ open coverage/index.html
 
 ## CI/CD Integration
 
-Tests run automatically on:
+Tests and security scans run automatically on:
 - Every pull request
 - Before deployment
 - Nightly builds
+
+### GitHub Actions Example
+
+```yaml
+name: Tests and Security
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Install Dependencies
+        run: npm ci
+      
+      - name: Security Scan
+        run: npm run security:scan
+      
+      - name: Run Tests
+        run: npm test
+      
+      - name: Coverage Report
+        run: npm run test:coverage
+```
 
 ### Test Scripts
 
@@ -246,10 +278,48 @@ Add to `package.json`:
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "security:scan": "tsx scripts/security-scanner.ts"
   }
 }
 ```
+
+## Security Scanner (Phase 15)
+
+The automated security scanner detects type safety issues:
+
+### Detection Capabilities
+- 🔴 **Critical**: `any` type annotations
+- 🔴 **Critical**: Unsafe `as any` assertions  
+- 🟡 **Medium**: Untyped arrow function parameters
+- 🔴 **Critical**: Missing Zod validation in edge functions
+
+### Running the Scanner
+```bash
+npm run security:scan
+```
+
+### Sample Output
+```
+🔍 Security Scanner Results
+═══════════════════════════════════════════════════════════
+
+📊 Summary:
+   🔴 Critical: 0
+   🟠 High: 0
+   🟡 Medium: 2
+   🟢 Low: 1
+   Total: 3
+
+🟡 MEDIUM Issues (2):
+
+1. src/components/Example.tsx:45
+   Type: untyped-param
+   Untyped parameter 'item' in arrow function
+   Code: items.map(item => item.name)
+```
+
+The scanner exits with code 1 if critical issues are found, making it perfect for CI/CD integration.
 
 ## Best Practices
 
@@ -319,7 +389,10 @@ it('should render component', () => {
 - [React Testing Library](https://testing-library.com/react)
 - [Testing Library Queries](https://testing-library.com/docs/queries/about)
 - [Common Mistakes](https://kentcdodds.com/blog/common-mistakes-with-react-testing-library)
+- [Zod Documentation](https://zod.dev/) - Runtime validation schemas
 
 ## Examples
 
 See `src/lib/photographyPricing.test.ts` for a complete example of unit tests with full coverage.
+
+See `scripts/security-scanner.ts` for the automated type safety scanner implementation.

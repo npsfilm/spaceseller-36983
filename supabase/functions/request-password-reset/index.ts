@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { Resend } from "https://esm.sh/resend@4.0.0";
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -9,9 +10,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface RequestBody {
-  email: string;
-}
+// Request validation schema
+const requestPasswordResetSchema = z.object({
+  email: z.string()
+    .email('Ungültige E-Mail-Adresse')
+    .max(255, 'E-Mail zu lang')
+});
 
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
@@ -68,7 +72,24 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const { email }: RequestBody = await req.json();
+    const body = await req.json();
+    
+    // Validate request body
+    const validation = requestPasswordResetSchema.safeParse(body);
+    if (!validation.success) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Validierungsfehler',
+          details: validation.error.errors.map(e => e.message).join(', ')
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    const { email } = validation.data;
 
     if (!email) {
       return new Response(
