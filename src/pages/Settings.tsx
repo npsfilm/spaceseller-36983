@@ -8,8 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { User, Lock, Save } from 'lucide-react';
+import { User, Lock, Save, Shield } from 'lucide-react';
 import { z } from 'zod';
+import { GDPRSection } from '@/components/settings/GDPRSection';
 
 const profileSchema = z.object({
   vorname: z.string().trim().min(1).max(100),
@@ -141,7 +142,7 @@ function SettingsContent() {
           </div>
 
           <Tabs defaultValue="profile" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="profile">
                 <User className="h-4 w-4 mr-2" />
                 Profil
@@ -149,6 +150,10 @@ function SettingsContent() {
               <TabsTrigger value="security">
                 <Lock className="h-4 w-4 mr-2" />
                 Sicherheit
+              </TabsTrigger>
+              <TabsTrigger value="privacy">
+                <Shield className="h-4 w-4 mr-2" />
+                Datenschutz
               </TabsTrigger>
             </TabsList>
 
@@ -264,6 +269,12 @@ function SettingsContent() {
                     </Button>
                   </div>
                 </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="privacy">
+              <div className="bg-card border border-border rounded-xl p-6">
+                <GDPRSection />
               </div>
             </TabsContent>
           </Tabs>
