@@ -9,6 +9,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { PackageType, PackageTier, AddOn } from '@/types/photography';
 import { PACKAGE_TIERS } from '@/data/photographyPackages';
 import { ADD_ONS } from '@/data/photographyAddOns';
+import { filterPackagesByType, calculateAddOnsTotal, calculateTotalPrice } from '@/lib/photographyPricing';
 
 interface PhotographyConfigStepProps {
   selectedPackage: string | null;
@@ -38,14 +39,11 @@ export const PhotographyConfigStep = ({
     );
   };
 
-  const filteredPackages = PACKAGE_TIERS.filter(p => p.type === packageType);
+  const filteredPackages = filterPackagesByType(PACKAGE_TIERS, packageType);
   const selectedPackageData = filteredPackages.find(p => p.id === selectedPackage);
   
-  const addOnsTotal = selectedAddOns.reduce((sum, id) => {
-    const addOn = ADD_ONS.find(a => a.id === id);
-    return sum + (addOn?.price || 0);
-  }, 0);
-  const totalPrice = (selectedPackageData?.price || 0) + addOnsTotal + travelCost;
+  const addOnsTotal = calculateAddOnsTotal(selectedAddOns, ADD_ONS);
+  const totalPrice = calculateTotalPrice(selectedPackageData?.price || 0, addOnsTotal, travelCost);
 
   return (
     <div className="space-y-8 py-8">
