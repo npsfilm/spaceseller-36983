@@ -5,18 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import mbxGeocoding from '@mapbox/mapbox-sdk/services/geocoding';
-import mbxDirections from '@mapbox/mapbox-sdk/services/directions';
-import { MAPBOX_CONFIG } from '@/config/mapbox';
-import { supabase } from '@/integrations/supabase/client';
-
-interface AddressSuggestion {
-  place_name: string;
-  center: [number, number];
-  text: string;
-  address?: string;
-  context?: Array<{ id: string; text: string }>;
-}
+import { locationService, type AddressSuggestion } from '@/lib/services/LocationService';
+import { useLocationValidation } from '@/lib/hooks/useLocationValidation';
 
 interface LocationCheckStepProps {
   address: {
@@ -36,14 +26,7 @@ export const LocationCheckStep = ({
   onLocationValidated,
   onBack 
 }: LocationCheckStepProps) => {
-  const [isValidating, setIsValidating] = useState(false);
-  const [validationResult, setValidationResult] = useState<{
-    valid: boolean;
-    travelCost: number;
-    distance: number;
-    photographyAvailable: boolean;
-    message: string;
-  } | null>(null);
+  const { isValidating, validationResult, validateLocation, resetValidation } = useLocationValidation();
   
   const [addressInput, setAddressInput] = useState('');
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
@@ -88,30 +71,6 @@ export const LocationCheckStep = ({
     };
   }, []);
 
-  const parseAddressFromSuggestion = (suggestion: AddressSuggestion) => {
-    // Extract house number from address field
-    const houseNumber = suggestion.address || '';
-    
-    // Extract street name from text
-    const streetName = suggestion.text || '';
-    
-    // Extract city and postal code from context
-    let city = '';
-    let postalCode = '';
-    
-    if (suggestion.context) {
-      for (const ctx of suggestion.context) {
-        if (ctx.id.startsWith('postcode')) {
-          postalCode = ctx.text;
-        } else if (ctx.id.startsWith('place')) {
-          city = ctx.text;
-        }
-      }
-    }
-    
-    return { streetName, houseNumber, city, postalCode };
-  };
-
   const fetchAddressSuggestions = async (query: string) => {
     if (query.length < 3) {
       setSuggestions([]);
@@ -120,18 +79,9 @@ export const LocationCheckStep = ({
 
     setIsLoadingSuggestions(true);
     try {
-      const geocodingClient = mbxGeocoding({ accessToken: MAPBOX_CONFIG.accessToken });
-      const response = await geocodingClient.forwardGeocode({
-        query: `${query}, Deutschland`,
-        limit: 5,
-        countries: ['de'],
-        types: ['address']
-      }).send();
-
-      if (response.body.features) {
-        setSuggestions(response.body.features as AddressSuggestion[]);
-        setShowSuggestions(true);
-      }
+      const results = await locationService.fetchAddressSuggestions(query);
+      setSuggestions(results);
+      setShowSuggestions(true);
     } catch (error) {
       console.error('Error fetching address suggestions:', error);
     } finally {
@@ -141,7 +91,7 @@ export const LocationCheckStep = ({
 
   const handleAddressInputChange = (value: string) => {
     setAddressInput(value);
-    setValidationResult(null);
+    resetValidation();
     
     // Cancel previous timeout
     if (timeoutRef.current) {
@@ -155,173 +105,20 @@ export const LocationCheckStep = ({
   };
 
   const handleSuggestionSelect = (suggestion: AddressSuggestion) => {
-    const { streetName, houseNumber, city, postalCode } = parseAddressFromSuggestion(suggestion);
+    const parsed = locationService.parseAddressFromSuggestion(suggestion);
     
     setAddressInput(suggestion.place_name);
     setShowSuggestions(false);
     
     // Update all address fields
-    onUpdateAddress('strasse', streetName);
-    onUpdateAddress('hausnummer', houseNumber);
-    onUpdateAddress('stadt', city);
-    onUpdateAddress('plz', postalCode);
-    
-    // Validate if house number is present
-    if (!houseNumber) {
-      setValidationResult({
-        valid: false,
-        travelCost: 0,
-        distance: 0,
-        photographyAvailable: false,
-        message: 'Bitte geben Sie eine vollständige Adresse mit Hausnummer ein.'
-      });
-    }
+    onUpdateAddress('strasse', parsed.streetName);
+    onUpdateAddress('hausnummer', parsed.houseNumber);
+    onUpdateAddress('stadt', parsed.city);
+    onUpdateAddress('plz', parsed.postalCode);
   };
 
-  const calculateTravelCost = (distanceKm: number): number => {
-    let cost: number;
-    
-    if (distanceKm <= 200) {
-      cost = distanceKm * MAPBOX_CONFIG.costPerKm;
-    } else {
-      cost = (200 * MAPBOX_CONFIG.costPerKm) + ((distanceKm - 200) * MAPBOX_CONFIG.costPerKmOver200);
-    }
-    
-    // Round up to nearest 5 euros
-    cost = Math.ceil(cost / 5) * 5;
-    
-    // Free if under threshold
-    if (cost < MAPBOX_CONFIG.freeTravelThreshold) {
-      return 0;
-    }
-    
-    return cost;
-  };
-
-  const validateLocation = async () => {
-    if (!address.strasse || !address.plz || !address.stadt) {
-      setValidationResult({
-        valid: false,
-        travelCost: 0,
-        distance: 0,
-        photographyAvailable: false,
-        message: 'Bitte geben Sie eine vollständige Adresse ein.'
-      });
-      return;
-    }
-
-    if (!address.hausnummer) {
-      setValidationResult({
-        valid: false,
-        travelCost: 0,
-        distance: 0,
-        photographyAvailable: false,
-        message: 'Bitte geben Sie eine Adresse mit Hausnummer ein.'
-      });
-      return;
-    }
-
-    // Check if Mapbox token is configured
-    if (!MAPBOX_CONFIG.accessToken || MAPBOX_CONFIG.accessToken === 'YOUR_MAPBOX_PUBLIC_TOKEN_HERE') {
-      setValidationResult({
-        valid: false,
-        travelCost: 0,
-        distance: 0,
-        photographyAvailable: false,
-        message: 'Mapbox Token nicht konfiguriert. Bitte fügen Sie Ihren Mapbox Token in src/config/mapbox.ts hinzu.'
-      });
-      return;
-    }
-
-    setIsValidating(true);
-    
-    try {
-      // Lazy initialize Mapbox clients
-      const geocodingClient = mbxGeocoding({ accessToken: MAPBOX_CONFIG.accessToken });
-      const destinationAddress = `${address.strasse} ${address.hausnummer || ''}, ${address.plz} ${address.stadt}, Deutschland`.trim();
-      
-      // Geocode destination address
-      const destResponse = await geocodingClient.forwardGeocode({
-        query: destinationAddress,
-        limit: 1
-      }).send();
-      
-      if (!destResponse.body.features.length) {
-        setValidationResult({
-          valid: false,
-          travelCost: 0,
-          distance: 0,
-          photographyAvailable: false,
-          message: 'Adresse konnte nicht gefunden werden. Bitte überprüfen Sie Ihre Eingabe.'
-        });
-        setIsValidating(false);
-        return;
-      }
-      
-      const destCoords = destResponse.body.features[0].geometry.coordinates;
-      
-      // Call find-available-photographers edge function
-      const { data: photographersData, error: photographersError } = await supabase.functions.invoke(
-        'find-available-photographers',
-        {
-          body: {
-            latitude: destCoords[1],
-            longitude: destCoords[0],
-            max_distance_km: 150 // Maximum search radius
-          }
-        }
-      );
-
-      if (photographersError) {
-        console.error('Error finding photographers:', photographersError);
-        setValidationResult({
-          valid: false,
-          travelCost: 0,
-          distance: 0,
-          photographyAvailable: false,
-          message: 'Fehler bei der Fotografen-Suche. Bitte versuchen Sie es erneut.'
-        });
-        setIsValidating(false);
-        return;
-      }
-
-      const photographyAvailable = photographersData?.photographers?.length > 0;
-
-      if (!photographyAvailable) {
-        // Photography not available, BUT digital services are
-        setValidationResult({
-          valid: true, // Allow proceeding
-          travelCost: 0,
-          distance: 0,
-          photographyAvailable: false,
-          message: "✅ Fotografie vor Ort ist in Ihrer Region aktuell noch nicht verfügbar. Unsere digitalen Dienstleistungen bieten wir aber selbstverständlich für Sie an."
-        });
-      } else {
-        // Photography available
-        const nearest = photographersData.photographers[0];
-        const travelCost = calculateTravelCost(nearest.distance_km);
-        
-        setValidationResult({
-          valid: true,
-          travelCost,
-          distance: nearest.distance_km,
-          photographyAvailable: true,
-          message: "Fotografie vor Ort in Ihrer Region verfügbar."
-        });
-      }
-      
-    } catch (error) {
-      console.error('Location validation error:', error);
-      setValidationResult({
-        valid: false,
-        travelCost: 0,
-        distance: 0,
-        photographyAvailable: false,
-        message: 'Fehler bei der Adressvalidierung. Bitte versuchen Sie es erneut oder kontaktieren Sie uns.'
-      });
-    } finally {
-      setIsValidating(false);
-    }
+  const handleValidateLocation = async () => {
+    await validateLocation(address);
   };
 
   const canValidate = addressInput.length > 0 && address.strasse && address.plz && address.stadt && address.hausnummer;
@@ -398,7 +195,7 @@ export const LocationCheckStep = ({
           </div>
 
           <Button
-            onClick={validateLocation}
+            onClick={handleValidateLocation}
             disabled={!canValidate || isValidating}
             className="w-full h-14 text-base font-semibold rounded-xl"
             size="lg"
