@@ -21,6 +21,9 @@ export default defineConfig({
         'src/integrations/supabase/types.ts',
       ],
     },
+    typecheck: {
+      enabled: false,
+    },
   },
   resolve: {
     alias: {
