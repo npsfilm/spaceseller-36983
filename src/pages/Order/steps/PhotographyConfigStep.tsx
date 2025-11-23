@@ -1,14 +1,15 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { Camera } from 'lucide-react';
 import { PackageType } from '@/types/photography';
 import { PACKAGE_TIERS } from '@/data/photographyPackages';
 import { ADD_ONS } from '@/data/photographyAddOns';
-import { filterPackagesByType, calculateAddOnsTotal, calculateTotalPrice } from '@/lib/photographyPricing';
-import { PhotographyHeader } from '../components/PhotographyHeader';
+import { filterPackagesByType } from '@/lib/photographyPricing';
+import { photographyPricingService } from '@/lib/services/CategoryPricingService';
+import { ConfigurationHeader, PricingSummaryPanel, type LineItem } from '../components/shared';
 import { PackageTypeFilter } from '../components/PackageTypeFilter';
 import { PhotoCountSlider } from '../components/PhotoCountSlider';
 import { PackageCarousel } from '../components/PackageCarousel';
 import { AddOnsList } from '../components/AddOnsList';
-import { PhotographySummaryCard } from '../components/PhotographySummaryCard';
 
 interface PhotographyConfigStepProps {
   selectedPackage: string | null;
@@ -46,16 +47,68 @@ export const PhotographyConfigStep = ({
   const filteredPackages = filterPackagesByType(PACKAGE_TIERS, packageType);
   const selectedPackageData = filteredPackages.find(p => p.id === selectedPackage);
   
-  const addOnsTotal = calculateAddOnsTotal(selectedAddOns, ADD_ONS);
-  const totalPrice = calculateTotalPrice(selectedPackageData?.price || 0, addOnsTotal, travelCost);
-  
   const selectedAddOnsData = selectedAddOns
     .map(id => ADD_ONS.find(a => a.id === id))
     .filter(Boolean) as typeof ADD_ONS;
 
+  // Calculate pricing using photography pricing service
+  const pricingBreakdown = useMemo(() => {
+    if (!selectedPackageData) return null;
+
+    const addOnItems = selectedAddOnsData.map(addOn => ({
+      id: addOn.id,
+      price: addOn.price,
+      quantity: 1
+    }));
+
+    return photographyPricingService.calculatePackageTotal(
+      selectedPackageData.price,
+      addOnItems,
+      travelCost
+    );
+  }, [selectedPackageData, selectedAddOnsData, travelCost]);
+
+  // Build line items for summary panel
+  const summaryItems: LineItem[] = useMemo(() => {
+    const items: LineItem[] = [];
+
+    if (selectedPackageData) {
+      items.push({
+        id: 'package',
+        label: `${selectedPackageData.name} (${selectedPackageData.photoCount} Fotos)`,
+        price: selectedPackageData.price
+      });
+    }
+
+    selectedAddOnsData.forEach(addOn => {
+      items.push({
+        id: addOn.id,
+        label: addOn.name,
+        price: addOn.price
+      });
+    });
+
+    return items;
+  }, [selectedPackageData, selectedAddOnsData]);
+
+  const additionalFees: LineItem[] = useMemo(() => {
+    if (travelCost > 0) {
+      return [{
+        id: 'travel',
+        label: 'Anfahrt inkludiert',
+        price: 0 // Show as included, already in subtotal
+      }];
+    }
+    return [];
+  }, [travelCost]);
+
   return (
     <div className="space-y-8 py-8">
-      <PhotographyHeader />
+      <ConfigurationHeader
+        icon={Camera}
+        title="Wählen Sie Ihr Fotografie-Paket"
+        description="Professionelle Immobilienfotografie für aussagekräftige Exposés"
+      />
 
       <PackageTypeFilter 
         packageType={packageType} 
@@ -81,12 +134,12 @@ export const PhotographyConfigStep = ({
         onAddOnToggle={handleAddOnToggle}
       />
 
-      {selectedPackage && selectedPackageData && (
-        <PhotographySummaryCard
-          selectedPackage={selectedPackageData}
-          selectedAddOns={selectedAddOnsData}
-          travelCost={travelCost}
-          totalPrice={totalPrice}
+      {selectedPackage && pricingBreakdown && (
+        <PricingSummaryPanel
+          items={summaryItems}
+          subtotal={pricingBreakdown.subtotal}
+          additionalFees={additionalFees}
+          emptyMessage="Bitte wählen Sie ein Paket aus"
         />
       )}
     </div>

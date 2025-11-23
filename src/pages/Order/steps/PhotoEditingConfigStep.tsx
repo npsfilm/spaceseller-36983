@@ -1,272 +1,324 @@
-import { useState } from 'react';
-import { Sparkles, Upload, Image as ImageIcon } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useMemo, useCallback } from 'react';
+import { Sparkles, Upload, X } from 'lucide-react';
+import { useDropzone } from 'react-dropzone';
+import { ConfigurationHeader, PricingSummaryPanel, ConfigurationCard, type LineItem } from '../components/shared';
+import { photoEditingPricingService } from '@/lib/services/CategoryPricingService';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-
-// PhotoEditingConfigStep doesn't need external props currently
-// All state is managed internally
 
 interface EditingOption {
   id: string;
   name: string;
   description: string;
-  pricePerImage: number;
-  icon: string;
+  pricePerPhoto: number;
+  popular?: boolean;
 }
 
 const EDITING_OPTIONS: EditingOption[] = [
   {
-    id: 'retouching',
-    name: 'Bildretusche',
-    description: 'Professionelle Optimierung von Helligkeit, Kontrast und Farben',
-    pricePerImage: 3,
-    icon: '✨'
-  },
-  {
-    id: 'object_removal',
-    name: 'Objektentfernung',
-    description: 'Entfernung störender Objekte aus Ihren Bildern',
-    pricePerImage: 8,
-    icon: '🎯'
-  },
-  {
-    id: 'sky_replacement',
-    name: 'Himmel-Austausch',
-    description: 'Ersetzen des Himmels für perfekte Außenaufnahmen',
-    pricePerImage: 5,
-    icon: '☀️'
-  },
-  {
-    id: 'hdr_merge',
-    name: 'HDR-Verschmelzung',
-    description: 'Zusammenführung mehrerer Belichtungen für optimale Details',
-    pricePerImage: 6,
-    icon: '🌈'
-  },
-  {
-    id: 'color_correction',
+    id: 'color-correction',
     name: 'Farbkorrektur',
-    description: 'Professionelle Farbanpassung und Weißabgleich',
-    pricePerImage: 4,
-    icon: '🎨'
+    description: 'Professionelle Farbabstimmung und Belichtungsoptimierung',
+    pricePerPhoto: 2.50,
+    popular: true
   },
   {
-    id: 'perspective',
+    id: 'object-removal',
+    name: 'Objektentfernung',
+    description: 'Entfernung störender Elemente aus Ihren Fotos',
+    pricePerPhoto: 5.00,
+    popular: true
+  },
+  {
+    id: 'sky-replacement',
+    name: 'Himmel-Austausch',
+    description: 'Bewölkten Himmel durch strahlend blauen Himmel ersetzen',
+    pricePerPhoto: 3.50
+  },
+  {
+    id: 'hdr-enhancement',
+    name: 'HDR-Verbesserung',
+    description: 'Dynamikbereich erweitern für optimale Details',
+    pricePerPhoto: 3.00
+  },
+  {
+    id: 'perspective-correction',
     name: 'Perspektivkorrektur',
-    description: 'Korrektur verzerrter Linien und Perspektiven',
-    pricePerImage: 5,
-    icon: '📐'
+    description: 'Stürzende Linien und Verzerrungen korrigieren',
+    pricePerPhoto: 2.00
+  },
+  {
+    id: 'lawn-enhancement',
+    name: 'Rasen-Auffrischung',
+    description: 'Grünflächen auffrischen und intensivieren',
+    pricePerPhoto: 2.50
   }
 ];
 
-export const PhotoEditingConfigStep = () => {
+interface PhotoEditingConfigStepProps {
+  onImagesUpload?: (files: File[]) => void;
+  onOptionsChange?: (options: string[]) => void;
+}
+
+export const PhotoEditingConfigStep = ({
+  onImagesUpload,
+  onOptionsChange
+}: PhotoEditingConfigStepProps = {}) => {
+  const [uploadedImages, setUploadedImages] = useState<File[]>([]);
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
-  const [uploadedImageCount, setUploadedImageCount] = useState(0);
-  const [isDragActive, setIsDragActive] = useState(false);
 
-  const handleOptionToggle = (optionId: string) => {
-    setSelectedOptions(prev => 
-      prev.includes(optionId)
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    setUploadedImages(prev => [...prev, ...acceptedFiles]);
+    onImagesUpload?.(acceptedFiles);
+  }, [onImagesUpload]);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'image/jpeg': ['.jpg', '.jpeg'],
+      'image/png': ['.png'],
+      'image/tiff': ['.tif', '.tiff'],
+      'image/x-canon-cr2': ['.cr2'],
+      'image/x-nikon-nef': ['.nef']
+    },
+    maxSize: 52428800, // 50MB
+    multiple: true
+  });
+
+  const handleRemoveImage = useCallback((index: number) => {
+    setUploadedImages(prev => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const handleOptionToggle = useCallback((optionId: string) => {
+    setSelectedOptions(prev => {
+      const newOptions = prev.includes(optionId)
         ? prev.filter(id => id !== optionId)
-        : [...prev, optionId]
+        : [...prev, optionId];
+      onOptionsChange?.(newOptions);
+      return newOptions;
+    });
+  }, [onOptionsChange]);
+
+  // Calculate pricing
+  const photoCount = uploadedImages.length;
+  const selectedOptionsData = EDITING_OPTIONS.filter(opt => 
+    selectedOptions.includes(opt.id)
+  );
+
+  const pricingBreakdown = useMemo(() => {
+    if (photoCount === 0 || selectedOptions.length === 0) return null;
+
+    // Calculate total price per photo for all selected options
+    const totalPricePerPhoto = selectedOptionsData.reduce(
+      (sum, opt) => sum + opt.pricePerPhoto, 
+      0
     );
-  };
 
-  const handleFileUpload = (files: FileList) => {
-    // Simulate file upload - in real implementation, this would upload to Supabase
-    setUploadedImageCount(prev => prev + files.length);
-  };
+    return photoEditingPricingService.calculateEditingCosts(
+      photoCount,
+      totalPricePerPhoto,
+      []
+    );
+  }, [photoCount, selectedOptions, selectedOptionsData]);
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragActive(true);
-  };
+  // Build line items for summary
+  const summaryItems: LineItem[] = useMemo(() => {
+    const items: LineItem[] = [];
 
-  const handleDragLeave = () => {
-    setIsDragActive(false);
-  };
+    selectedOptionsData.forEach(opt => {
+      items.push({
+        id: opt.id,
+        label: opt.name,
+        price: opt.pricePerPhoto * photoCount,
+        quantity: photoCount
+      });
+    });
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragActive(false);
-    if (e.dataTransfer.files) {
-      handleFileUpload(e.dataTransfer.files);
-    }
-  };
+    return items;
+  }, [selectedOptionsData, photoCount]);
 
-  const totalPerImage = selectedOptions.reduce((sum, id) => {
-    const option = EDITING_OPTIONS.find(o => o.id === id);
-    return sum + (option?.pricePerImage || 0);
-  }, 0);
-
-  const totalPrice = totalPerImage * uploadedImageCount;
+  const hasSelection = photoCount > 0 && selectedOptions.length > 0;
 
   return (
     <div className="space-y-8 py-8">
-      {/* Header */}
-      <div className="text-center space-y-3">
-        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/10 mb-4">
-          <Sparkles className="w-10 h-10 text-primary" />
-        </div>
-        <h2 className="text-4xl font-bold">Laden Sie Ihre Bilder hoch</h2>
-        <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-          Wählen Sie die gewünschten Bearbeitungen für Ihre Immobilienfotos
-        </p>
-      </div>
+      <ConfigurationHeader
+        icon={Sparkles}
+        title="Professionelle Bildbearbeitung"
+        description="Lassen Sie Ihre Fotos professionell aufwerten und optimieren"
+      />
 
-      {/* Upload Zone */}
-      <Card className="max-w-4xl mx-auto">
-        <CardContent className="pt-6">
-          <div
-            className={`border-2 border-dashed rounded-lg p-12 text-center transition-all ${
-              isDragActive 
-                ? 'border-primary bg-primary/5' 
-                : 'border-border hover:border-primary/50'
-            }`}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-          >
-            {uploadedImageCount === 0 ? (
-              <>
-                <Upload className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-xl font-semibold mb-2">
-                  Bilder hochladen
-                </h3>
-                <p className="text-muted-foreground mb-4">
-                  Ziehen Sie Ihre Bilder hierher oder klicken Sie zum Auswählen
-                </p>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    const input = document.createElement('input');
-                    input.type = 'file';
-                    input.multiple = true;
-                    input.accept = 'image/jpeg,image/png,image/raw,image/tiff';
-                    input.onchange = (e) => {
-                      const files = (e.target as HTMLInputElement).files;
-                      if (files) handleFileUpload(files);
-                    };
-                    input.click();
-                  }}
-                >
-                  Dateien auswählen
-                </Button>
-                <p className="text-xs text-muted-foreground mt-4">
-                  JPG, PNG, RAW, TIFF – max. 50MB pro Datei
-                </p>
-              </>
-            ) : (
-              <>
-                <ImageIcon className="w-16 h-16 mx-auto mb-4 text-primary" />
-                <h3 className="text-2xl font-bold mb-2">
-                  {uploadedImageCount} Bilder hochgeladen
-                </h3>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    const input = document.createElement('input');
-                    input.type = 'file';
-                    input.multiple = true;
-                    input.accept = 'image/jpeg,image/png,image/raw,image/tiff';
-                    input.onchange = (e) => {
-                      const files = (e.target as HTMLInputElement).files;
-                      if (files) handleFileUpload(files);
-                    };
-                    input.click();
-                  }}
-                  className="mt-4"
-                >
-                  Weitere Bilder hinzufügen
-                </Button>
-              </>
-            )}
+      {/* Image Upload Section */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-xl font-semibold">Ihre Bilder hochladen</h3>
+            <p className="text-sm text-muted-foreground">
+              {photoCount > 0 
+                ? `${photoCount} ${photoCount === 1 ? 'Bild' : 'Bilder'} hochgeladen`
+                : 'Laden Sie die Bilder hoch, die bearbeitet werden sollen'
+              }
+            </p>
           </div>
-        </CardContent>
-      </Card>
+          {photoCount > 0 && (
+            <Badge variant="secondary" className="text-sm">
+              {photoCount} {photoCount === 1 ? 'Foto' : 'Fotos'}
+            </Badge>
+          )}
+        </div>
 
-      {/* Editing Options */}
-      <div className="max-w-4xl mx-auto space-y-4">
-        <div className="space-y-2">
-          <h3 className="text-2xl font-semibold">Bearbeitungsoptionen wählen</h3>
-          <p className="text-muted-foreground">
+        {/* Dropzone */}
+        <div
+          {...getRootProps()}
+          className={`border-2 border-dashed rounded-2xl p-12 text-center cursor-pointer transition-all ${
+            isDragActive 
+              ? 'border-primary bg-primary/10 scale-105' 
+              : 'border-border hover:border-primary/50 hover:bg-primary/5'
+          }`}
+        >
+          <input {...getInputProps()} />
+          
+          <div className="space-y-4">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/20 mb-2">
+              <Upload className="h-8 w-8 text-primary" />
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-xl font-bold">
+                {isDragActive ? 'Dateien hier ablegen...' : 'Bilder hochladen'}
+              </p>
+              <p className="text-muted-foreground text-sm">
+                Ziehen Sie Dateien hierher oder klicken Sie zum Durchsuchen
+              </p>
+              <p className="text-xs text-muted-foreground">
+                JPG, PNG, TIFF, RAW bis zu 50MB pro Datei
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Uploaded Images Preview */}
+        {uploadedImages.length > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {uploadedImages.map((file, index) => (
+              <Card key={index} className="relative group overflow-hidden">
+                <div className="aspect-square bg-muted flex items-center justify-center">
+                  <img
+                    src={URL.createObjectURL(file)}
+                    alt={file.name}
+                    className="w-full h-full object-cover"
+                    onLoad={(e) => URL.revokeObjectURL(e.currentTarget.src)}
+                  />
+                </div>
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  onClick={() => handleRemoveImage(index)}
+                  className="absolute top-2 right-2 w-8 h-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                  aria-label="Bild entfernen"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </Card>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Editing Options Section */}
+      <section className="space-y-4">
+        <div>
+          <h3 className="text-xl font-semibold">Bearbeitungsoptionen wählen</h3>
+          <p className="text-sm text-muted-foreground">
             Wählen Sie die gewünschten Bearbeitungen für Ihre Bilder
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {EDITING_OPTIONS.map((option) => (
-            <Card 
+            <ConfigurationCard
               key={option.id}
-              className={`cursor-pointer transition-all hover:shadow-md ${
-                selectedOptions.includes(option.id)
-                  ? 'border-primary bg-primary/5'
-                  : 'border-border hover:border-primary/30'
-              }`}
+              selected={selectedOptions.includes(option.id)}
               onClick={() => handleOptionToggle(option.id)}
+              className="relative"
             >
-              <CardContent className="pt-6">
-                <div className="flex items-start gap-3">
-                  <Checkbox 
-                    checked={selectedOptions.includes(option.id)}
-                    onCheckedChange={() => handleOptionToggle(option.id)}
-                    className="mt-1"
-                  />
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl">{option.icon}</span>
-                      <h4 className="font-semibold">{option.name}</h4>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {option.description}
-                    </p>
-                    <p className="text-sm font-semibold text-primary">
-                      {option.pricePerImage}€ pro Bild
-                    </p>
+              <div className="flex items-start gap-3">
+                <Checkbox
+                  id={option.id}
+                  checked={selectedOptions.includes(option.id)}
+                  onCheckedChange={() => handleOptionToggle(option.id)}
+                  className="mt-1"
+                />
+                <div className="flex-1 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Label
+                      htmlFor={option.id}
+                      className="text-base font-semibold cursor-pointer"
+                    >
+                      {option.name}
+                    </Label>
+                    {option.popular && (
+                      <Badge variant="default" className="text-xs">
+                        Beliebt
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {option.description}
+                  </p>
+                  <div className="flex items-center justify-between pt-2">
+                    <span className="text-sm font-medium text-primary">
+                      €{option.pricePerPhoto.toFixed(2)} pro Foto
+                    </span>
+                    {photoCount > 0 && selectedOptions.includes(option.id) && (
+                      <span className="text-xs text-muted-foreground">
+                        Gesamt: €{(option.pricePerPhoto * photoCount).toFixed(2)}
+                      </span>
+                    )}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </ConfigurationCard>
           ))}
         </div>
-      </div>
+      </section>
 
-      {/* Summary Card */}
-      {uploadedImageCount > 0 && selectedOptions.length > 0 && (
-        <Card className="max-w-md mx-auto sticky bottom-4 shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-lg">Zusammenfassung</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex justify-between text-sm">
-              <span>Anzahl Bilder</span>
-              <span className="font-semibold">{uploadedImageCount}</span>
-            </div>
+      {/* Volume Discount Info */}
+      {photoCount >= 10 && (
+        <Card className="bg-primary/5 border-primary/20 p-4">
+          <div className="flex items-center gap-2 text-sm">
+            <Sparkles className="w-4 h-4 text-primary" />
+            <span className="font-medium">
+              Mengenrabatt aktiv! 
+              {photoCount >= 50 && ' Sie sparen 30%'}
+              {photoCount >= 25 && photoCount < 50 && ' Sie sparen 20%'}
+              {photoCount >= 10 && photoCount < 25 && ' Sie sparen 10%'}
+            </span>
+          </div>
+        </Card>
+      )}
 
-            <div className="space-y-2 pt-2 border-t">
-              <p className="text-sm font-medium">Gewählte Bearbeitungen:</p>
-              {selectedOptions.map(id => {
-                const option = EDITING_OPTIONS.find(o => o.id === id);
-                return (
-                  <div key={id} className="flex justify-between text-sm pl-2">
-                    <span>{option?.name}</span>
-                    <span className="text-muted-foreground">{option?.pricePerImage}€/Bild</span>
-                  </div>
-                );
-              })}
-            </div>
+      {/* Pricing Summary */}
+      {hasSelection && pricingBreakdown && (
+        <PricingSummaryPanel
+          items={summaryItems}
+          subtotal={pricingBreakdown.subtotal}
+          emptyMessage="Bitte laden Sie Bilder hoch und wählen Sie Bearbeitungsoptionen"
+          className="max-w-md mx-auto"
+        />
+      )}
 
-            <div className="flex justify-between text-sm pt-2 border-t">
-              <span>Pro Bild</span>
-              <span className="font-semibold">{totalPerImage}€</span>
-            </div>
-
-            <div className="pt-3 border-t flex justify-between font-bold text-lg">
-              <span>Gesamt</span>
-              <span className="text-primary">{totalPrice}€</span>
-            </div>
-          </CardContent>
+      {/* Empty State */}
+      {!hasSelection && (
+        <Card className="p-8 text-center">
+          <p className="text-muted-foreground">
+            {photoCount === 0 
+              ? 'Bitte laden Sie zuerst Ihre Bilder hoch'
+              : 'Bitte wählen Sie mindestens eine Bearbeitungsoption'
+            }
+          </p>
         </Card>
       )}
     </div>

@@ -381,14 +381,60 @@ console.log(breakdown.total); // €327.25 (with 19% tax)
 - ✅ Usage examples in this document
 - ✅ Type definitions exported
 
-## Related Files Created
-- ✅ `src/pages/Order/components/shared/ConfigurationCard.tsx`
-- ✅ `src/pages/Order/components/shared/PricingSummaryPanel.tsx`
-- ✅ `src/pages/Order/components/shared/ConfigurationHeader.tsx`
-- ✅ `src/pages/Order/components/shared/ConfigurationActions.tsx`
-- ✅ `src/pages/Order/components/shared/index.ts`
-- ✅ `src/lib/services/CategoryPricingService.ts`
-- ✅ `src/lib/services/CategoryPricingService.test.ts`
+## Related Files Created/Modified
+- ✅ `src/pages/Order/components/shared/ConfigurationCard.tsx` - Created
+- ✅ `src/pages/Order/components/shared/PricingSummaryPanel.tsx` - Created
+- ✅ `src/pages/Order/components/shared/ConfigurationHeader.tsx` - Created
+- ✅ `src/pages/Order/components/shared/ConfigurationActions.tsx` - Created
+- ✅ `src/pages/Order/components/shared/index.ts` - Created
+- ✅ `src/lib/services/CategoryPricingService.ts` - Created
+- ✅ `src/lib/services/CategoryPricingService.test.ts` - Created
+- ✅ `src/pages/Order/steps/PhotographyConfigStep.tsx` - Refactored
+- ✅ `src/pages/Order/steps/PhotoEditingConfigStep.tsx` - Refactored
+
+## Implementation Results
+
+### PhotographyConfigStep Refactoring
+**Changes Applied**:
+- ✅ Replaced `PhotographyHeader` with `ConfigurationHeader`
+- ✅ Replaced `PhotographySummaryCard` with `PricingSummaryPanel`
+- ✅ Integrated `photographyPricingService` for calculations
+- ✅ Built `LineItem` arrays for summary display
+- ✅ Maintained all existing functionality (filters, slider, carousel, add-ons)
+- ✅ Travel cost shown as "inkludiert" in additional fees
+
+**Benefits**:
+- More consistent with other configuration steps
+- Uses centralized pricing service
+- Easier to maintain
+- Better type safety
+
+### PhotoEditingConfigStep Implementation
+**Features Implemented**:
+- ✅ `ConfigurationHeader` with Sparkles icon
+- ✅ React Dropzone for drag-and-drop file upload
+- ✅ Image preview grid with remove functionality
+- ✅ 6 editing options with checkboxes using `ConfigurationCard`
+- ✅ Popular badges on recommended options
+- ✅ Real-time pricing per option showing total for photo count
+- ✅ Volume discount notification (10%, 20%, 30% tiers)
+- ✅ `PricingSummaryPanel` for pricing breakdown
+- ✅ `photoEditingPricingService` for calculations with volume discounts
+- ✅ Empty state messages based on context
+- ✅ Accepts JPG, PNG, TIFF, RAW up to 50MB
+
+**Editing Options**:
+1. Farbkorrektur (€2.50/photo) - Popular
+2. Objektentfernung (€5.00/photo) - Popular
+3. Himmel-Austausch (€3.50/photo)
+4. HDR-Verbesserung (€3.00/photo)
+5. Perspektivkorrektur (€2.00/photo)
+6. Rasen-Auffrischung (€2.50/photo)
+
+**Volume Discounts**:
+- 10-24 photos: 10% off
+- 25-49 photos: 20% off
+- 50+ photos: 30% off
 
 ## Future Enhancements
 1. Add animation variants to components
