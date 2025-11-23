@@ -15,14 +15,11 @@ serve(async (req) => {
     const webhookUrl = Deno.env.get('ZAPIER_PHOTOGRAPHER_WEBHOOK_URL');
     
     if (!webhookUrl) {
-      console.warn('Zapier webhook URL not configured');
       return new Response(
         JSON.stringify({ success: false, message: 'Webhook not configured' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
       );
     }
-
-    console.log('Triggering Zapier webhook with data:', assignmentData);
 
     // Send to Zapier
     const response = await fetch(webhookUrl, {
@@ -31,14 +28,11 @@ serve(async (req) => {
       body: JSON.stringify(assignmentData)
     });
 
-    console.log('Zapier webhook response status:', response.status);
-
     return new Response(
       JSON.stringify({ success: true, status: response.status }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('Error triggering Zapier webhook:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
       JSON.stringify({ error: errorMessage }),

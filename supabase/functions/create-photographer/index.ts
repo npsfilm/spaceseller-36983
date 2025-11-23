@@ -39,7 +39,6 @@ serve(async (req) => {
     // Get the JWT token from the request
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      console.error('[create-photographer] No authorization header');
       return new Response(
         JSON.stringify({ error: 'No authorization header' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -52,14 +51,11 @@ serve(async (req) => {
     // Verify the JWT token using admin client
     const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(jwt);
     if (userError || !user) {
-      console.error('[create-photographer] User verification failed:', userError);
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
-    console.log('[create-photographer] User verified:', user.id);
 
     // Create regular client to check admin status
     const supabase = createClient(
@@ -78,7 +74,6 @@ serve(async (req) => {
     });
 
     if (adminError || !isAdmin) {
-      console.error('[create-photographer] Admin check failed:', adminError);
       return new Response(
         JSON.stringify({ error: 'Forbidden - Admin access required' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -87,7 +82,6 @@ serve(async (req) => {
 
     // Parse request body
     const photographerData: CreatePhotographerRequest = await req.json();
-    console.log('[create-photographer] Creating photographer with email:', photographerData.email);
 
     // Validate required fields
     if (!photographerData.email || !photographerData.vorname || !photographerData.nachname) {
@@ -112,7 +106,6 @@ serve(async (req) => {
     });
 
     if (createUserError || !newUser.user) {
-      console.error('[create-photographer] Failed to create user:', createUserError);
       return new Response(
         JSON.stringify({ 
           error: createUserError?.message || 'Failed to create user account'
@@ -120,8 +113,6 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
-    console.log('[create-photographer] User created successfully:', newUser.user.id);
 
     // Wait a moment for the trigger to create the profile
     await new Promise(resolve => setTimeout(resolve, 500));
@@ -143,7 +134,6 @@ serve(async (req) => {
       .eq('id', newUser.user.id);
 
     if (profileError) {
-      console.error('[create-photographer] Failed to update profile:', profileError);
       // Rollback: delete the auth user
       await supabaseAdmin.auth.admin.deleteUser(newUser.user.id);
       return new Response(
@@ -151,8 +141,6 @@ serve(async (req) => {
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
-    console.log('[create-photographer] Profile updated successfully');
 
     // Assign photographer role
     const { error: roleError } = await supabaseAdmin
@@ -164,10 +152,7 @@ serve(async (req) => {
       });
 
     if (roleError) {
-      console.error('[create-photographer] Failed to assign photographer role:', roleError);
       // Continue anyway - admin can fix this manually
-    } else {
-      console.log('[create-photographer] Photographer role assigned successfully');
     }
 
     // Send password reset email
@@ -180,10 +165,7 @@ serve(async (req) => {
     });
 
     if (resetError) {
-      console.error('[create-photographer] Failed to send password reset email:', resetError);
       // Continue anyway - admin can resend manually
-    } else {
-      console.log('[create-photographer] Password reset email sent successfully');
     }
 
     return new Response(
@@ -199,7 +181,6 @@ serve(async (req) => {
     );
 
   } catch (error: any) {
-    console.error('[create-photographer] Unexpected error:', error);
     return new Response(
       JSON.stringify({ error: error.message || 'Internal server error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

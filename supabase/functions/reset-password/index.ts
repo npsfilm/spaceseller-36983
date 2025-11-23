@@ -47,12 +47,10 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
     if (rateLimitError) {
-      console.error('Rate limit check error:', rateLimitError);
       // Continue anyway - don't block on rate limit errors
     }
 
     if (isRateLimited === true) {
-      console.log('Rate limit exceeded for IP:', ipAddress);
       return new Response(
         JSON.stringify({ 
           error: "Too many password reset attempts. Please try again in 15 minutes." 
@@ -110,7 +108,6 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     if (passwordErrors.length > 0) {
-      console.log("Password validation failed:", passwordErrors);
       return new Response(
         JSON.stringify({ 
           error: "Password does not meet security requirements", 
@@ -132,7 +129,6 @@ const handler = async (req: Request): Promise<Response> => {
       .single();
 
     if (tokenError || !tokenData) {
-      console.error("Token not found or error:", tokenError);
       return new Response(
         JSON.stringify({ error: "Invalid or expired reset token" }),
         {
@@ -145,7 +141,6 @@ const handler = async (req: Request): Promise<Response> => {
     // Check if token is expired
     const expiresAt = new Date(tokenData.expires_at);
     if (expiresAt < new Date()) {
-      console.log("Token expired:", token);
       return new Response(
         JSON.stringify({ error: "Reset token has expired. Please request a new one." }),
         {
@@ -162,7 +157,6 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
     if (updateError) {
-      console.error("Error updating password:", updateError);
       throw new Error("Failed to update password");
     }
 
@@ -173,11 +167,8 @@ const handler = async (req: Request): Promise<Response> => {
       .eq("id", tokenData.id);
 
     if (markUsedError) {
-      console.error("Error marking token as used:", markUsedError);
       // Don't fail the request since password was updated successfully
     }
-
-    console.log("Password reset successful for user:", tokenData.user_id);
 
     return new Response(
       JSON.stringify({ message: "Password has been reset successfully" }),
@@ -187,7 +178,6 @@ const handler = async (req: Request): Promise<Response> => {
       }
     );
   } catch (error: any) {
-    console.error("Error in reset-password function:", error);
     return new Response(
       JSON.stringify({ error: "An error occurred while resetting your password" }),
       {

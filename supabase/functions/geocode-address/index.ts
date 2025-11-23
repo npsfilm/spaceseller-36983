@@ -39,13 +39,10 @@ Deno.serve(async (req) => {
     } = await supabaseClient.auth.getUser(token);
 
     if (authError || !user) {
-      console.error('Auth error:', authError);
       throw new Error('Unauthorized');
     }
 
     const { address, city, postal_code, country = 'Germany' }: GeocodeRequest = await req.json();
-
-    console.log('Geocoding request:', { address, city, postal_code, country });
 
     // Build full address for geocoding
     const fullAddress = `${address}, ${postal_code} ${city}, ${country}`;
@@ -59,7 +56,6 @@ Deno.serve(async (req) => {
 
     const geocodeUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedAddress}.json?access_token=${mapboxToken}&limit=1`;
 
-    console.log('Calling Mapbox API...');
     const response = await fetch(geocodeUrl);
 
     if (!response.ok) {
@@ -77,8 +73,6 @@ Deno.serve(async (req) => {
 
     const [longitude, latitude] = data.features[0].center;
 
-    console.log('Geocoded successfully:', { latitude, longitude });
-
     return new Response(
       JSON.stringify({
         latitude,
@@ -91,7 +85,6 @@ Deno.serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error('Geocoding error:', error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
       {
