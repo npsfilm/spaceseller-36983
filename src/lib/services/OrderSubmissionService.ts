@@ -38,11 +38,8 @@ export class OrderSubmissionService {
       // Create address record
       await this.createOrderAddress(userId, orderState);
 
-      // Trigger webhooks and notifications in parallel
-      await Promise.all([
-        this.triggerZapierWebhook(orderState.draftOrderId, userId, categoryId),
-        this.createAdminNotifications(orderState.draftOrderId)
-      ]);
+      // Create admin notifications
+      await this.createAdminNotifications(orderState.draftOrderId);
 
       return { 
         success: true, 
@@ -75,28 +72,6 @@ export class OrderSubmissionService {
       });
   }
 
-  /**
-   * Trigger Zapier webhook for new order
-   */
-  private async triggerZapierWebhook(
-    orderId: string,
-    userId: string,
-    categoryId: string
-  ): Promise<void> {
-    try {
-      await supabase.functions.invoke('trigger-zapier-webhook', {
-        body: {
-          event: 'new_order',
-          order_id: orderId,
-          user_id: userId,
-          category: categoryId
-        }
-      });
-    } catch (error) {
-      // Don't fail the order submission if webhook fails
-      console.error('Zapier webhook failed:', error);
-    }
-  }
 
   /**
    * Create notifications for all admin users
