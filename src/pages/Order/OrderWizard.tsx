@@ -137,7 +137,7 @@ export const OrderWizard = () => {
         title: "Bestellung erfolgreich!",
         description: "Ihre Bestellung wurde erfolgreich aufgegeben."
       });
-      navigate(`/order-confirmation?orderId=${result.orderId}`);
+      navigate(`/order/confirmation/${result.orderId}`);
     } else {
       toast({
         title: "Fehler",
