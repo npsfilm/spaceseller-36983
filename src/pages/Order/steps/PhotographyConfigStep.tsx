@@ -7,8 +7,7 @@ import { filterPackagesByType } from '@/lib/photographyPricing';
 import { photographyPricingService } from '@/lib/services/CategoryPricingService';
 import { ConfigurationHeader, PricingSummaryPanel, type LineItem } from '../components/shared';
 import { PackageTypeFilter } from '../components/PackageTypeFilter';
-import { PhotoCountSlider } from '../components/PhotoCountSlider';
-import { PackageCarousel } from '../components/PackageCarousel';
+import { PhotographyPackageCard } from '../components/PhotographyPackageCard';
 import { AddOnsList } from '../components/AddOnsList';
 
 interface PhotographyConfigStepProps {
@@ -25,7 +24,6 @@ export const PhotographyConfigStep = ({
 }: PhotographyConfigStepProps) => {
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([]);
   const [packageType, setPackageType] = useState<PackageType>('photo');
-  const [photoCount, setPhotoCount] = useState<number>(10);
 
   const handlePackageTypeChange = (type: PackageType) => {
     setPackageType(type);
@@ -44,43 +42,11 @@ export const PhotographyConfigStep = ({
     );
   };
 
+  // Filter and sort packages by type
   const filteredPackages = useMemo(() => {
     const typeFiltered = filterPackagesByType(PACKAGE_TIERS, packageType);
-    
-    // For photo packages, show exactly 3 packages: closest match + one above + one below
-    if (packageType === 'photo') {
-      const sorted = [...typeFiltered].sort((a, b) => a.photoCount - b.photoCount);
-      
-      // Find the index of the closest matching package
-      const closestIndex = sorted.findIndex(pkg => pkg.photoCount >= photoCount);
-      
-      if (closestIndex === -1) {
-        // All packages are below the selected count, show last 3
-        return sorted.slice(-3);
-      }
-      
-      if (closestIndex === 0) {
-        // Selected count is at or below the first package, show first 3
-        return sorted.slice(0, 3);
-      }
-      
-      // Show the closest package, one below, and one above
-      return sorted.slice(closestIndex - 1, closestIndex + 2);
-    }
-    
-    return typeFiltered;
-  }, [packageType, photoCount]);
-
-  // Determine which package is the exact match for highlighting
-  const exactMatchPackage = useMemo(() => {
-    if (packageType !== 'photo') return null;
-    
-    const typeFiltered = filterPackagesByType(PACKAGE_TIERS, packageType);
-    const sorted = [...typeFiltered].sort((a, b) => a.photoCount - b.photoCount);
-    
-    // Find the package with the closest photo count >= selected count
-    return sorted.find(pkg => pkg.photoCount >= photoCount) || sorted[sorted.length - 1];
-  }, [packageType, photoCount]);
+    return typeFiltered.sort((a, b) => a.photoCount - b.photoCount);
+  }, [packageType]);
 
   const selectedPackageData = filteredPackages.find(p => p.id === selectedPackage);
   
@@ -139,39 +105,79 @@ export const PhotographyConfigStep = ({
     return [];
   }, [travelCost]);
 
+  // Get description for current package type
+  const getPackageTypeDescription = () => {
+    switch (packageType) {
+      case 'photo':
+        return 'Professionelle Immobilienfotografie mit verschiedenen Bildanzahlen';
+      case 'drone':
+        return 'Beeindruckende Luftaufnahmen Ihrer Immobilie';
+      case 'photo_drone':
+        return 'Kombination aus Foto und Drohne mit attraktivem Preisvorteil';
+      default:
+        return '';
+    }
+  };
+
   return (
-    <div className="space-y-8 py-8">
+    <div className="space-y-12 py-8">
       <ConfigurationHeader
         icon={Camera}
         title="Wählen Sie Ihr Fotografie-Paket"
         description="Professionelle Immobilienfotografie für aussagekräftige Exposés"
       />
 
-      <PackageTypeFilter 
-        packageType={packageType} 
-        onPackageTypeChange={handlePackageTypeChange}
-      />
-
-      {packageType === 'photo' && (
-        <PhotoCountSlider 
-          photoCount={photoCount} 
-          onPhotoCountChange={setPhotoCount}
+      {/* Service Type Selection */}
+      <div className="space-y-6">
+        <div className="text-center max-w-3xl mx-auto px-4">
+          <h3 className="text-2xl font-bold mb-2">Art der Aufnahme</h3>
+          <p className="text-muted-foreground">
+            Wählen Sie zwischen Foto, Drohne oder einer Kombination beider Services
+          </p>
+        </div>
+        
+        <PackageTypeFilter 
+          packageType={packageType} 
+          onPackageTypeChange={handlePackageTypeChange}
         />
-      )}
+      </div>
 
-      <PackageCarousel
-        packages={filteredPackages}
-        selectedPackageId={selectedPackage}
-        exactMatchPackageId={exactMatchPackage?.id || null}
-        onPackageSelect={handlePackageSelect}
-      />
+      {/* Package Selection */}
+      <div className="space-y-6">
+        <div className="text-center max-w-3xl mx-auto px-4">
+          <h3 className="text-2xl font-bold mb-2">
+            {packageType === 'photo' && 'Foto-Pakete'}
+            {packageType === 'drone' && 'Drohnen-Pakete'}
+            {packageType === 'photo_drone' && 'Kombi-Pakete'}
+          </h3>
+          <p className="text-muted-foreground">
+            {getPackageTypeDescription()}
+          </p>
+        </div>
 
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredPackages.map((pkg) => (
+              <PhotographyPackageCard
+                key={pkg.id}
+                packageData={pkg}
+                isSelected={selectedPackage === pkg.id}
+                isExactMatch={false}
+                onSelect={() => handlePackageSelect(pkg.id)}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Add-ons Section */}
       <AddOnsList
         addOns={ADD_ONS}
         selectedAddOnIds={selectedAddOns}
         onAddOnToggle={handleAddOnToggle}
       />
 
+      {/* Pricing Summary */}
       {selectedPackage && pricingBreakdown && (
         <PricingSummaryPanel
           items={summaryItems}
