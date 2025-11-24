@@ -347,10 +347,14 @@ export type Database = {
       }
       orders: {
         Row: {
+          alternative_date: string | null
+          alternative_time: string | null
           created_at: string | null
           delivery_deadline: string | null
           id: string
           order_number: string
+          requested_date: string | null
+          requested_time: string | null
           special_instructions: string | null
           status: Database["public"]["Enums"]["order_status"]
           total_amount: number
@@ -358,10 +362,14 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          alternative_date?: string | null
+          alternative_time?: string | null
           created_at?: string | null
           delivery_deadline?: string | null
           id?: string
           order_number: string
+          requested_date?: string | null
+          requested_time?: string | null
           special_instructions?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           total_amount?: number
@@ -369,10 +377,14 @@ export type Database = {
           user_id: string
         }
         Update: {
+          alternative_date?: string | null
+          alternative_time?: string | null
           created_at?: string | null
           delivery_deadline?: string | null
           id?: string
           order_number?: string
+          requested_date?: string | null
+          requested_time?: string | null
           special_instructions?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           total_amount?: number

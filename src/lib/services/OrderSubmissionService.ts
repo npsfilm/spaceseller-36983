@@ -29,12 +29,16 @@ export class OrderSubmissionService {
       // Calculate total amount based on order category
       const totalAmount = this.calculateTotalAmount(orderState, categoryId);
 
-      // Update draft order to submitted status
+      // Update draft order to submitted status with requested dates
       const { error: orderError } = await supabase
         .from('orders')
         .update({
           status: 'submitted',
-          total_amount: totalAmount
+          total_amount: totalAmount,
+          requested_date: orderState.primaryDate ? new Date(orderState.primaryDate).toISOString().split('T')[0] : null,
+          requested_time: orderState.primaryTime || null,
+          alternative_date: orderState.alternativeDate ? new Date(orderState.alternativeDate).toISOString().split('T')[0] : null,
+          alternative_time: orderState.alternativeTime || null
         })
         .eq('id', orderState.draftOrderId);
 
