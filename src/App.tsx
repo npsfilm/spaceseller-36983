@@ -15,6 +15,7 @@ import Onboarding from "./pages/Onboarding";
 import Order from "./pages/Order";
 import OrderConfirmation from "./pages/OrderConfirmation";
 import MyOrders from "./pages/MyOrders";
+import ClientOrderDetail from "./pages/client/OrderDetail";
 import Settings from "./pages/Settings";
 import Admin from "./pages/Admin";
 import OrderDetail from "./pages/admin/OrderDetail";
@@ -46,6 +47,7 @@ const App = () => (
             <Route path="/order" element={<ProtectedRoute requireOnboarding requireClient><Order /></ProtectedRoute>} />
             <Route path="/order/confirmation/:orderId" element={<ProtectedRoute requireOnboarding requireClient><OrderConfirmation /></ProtectedRoute>} />
             <Route path="/my-orders" element={<ProtectedRoute requireOnboarding requireClient><MyOrders /></ProtectedRoute>} />
+            <Route path="/orders/:orderId" element={<ProtectedRoute requireOnboarding requireClient><ClientOrderDetail /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute requireOnboarding><Settings /></ProtectedRoute>} />
             <Route path="/admin-backend" element={<ProtectedRoute requireOnboarding requireAdmin><Admin /></ProtectedRoute>} />
             <Route path="/admin-backend/orders/:orderId" element={<ProtectedRoute requireOnboarding requireAdmin><OrderDetail /></ProtectedRoute>} />

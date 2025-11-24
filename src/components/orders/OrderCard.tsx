@@ -56,7 +56,7 @@ export const OrderCard = ({ order }: OrderCardProps) => {
 
       <div className="flex gap-2">
         <Button variant="outline" size="sm" asChild>
-          <Link to={`/order/confirmation/${order.id}`}>
+          <Link to={`/orders/${order.id}`}>
             <Eye className="h-4 w-4 mr-2" />
             Details
           </Link>
