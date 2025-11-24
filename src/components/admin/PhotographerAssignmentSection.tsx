@@ -33,6 +33,8 @@ export const PhotographerAssignmentSection = ({
   const [adminNotes, setAdminNotes] = useState('');
   const [scheduledDate, setScheduledDate] = useState('');
   const [scheduledTime, setScheduledTime] = useState('');
+  const [paymentAmount, setPaymentAmount] = useState<number>(0);
+  const [travelCost, setTravelCost] = useState<number>(0);
   const [assigning, setAssigning] = useState(false);
   const { toast } = useToast();
 
@@ -42,6 +44,8 @@ export const PhotographerAssignmentSection = ({
       setAdminNotes(currentAssignment.admin_notes || '');
       setScheduledDate(currentAssignment.scheduled_date || '');
       setScheduledTime(currentAssignment.scheduled_time?.slice(0, 5) || '');
+      setPaymentAmount(currentAssignment.payment_amount || 0);
+      setTravelCost(currentAssignment.travel_cost || 0);
     }
   }, [currentAssignment]);
 
@@ -64,6 +68,8 @@ export const PhotographerAssignmentSection = ({
         adminNotes,
         scheduledDate,
         scheduledTime,
+        paymentAmount,
+        travelCost,
         currentAssignment?.id
       );
 
@@ -85,7 +91,9 @@ export const PhotographerAssignmentSection = ({
           scheduledDate,
           scheduledTime,
           adminNotes,
-          totalAmount
+          totalAmount,
+          paymentAmount,
+          travelCost
         );
       }
 
@@ -206,6 +214,44 @@ export const PhotographerAssignmentSection = ({
             onChange={(e) => setAdminNotes(e.target.value)}
             rows={3}
           />
+        </div>
+
+        <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
+          <h4 className="font-semibold text-sm">Vergütung & Reisekosten</h4>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="payment-amount">Vergütung (€)</Label>
+              <Input
+                id="payment-amount"
+                type="number"
+                min="0"
+                step="0.01"
+                value={paymentAmount || ''}
+                onChange={(e) => setPaymentAmount(parseFloat(e.target.value) || 0)}
+                placeholder="0.00"
+              />
+            </div>
+            <div>
+              <Label htmlFor="travel-cost">Reisekosten (€)</Label>
+              <Input
+                id="travel-cost"
+                type="number"
+                min="0"
+                step="0.01"
+                value={travelCost || ''}
+                onChange={(e) => setTravelCost(parseFloat(e.target.value) || 0)}
+                placeholder="0.00"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between p-3 bg-background rounded border">
+            <span className="font-semibold text-sm">Gesamtvergütung:</span>
+            <span className="text-lg font-bold text-primary">
+              €{((paymentAmount || 0) + (travelCost || 0)).toFixed(2)}
+            </span>
+          </div>
         </div>
 
         <Button 

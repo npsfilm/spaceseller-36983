@@ -12,6 +12,8 @@ interface AssignmentCardProps {
     scheduled_date: string | null;
     scheduled_time: string | null;
     admin_notes: string | null;
+    payment_amount: number | null;
+    travel_cost: number | null;
     orders: {
       order_number: string;
       special_instructions: string | null;
@@ -74,14 +76,30 @@ export const AssignmentCard = ({
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Payment Amount */}
-        <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950/20 rounded-lg">
-          <div className="flex items-center gap-2">
-            <Euro className="h-4 w-4 text-green-600" />
-            <span className="font-semibold">Vergütung:</span>
+        <div className="space-y-2 p-3 bg-green-50 dark:bg-green-950/20 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Euro className="h-4 w-4 text-green-600" />
+              <span className="font-semibold">Vergütung:</span>
+            </div>
+            <span className="text-xl font-bold text-green-600">
+              €{(assignment.payment_amount || 0).toFixed(2)}
+            </span>
           </div>
-          <span className="text-xl font-bold text-green-600">
-            €{assignment.orders.total_amount.toFixed(2)}
-          </span>
+          {assignment.travel_cost && assignment.travel_cost > 0 && (
+            <div className="flex items-center justify-between text-sm pt-2 border-t border-green-200 dark:border-green-800">
+              <span className="text-muted-foreground">+ Reisekosten:</span>
+              <span className="font-medium">€{assignment.travel_cost.toFixed(2)}</span>
+            </div>
+          )}
+          {assignment.travel_cost && assignment.travel_cost > 0 && (
+            <div className="flex items-center justify-between text-sm font-semibold pt-1">
+              <span>Gesamtvergütung:</span>
+              <span className="text-green-600">
+                €{((assignment.payment_amount || 0) + (assignment.travel_cost || 0)).toFixed(2)}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Client Information */}
