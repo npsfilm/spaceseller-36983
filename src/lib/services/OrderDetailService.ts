@@ -58,8 +58,19 @@ export interface Assignment {
   };
 }
 
+export interface OrderUpgrade {
+  id: string;
+  quantity: number;
+  total_price: number;
+  upgrades?: {
+    name: string;
+    description?: string;
+  };
+}
+
 export interface OrderDetails {
   items: OrderItem[];
+  upgrades: OrderUpgrade[];
   uploads: OrderUpload[];
   deliverables: OrderDeliverable[];
   addresses: OrderAddress[];
@@ -73,7 +84,7 @@ export class OrderDetailService {
    * Fetch all order details (items, uploads, deliverables, addresses)
    */
   async fetchOrderDetails(orderId: string): Promise<OrderDetails> {
-    const [itemsResult, uploadsResult, deliverablesResult, addressesResult] = await Promise.all([
+    const [itemsResult, upgradesResult, uploadsResult, deliverablesResult, addressesResult] = await Promise.all([
       supabase
         .from('order_items')
         .select(`
@@ -81,6 +92,17 @@ export class OrderDetailService {
           services (
             name,
             category
+          )
+        `)
+        .eq('order_id', orderId),
+      
+      supabase
+        .from('order_upgrades')
+        .select(`
+          *,
+          upgrades (
+            name,
+            description
           )
         `)
         .eq('order_id', orderId),
@@ -103,6 +125,7 @@ export class OrderDetailService {
 
     return {
       items: itemsResult.data || [],
+      upgrades: upgradesResult.data || [],
       uploads: uploadsResult.data || [],
       deliverables: deliverablesResult.data || [],
       addresses: addressesResult.data || [],
