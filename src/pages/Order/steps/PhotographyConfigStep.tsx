@@ -1,14 +1,16 @@
 import { useState, useMemo } from 'react';
-import { Camera } from 'lucide-react';
-import { PackageType } from '@/types/photography';
+import { Camera, ChevronDown } from 'lucide-react';
+import { PackageType, PropertySize } from '@/types/photography';
 import { PACKAGE_TIERS } from '@/data/photographyPackages';
 import { ADD_ONS } from '@/data/photographyAddOns';
-import { filterPackagesByType } from '@/lib/photographyPricing';
+import { filterPackagesByType, getRecommendedPackages } from '@/lib/photographyPricing';
 import { photographyPricingService } from '@/lib/services/CategoryPricingService';
 import { ConfigurationHeader, PricingSummaryPanel, type LineItem } from '../components/shared';
 import { PackageTypeFilter } from '../components/PackageTypeFilter';
+import { PropertySizeSelector } from '../components/PropertySizeSelector';
 import { PhotographyPackageCard } from '../components/PhotographyPackageCard';
 import { AddOnsList } from '../components/AddOnsList';
+import { Button } from '@/components/ui/button';
 
 interface PhotographyConfigStepProps {
   selectedPackage: string | null;
@@ -24,10 +26,20 @@ export const PhotographyConfigStep = ({
 }: PhotographyConfigStepProps) => {
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([]);
   const [packageType, setPackageType] = useState<PackageType>('photo');
+  const [propertySize, setPropertySize] = useState<PropertySize | null>(null);
+  const [showAllPackages, setShowAllPackages] = useState(false);
 
   const handlePackageTypeChange = (type: PackageType) => {
     setPackageType(type);
+    setPropertySize(null); // Reset property size
+    setShowAllPackages(false); // Reset show all
     onPackageSelect(null); // Reset selection when changing type
+  };
+
+  const handlePropertySizeChange = (size: PropertySize) => {
+    setPropertySize(size);
+    setShowAllPackages(false); // Reset show all when size changes
+    onPackageSelect(null); // Reset selection
   };
 
   const handlePackageSelect = (packageId: string) => {
@@ -42,13 +54,24 @@ export const PhotographyConfigStep = ({
     );
   };
 
-  // Filter and sort packages by type
-  const filteredPackages = useMemo(() => {
-    const typeFiltered = filterPackagesByType(PACKAGE_TIERS, packageType);
-    return typeFiltered.sort((a, b) => a.photoCount - b.photoCount);
+  // Get packages to display based on recommendation logic
+  const displayedPackages = useMemo(() => {
+    if (showAllPackages) {
+      // Show all packages sorted by photo count
+      const typeFiltered = filterPackagesByType(PACKAGE_TIERS, packageType);
+      return typeFiltered.sort((a, b) => a.photoCount - b.photoCount);
+    } else {
+      // Show recommended packages (max 3)
+      return getRecommendedPackages(PACKAGE_TIERS, packageType, propertySize);
+    }
+  }, [packageType, propertySize, showAllPackages]);
+
+  // Get total count of packages for "show all" button
+  const totalPackageCount = useMemo(() => {
+    return filterPackagesByType(PACKAGE_TIERS, packageType).length;
   }, [packageType]);
 
-  const selectedPackageData = filteredPackages.find(p => p.id === selectedPackage);
+  const selectedPackageData = PACKAGE_TIERS.find(p => p.id === selectedPackage);
   
   const selectedAddOnsData = selectedAddOns
     .map(id => ADD_ONS.find(a => a.id === id))
@@ -142,22 +165,30 @@ export const PhotographyConfigStep = ({
         />
       </div>
 
+      {/* Property Size Selector */}
+      <div className="max-w-5xl mx-auto px-4">
+        <PropertySizeSelector
+          selectedSize={propertySize}
+          onSizeChange={handlePropertySizeChange}
+        />
+      </div>
+
       {/* Package Selection */}
       <div className="space-y-6">
         <div className="text-center max-w-3xl mx-auto px-4">
           <h3 className="text-2xl font-bold mb-2">
-            {packageType === 'photo' && 'Foto-Pakete'}
-            {packageType === 'drone' && 'Drohnen-Pakete'}
-            {packageType === 'photo_drone' && 'Kombi-Pakete'}
+            {!propertySize && 'Empfohlene Pakete'}
+            {propertySize && 'Passende Pakete für Ihre Immobilie'}
           </h3>
           <p className="text-muted-foreground">
-            {getPackageTypeDescription()}
+            {!propertySize && 'Unsere beliebtesten Optionen für jede Objektgröße'}
+            {propertySize && getPackageTypeDescription()}
           </p>
         </div>
 
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredPackages.map((pkg) => (
+            {displayedPackages.map((pkg) => (
               <PhotographyPackageCard
                 key={pkg.id}
                 packageData={pkg}
@@ -167,6 +198,36 @@ export const PhotographyConfigStep = ({
               />
             ))}
           </div>
+
+          {/* Show All Button */}
+          {!showAllPackages && displayedPackages.length < totalPackageCount && (
+            <div className="text-center mt-8">
+              <Button
+                variant="outline"
+                onClick={() => setShowAllPackages(true)}
+                className="gap-2"
+              >
+                Passt noch nicht? Alle {totalPackageCount} Pakete durchsuchen
+                <ChevronDown className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
+
+          {/* Show Less Button */}
+          {showAllPackages && (
+            <div className="text-center mt-8">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowAllPackages(false);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="gap-2"
+              >
+                Weniger anzeigen
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
