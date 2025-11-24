@@ -70,6 +70,18 @@ export const PhotographyConfigStep = ({
     
     return typeFiltered;
   }, [packageType, photoCount]);
+
+  // Determine which package is the exact match for highlighting
+  const exactMatchPackage = useMemo(() => {
+    if (packageType !== 'photo') return null;
+    
+    const typeFiltered = filterPackagesByType(PACKAGE_TIERS, packageType);
+    const sorted = [...typeFiltered].sort((a, b) => a.photoCount - b.photoCount);
+    
+    // Find the package with the closest photo count >= selected count
+    return sorted.find(pkg => pkg.photoCount >= photoCount) || sorted[sorted.length - 1];
+  }, [packageType, photoCount]);
+
   const selectedPackageData = filteredPackages.find(p => p.id === selectedPackage);
   
   const selectedAddOnsData = selectedAddOns
@@ -150,6 +162,7 @@ export const PhotographyConfigStep = ({
       <PackageCarousel
         packages={filteredPackages}
         selectedPackageId={selectedPackage}
+        exactMatchPackageId={exactMatchPackage?.id || null}
         onPackageSelect={handlePackageSelect}
       />
 

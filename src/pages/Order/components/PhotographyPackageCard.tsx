@@ -5,22 +5,31 @@ import { PackageTier } from '@/types/photography';
 interface PhotographyPackageCardProps {
   packageData: PackageTier;
   isSelected: boolean;
+  isExactMatch?: boolean;
   onSelect: () => void;
 }
 
-export const PhotographyPackageCard = ({ packageData: pkg, isSelected, onSelect }: PhotographyPackageCardProps) => {
+export const PhotographyPackageCard = ({ packageData: pkg, isSelected, isExactMatch, onSelect }: PhotographyPackageCardProps) => {
   return (
     <Card 
       className={`relative cursor-pointer transition-all hover:shadow-lg h-full ${
         isSelected 
           ? 'border-primary border-2 shadow-md' 
+          : isExactMatch
+          ? 'border-primary/60 border-2 shadow-md ring-2 ring-primary/20'
           : 'border-border hover:border-primary/50'
       }`}
       onClick={onSelect}
     >
       {pkg.popular && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-semibold">
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-semibold z-10">
           Beliebt
+        </div>
+      )}
+      
+      {isExactMatch && !isSelected && (
+        <div className="absolute -top-3 right-4 bg-primary/90 text-primary-foreground px-3 py-1 rounded-full text-xs font-semibold z-10">
+          Passt zu Ihrer Auswahl
         </div>
       )}
       
