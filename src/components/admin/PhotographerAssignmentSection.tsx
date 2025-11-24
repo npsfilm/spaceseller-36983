@@ -308,12 +308,27 @@ export const PhotographerAssignmentSection = ({
         <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
           <div className="flex items-center justify-between">
             <h4 className="font-semibold text-sm">Vergütung & Reisekosten</h4>
-            {calculating && (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Calculator className="h-3 w-3 animate-pulse" />
-                <span>Berechne...</span>
-              </div>
-            )}
+            <div className="flex items-center gap-2">
+              {calculating && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Calculator className="h-3 w-3 animate-pulse" />
+                  <span>Berechne...</span>
+                </div>
+              )}
+              {selectedPhotographer && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => calculateCostsForPhotographer(selectedPhotographer)}
+                  disabled={calculating || !shootingAddress}
+                  className="text-xs"
+                >
+                  <Calculator className="h-3 w-3 mr-1" />
+                  Neu berechnen
+                </Button>
+              )}
+            </div>
           </div>
           
           <div className="grid grid-cols-2 gap-4">
