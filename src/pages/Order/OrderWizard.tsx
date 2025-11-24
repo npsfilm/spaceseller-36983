@@ -11,6 +11,7 @@ import { ProgressIndicator } from './components/ProgressIndicator';
 import { LocationCheckStep } from './steps/LocationCheckStep';
 import { CategorySelectionStep } from './steps/CategorySelectionStep';
 import { ProductConfigurationStep } from './steps/ProductConfigurationStep';
+import { OrderSummarySidebar } from '@/components/order/OrderSummarySidebar';
 
 // Re-export types for backward compatibility
 export type { Service, OrderState };
@@ -112,6 +113,18 @@ export const OrderWizard = () => {
     }
   };
 
+  // Get category label for sidebar
+  const getCategoryLabel = () => {
+    if (!orderState.selectedCategory) return 'Dienstleistung';
+    const labels: Record<string, string> = {
+      onsite: 'Aufnahme vor Ort',
+      photo_editing: 'Fotobearbeitung',
+      virtual_staging: 'Virtuelles Staging',
+      energy_certificate: 'Energieausweis'
+    };
+    return labels[orderState.selectedCategory] || 'Dienstleistung';
+  };
+
   return (
     <OrderLayout>
       <div className="h-full flex flex-col">
@@ -122,43 +135,55 @@ export const OrderWizard = () => {
           onStepClick={() => {}}
         />
 
-        {/* Step Content */}
+        {/* Step Content with Sidebar Layout */}
         <div className="flex-1 overflow-y-auto">
-          <div className={orderState.step === 2 ? "w-full px-[15%]" : "container mx-auto max-w-4xl p-6"}>
-            {/* Step 1: Location Check */}
-            {orderState.step === 1 && (
-              <LocationCheckStep
-                address={orderState.address}
-                onUpdateAddress={updateAddressField}
-                onLocationValidated={handleLocationValidated}
-                onBack={() => navigate('/dashboard')}
-              />
-            )}
+          {orderState.step === 3 ? (
+            // Step 3: Two-column layout with sticky sidebar on desktop
+            <div className="flex gap-8 container mx-auto max-w-7xl p-6">
+              {/* Main Content Area */}
+              <div className="flex-1 min-w-0">
+                <ProductConfigurationStep
+                  category={orderState.selectedCategory}
+                  services={services}
+                  selectedAreaRange={orderState.selectedAreaRange}
+                  selectedProducts={orderState.selectedProducts}
+                  selectedPackage={orderState.selectedPackage}
+                  travelCost={orderState.travelCost}
+                  onAreaRangeChange={setAreaRange}
+                  onProductToggle={toggleProduct}
+                  onPackageSelect={setPackage}
+                />
+              </div>
 
-            {/* Step 2: Category Selection */}
-            {orderState.step === 2 && (
-              <CategorySelectionStep
-                services={services}
-                onSelectCategory={setCategory}
-                selectedCategory={orderState.selectedCategory || undefined}
+              {/* Sticky Sidebar (Desktop Only) */}
+              <OrderSummarySidebar 
+                orderState={orderState}
+                categoryLabel={getCategoryLabel()}
               />
-            )}
+            </div>
+          ) : (
+            // Steps 1 & 2: Full-width layout without sidebar
+            <div className={orderState.step === 2 ? "w-full px-[15%]" : "container mx-auto max-w-4xl p-6"}>
+              {/* Step 1: Location Check */}
+              {orderState.step === 1 && (
+                <LocationCheckStep
+                  address={orderState.address}
+                  onUpdateAddress={updateAddressField}
+                  onLocationValidated={handleLocationValidated}
+                  onBack={() => navigate('/dashboard')}
+                />
+              )}
 
-            {/* Step 3: Product Configuration */}
-            {orderState.step === 3 && (
-              <ProductConfigurationStep
-                category={orderState.selectedCategory}
-                services={services}
-                selectedAreaRange={orderState.selectedAreaRange}
-                selectedProducts={orderState.selectedProducts}
-                selectedPackage={orderState.selectedPackage}
-                travelCost={orderState.travelCost}
-                onAreaRangeChange={setAreaRange}
-                onProductToggle={toggleProduct}
-                onPackageSelect={setPackage}
-              />
-            )}
-          </div>
+              {/* Step 2: Category Selection */}
+              {orderState.step === 2 && (
+                <CategorySelectionStep
+                  services={services}
+                  onSelectCategory={setCategory}
+                  selectedCategory={orderState.selectedCategory || undefined}
+                />
+              )}
+            </div>
+          )}
         </div>
 
         {/* Bottom Navigation */}
