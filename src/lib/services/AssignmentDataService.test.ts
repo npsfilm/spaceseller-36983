@@ -29,6 +29,9 @@ describe('AssignmentDataService', () => {
   const createMockAssignment = (overrides = {}): Assignment => ({
     id: '1',
     order_id: 'order-1',
+    photographer_id: 'photographer-1',
+    payment_amount: 150,
+    travel_cost: 25,
     status: 'pending',
     scheduled_date: '2025-02-15',
     scheduled_time: '14:00',
@@ -45,20 +48,20 @@ describe('AssignmentDataService', () => {
         nachname: 'Doe',
         email: 'john@example.com',
         telefon: '+49123456789'
-      }
+      },
+      addresses: [{
+        strasse: 'Teststraße',
+        hausnummer: '123',
+        plz: '86152',
+        stadt: 'Augsburg',
+        land: 'Deutschland'
+      }],
+      order_items: [{
+        quantity: 2,
+        total_price: 200,
+        services: { name: 'Interior Photography' }
+      }]
     },
-    addresses: [{
-      strasse: 'Teststraße',
-      hausnummer: '123',
-      plz: '86152',
-      stadt: 'Augsburg',
-      land: 'Deutschland'
-    }],
-    order_items: [{
-      quantity: 2,
-      total_price: 200,
-      services: { name: 'Interior Photography' }
-    }],
     ...overrides
   });
 

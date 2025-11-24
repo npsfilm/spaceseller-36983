@@ -8,6 +8,9 @@ export interface Assignment {
   scheduled_time: string | null;
   admin_notes: string | null;
   photographer_notes: string | null;
+  photographer_id: string;
+  payment_amount: number | null;
+  travel_cost: number | null;
   responded_at: string | null;
   orders: {
     order_number: string;
@@ -20,21 +23,21 @@ export interface Assignment {
       email: string;
       telefon: string | null;
     };
+    addresses: Array<{
+      strasse: string;
+      hausnummer: string | null;
+      plz: string;
+      stadt: string;
+      land: string;
+    }>;
+    order_items: Array<{
+      quantity: number;
+      total_price: number;
+      services: {
+        name: string;
+      };
+    }>;
   };
-  addresses: Array<{
-    strasse: string;
-    hausnummer: string;
-    plz: string;
-    stadt: string;
-    land: string;
-  }>;
-  order_items: Array<{
-    quantity: number;
-    total_price: number;
-    services: {
-      name: string;
-    };
-  }>;
 }
 
 export interface AssignmentStats {
@@ -64,19 +67,19 @@ export class AssignmentDataService {
             nachname,
             email,
             telefon
+          ),
+          addresses(
+            strasse,
+            hausnummer,
+            plz,
+            stadt,
+            land
+          ),
+          order_items(
+            quantity,
+            total_price,
+            services(name)
           )
-        ),
-        addresses:addresses!order_assignments_order_id_addresses_order_id_fkey(
-          strasse,
-          hausnummer,
-          plz,
-          stadt,
-          land
-        ),
-        order_items:order_items!order_assignments_order_id_order_items_order_id_fkey(
-          quantity,
-          total_price,
-          services(name)
         )
       `)
       .eq('photographer_id', photographerId)
@@ -201,12 +204,12 @@ export class AssignmentDataService {
    * Get formatted address from assignment
    */
   getFormattedAddress(assignment: Assignment): string {
-    if (!assignment.addresses || assignment.addresses.length === 0) {
+    if (!assignment.orders.addresses || assignment.orders.addresses.length === 0) {
       return 'Keine Adresse';
     }
 
-    const address = assignment.addresses[0];
-    return `${address.strasse} ${address.hausnummer}, ${address.plz} ${address.stadt}`;
+    const address = assignment.orders.addresses[0];
+    return `${address.strasse} ${address.hausnummer || ''}, ${address.plz} ${address.stadt}`.trim();
   }
 
   /**
