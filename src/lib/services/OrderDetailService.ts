@@ -51,6 +51,8 @@ export interface Assignment {
   photographer_notes?: string;
   scheduled_date?: string;
   scheduled_time?: string;
+  payment_amount?: number;
+  travel_cost?: number;
   profiles?: {
     vorname: string;
     nachname: string;
@@ -203,6 +205,8 @@ export class OrderDetailService {
     adminNotes: string,
     scheduledDate: string,
     scheduledTime: string,
+    paymentAmount: number,
+    travelCost: number,
     currentAssignmentId?: string
   ): Promise<string> {
     const { data: userData } = await supabase.auth.getUser();
@@ -214,6 +218,8 @@ export class OrderDetailService {
       admin_notes: adminNotes,
       scheduled_date: scheduledDate || null,
       scheduled_time: scheduledTime || null,
+      payment_amount: paymentAmount,
+      travel_cost: travelCost,
       status: 'pending'
     };
 
@@ -265,7 +271,9 @@ export class OrderDetailService {
     scheduledDate: string,
     scheduledTime: string,
     adminNotes: string,
-    totalAmount: number
+    totalAmount: number,
+    paymentAmount: number,
+    travelCost: number
   ): Promise<void> {
     try {
       await supabase.functions.invoke('trigger-zapier-webhook', {
@@ -280,6 +288,8 @@ export class OrderDetailService {
             scheduled_time: scheduledTime,
             admin_notes: adminNotes,
             total_amount: totalAmount,
+            payment_amount: paymentAmount,
+            travel_cost: travelCost,
             timestamp: new Date().toISOString()
           }
         }

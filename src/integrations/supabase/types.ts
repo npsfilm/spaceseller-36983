@@ -122,12 +122,14 @@ export type Database = {
           estimated_duration: unknown
           id: string
           order_id: string
+          payment_amount: number | null
           photographer_id: string
           photographer_notes: string | null
           responded_at: string | null
           scheduled_date: string | null
           scheduled_time: string | null
           status: string
+          travel_cost: number | null
           updated_at: string | null
         }
         Insert: {
@@ -138,12 +140,14 @@ export type Database = {
           estimated_duration?: unknown
           id?: string
           order_id: string
+          payment_amount?: number | null
           photographer_id: string
           photographer_notes?: string | null
           responded_at?: string | null
           scheduled_date?: string | null
           scheduled_time?: string | null
           status?: string
+          travel_cost?: number | null
           updated_at?: string | null
         }
         Update: {
@@ -154,12 +158,14 @@ export type Database = {
           estimated_duration?: unknown
           id?: string
           order_id?: string
+          payment_amount?: number | null
           photographer_id?: string
           photographer_notes?: string | null
           responded_at?: string | null
           scheduled_date?: string | null
           scheduled_time?: string | null
           status?: string
+          travel_cost?: number | null
           updated_at?: string | null
         }
         Relationships: [
