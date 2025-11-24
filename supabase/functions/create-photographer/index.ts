@@ -156,8 +156,8 @@ serve(async (req) => {
       // Continue anyway - admin can fix this manually
     }
 
-    // Send password reset email
-    const { error: resetError } = await supabaseAdmin.auth.admin.generateLink({
+    // Send password reset email and capture the reset link
+    const { data: resetData, error: resetError } = await supabaseAdmin.auth.admin.generateLink({
       type: 'recovery',
       email: photographerData.email,
       options: {
@@ -166,7 +166,37 @@ serve(async (req) => {
     });
 
     if (resetError) {
-      // Continue anyway - admin can resend manually
+      Logger.warn('Failed to generate password reset link', { 
+        action: 'password_reset_failed',
+        email: photographerData.email 
+      });
+    } else if (resetData?.properties?.action_link) {
+      // Send webhook to Zapier with reset link and first name
+      const webhookUrl = 'https://hooks.zapier.com/hooks/catch/24798197/uzc10x7/';
+      
+      try {
+        await fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: photographerData.email,
+            vorname: photographerData.vorname,
+            nachname: photographerData.nachname,
+            password_reset_link: resetData.properties.action_link,
+            created_at: new Date().toISOString()
+          })
+        });
+        
+        Logger.info('Zapier webhook triggered for photographer creation', {
+          action: 'zapier_webhook_sent',
+          email: photographerData.email
+        });
+      } catch (webhookError) {
+        Logger.warn('Failed to trigger Zapier webhook', {
+          action: 'zapier_webhook_failed',
+          error: webhookError instanceof Error ? webhookError.message : 'Unknown error'
+        });
+      }
     }
     
     Logger.security('Photographer created', { 
