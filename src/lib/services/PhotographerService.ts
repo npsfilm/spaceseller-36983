@@ -231,6 +231,32 @@ export class PhotographerService {
 
     if (error) throw error;
   }
+
+  /**
+   * Resend password reset link to photographer via Zapier webhook
+   */
+  async resendPasswordReset(photographerId: string): Promise<{ success: boolean; message: string }> {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      throw new Error('No active session');
+    }
+
+    const { data: result, error } = await supabase.functions.invoke('resend-photographer-password-reset', {
+      body: { photographer_id: photographerId },
+      headers: {
+        Authorization: `Bearer ${session.access_token}`
+      }
+    });
+
+    if (error || result?.error) {
+      throw new Error(result?.error || error?.message || 'Failed to resend password reset');
+    }
+
+    return {
+      success: true,
+      message: result?.message || 'Passwort-Reset-Link erfolgreich versendet'
+    };
+  }
 }
 
 // Export singleton instance

@@ -2,7 +2,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { UserMinus, Pencil } from 'lucide-react';
+import { UserMinus, Pencil, Mail } from 'lucide-react';
 import { type Photographer } from '@/lib/services/PhotographerService';
 
 interface PhotographersTableProps {
@@ -10,6 +10,7 @@ interface PhotographersTableProps {
   loading: boolean;
   onEdit: (userId: string) => void;
   onRemove: (userId: string) => void;
+  onResendPasswordReset: (userId: string) => void;
 }
 
 const getAcceptanceRateBadge = (rate: number) => {
@@ -18,7 +19,7 @@ const getAcceptanceRateBadge = (rate: number) => {
   return 'bg-red-500/10 text-red-500 border-red-500/20';
 };
 
-export const PhotographersTable = ({ photographers, loading, onEdit, onRemove }: PhotographersTableProps) => {
+export const PhotographersTable = ({ photographers, loading, onEdit, onRemove, onResendPasswordReset }: PhotographersTableProps) => {
   return (
     <Card>
       <CardHeader>
@@ -83,6 +84,15 @@ export const PhotographersTable = ({ photographers, loading, onEdit, onRemove }:
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onResendPasswordReset(photographer.user_id)}
+                          className="gap-2"
+                          title="Passwort-Reset erneut senden"
+                        >
+                          <Mail className="h-4 w-4" />
+                        </Button>
                         <Button
                           variant="ghost"
                           size="sm"

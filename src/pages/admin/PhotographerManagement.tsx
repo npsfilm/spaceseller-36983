@@ -80,6 +80,24 @@ export default function PhotographerManagement() {
     }
   };
 
+  const handleResendPasswordReset = async (userId: string) => {
+    try {
+      await photographerService.resendPasswordReset(userId);
+
+      toast({
+        title: 'Erfolg',
+        description: 'Passwort-Reset-Link wurde erfolgreich versendet',
+      });
+    } catch (error) {
+      console.error('Error resending password reset:', error);
+      toast({
+        title: 'Fehler',
+        description: 'Passwort-Reset-Link konnte nicht versendet werden',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
     <AdminLayout>
       <Helmet>
@@ -137,6 +155,7 @@ export default function PhotographerManagement() {
           loading={loading}
           onEdit={handleEditPhotographer}
           onRemove={handleRemovePhotographer}
+          onResendPasswordReset={handleResendPasswordReset}
         />
 
         <EditPhotographerDialog
