@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
 
-    // Verify user is admin
+    // Verify user is authenticated
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       throw new Error('No authorization header');
@@ -60,12 +60,6 @@ Deno.serve(async (req) => {
 
     if (authError || !user) {
       throw new Error('Unauthorized');
-    }
-
-    // Check if user is admin
-    const { data: isAdminData } = await supabaseClient.rpc('is_admin', { _user_id: user.id });
-    if (!isAdminData) {
-      throw new Error('User is not an admin');
     }
 
     const {
