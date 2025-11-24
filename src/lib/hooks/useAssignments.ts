@@ -1,11 +1,55 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { assignmentDataService, Assignment, AssignmentStats } from '@/lib/services/AssignmentDataService';
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 export const usePhotographerAssignments = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Set up realtime subscription for new assignments
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('photographer-assignments')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'order_assignments',
+          filter: `photographer_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('New assignment received:', payload);
+          queryClient.invalidateQueries({ queryKey: ['photographer-assignments', user.id] });
+          toast.info('Neuer Auftrag verfügbar!', {
+            description: 'Sie haben einen neuen Shooting-Auftrag erhalten.'
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'order_assignments',
+          filter: `photographer_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('Assignment updated:', payload);
+          queryClient.invalidateQueries({ queryKey: ['photographer-assignments', user.id] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
 
   return useQuery<Assignment[]>({
     queryKey: ['photographer-assignments', user?.id],
