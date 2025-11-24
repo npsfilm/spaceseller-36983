@@ -97,18 +97,22 @@ serve(async (req) => {
       );
     }
 
-    // Generate password reset link
-    const { data: resetData, error: resetError } = await supabaseAdmin.auth.admin.generateLink({
-      type: 'recovery',
-      email: profile.email,
-      options: {
-        redirectTo: `${Deno.env.get('SUPABASE_URL')}/auth/v1/verify`
-      }
-    });
+    // Generate custom password reset token
+    const token = crypto.randomUUID() + crypto.randomUUID().replace(/-/g, '');
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
 
-    if (resetError || !resetData?.properties?.action_link) {
-      Logger.error(new Error('Failed to generate password reset link'), {
-        action: 'password_reset_failed',
+    // Store token in database
+    const { error: tokenError } = await supabaseAdmin
+      .from("password_reset_tokens")
+      .insert({
+        user_id: photographer_id,
+        token,
+        expires_at: expiresAt.toISOString(),
+      });
+
+    if (tokenError) {
+      Logger.error(tokenError, {
+        action: 'password_reset_token_failed',
         photographerId: photographer_id
       });
       
@@ -117,6 +121,9 @@ serve(async (req) => {
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    // Create custom reset link
+    const resetUrl = `https://app.spaceseller.de/reset-password?token=${token}`;
 
     // Send webhook to Zapier with reset link and first name
     const webhookUrl = 'https://hooks.zapier.com/hooks/catch/24798197/uzc10x7/';
@@ -129,7 +136,7 @@ serve(async (req) => {
           email: profile.email,
           vorname: profile.vorname,
           nachname: profile.nachname,
-          password_reset_link: resetData.properties.action_link,
+          password_reset_link: resetUrl,
           created_at: new Date().toISOString(),
           is_resend: true
         })
