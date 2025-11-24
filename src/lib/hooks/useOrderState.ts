@@ -138,7 +138,10 @@ export const useOrderState = () => {
    * Navigate to next step
    */
   const nextStep = () => {
-    setOrderState(prev => ({ ...prev, step: Math.min(prev.step + 1, 3) }));
+    setOrderState(prev => {
+      const maxStep = prev.selectedCategory === 'onsite' ? 6 : 3;
+      return { ...prev, step: Math.min(prev.step + 1, maxStep) };
+    });
   };
 
   /**
