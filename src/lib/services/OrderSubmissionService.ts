@@ -1,5 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { OrderState } from '@/lib/hooks/useOrderState';
+import { PACKAGE_TIERS } from '@/data/photographyPackages';
+import { ADD_ONS } from '@/data/photographyAddOns';
 
 export interface SubmissionResult {
   success: boolean;
@@ -24,12 +26,15 @@ export class OrderSubmissionService {
     }
 
     try {
+      // Calculate total amount based on order category
+      const totalAmount = this.calculateTotalAmount(orderState, categoryId);
+
       // Update draft order to submitted status
       const { error: orderError } = await supabase
         .from('orders')
         .update({
           status: 'submitted',
-          total_amount: orderState.travelCost
+          total_amount: totalAmount
         })
         .eq('id', orderState.draftOrderId);
 
@@ -52,6 +57,55 @@ export class OrderSubmissionService {
         error: error instanceof Error ? error.message : 'Unknown error' 
       };
     }
+  }
+
+  /**
+   * Calculate total amount based on order category and selections
+   */
+  private calculateTotalAmount(orderState: OrderState, categoryId: string): number {
+    let subtotal = 0;
+
+    // Calculate based on category
+    if (categoryId === 'onsite' && orderState.selectedPackage) {
+      // Photography: package price + add-ons + travel cost
+      const selectedPackage = PACKAGE_TIERS.find(pkg => pkg.id === orderState.selectedPackage);
+      if (selectedPackage) {
+        subtotal = selectedPackage.price;
+      }
+      
+      // Add-ons
+      if (orderState.selectedAddOns.length > 0) {
+        const addOnsTotal = orderState.selectedAddOns.reduce((sum, addOnId) => {
+          const addOn = ADD_ONS.find(a => a.id === addOnId);
+          return sum + (addOn?.price || 0);
+        }, 0);
+        subtotal += addOnsTotal;
+      }
+      
+      // Travel cost
+      subtotal += orderState.travelCost || 0;
+    } else if (categoryId === 'photo_editing') {
+      // Photo editing: calculate from selectedProducts
+      subtotal = Object.values(orderState.selectedProducts).reduce(
+        (sum, product) => sum + product.totalPrice,
+        0
+      );
+    } else if (categoryId === 'virtual_staging') {
+      // Virtual staging: calculate from selectedProducts
+      subtotal = Object.values(orderState.selectedProducts).reduce(
+        (sum, product) => sum + product.totalPrice,
+        0
+      );
+    } else if (categoryId === 'energy_certificate') {
+      // Energy certificate: calculate from selectedProducts
+      subtotal = Object.values(orderState.selectedProducts).reduce(
+        (sum, product) => sum + product.totalPrice,
+        0
+      );
+    }
+
+    // Prices already include tax (net prices are gross in this system)
+    return Math.round(subtotal * 100) / 100; // Round to 2 decimals
   }
 
   /**
