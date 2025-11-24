@@ -24,21 +24,21 @@ interface AssignmentCardProps {
         email: string;
         telefon: string | null;
       };
+      addresses: Array<{
+        strasse: string;
+        hausnummer: string | null;
+        plz: string;
+        stadt: string;
+        land: string;
+      }>;
+      order_items: Array<{
+        quantity: number;
+        total_price: number;
+        services: {
+          name: string;
+        };
+      }>;
     };
-    addresses: Array<{
-      strasse: string;
-      hausnummer: string;
-      plz: string;
-      stadt: string;
-      land: string;
-    }>;
-    order_items: Array<{
-      quantity: number;
-      total_price: number;
-      services: {
-        name: string;
-      };
-    }>;
   };
   onViewDetails: () => void;
   onAccept?: () => void;
@@ -58,7 +58,7 @@ export const AssignmentCard = ({
   onAccept, 
   onDecline 
 }: AssignmentCardProps) => {
-  const address = assignment.addresses[0];
+  const address = assignment.orders.addresses[0];
   const statusInfo = statusConfig[assignment.status as keyof typeof statusConfig];
 
   return (
@@ -68,7 +68,7 @@ export const AssignmentCard = ({
           <div>
             <CardTitle className="text-lg">Auftrag #{assignment.orders.order_number}</CardTitle>
             <p className="text-sm text-muted-foreground mt-1">
-              {assignment.order_items.length} Service{assignment.order_items.length !== 1 ? 's' : ''}
+              {assignment.orders.order_items.length} Service{assignment.orders.order_items.length !== 1 ? 's' : ''}
             </p>
           </div>
           <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
@@ -124,7 +124,7 @@ export const AssignmentCard = ({
             <h4 className="font-semibold text-sm">Services:</h4>
           </div>
           <ul className="text-sm space-y-1 ml-6">
-            {assignment.order_items.map((item, idx) => (
+            {assignment.orders.order_items.map((item, idx) => (
               <li key={idx} className="flex justify-between">
                 <span>{item.quantity}x {item.services.name}</span>
                 <span className="font-medium">€{item.total_price.toFixed(2)}</span>
