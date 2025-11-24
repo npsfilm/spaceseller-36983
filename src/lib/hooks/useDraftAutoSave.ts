@@ -98,16 +98,7 @@ export const useDraftAutoSave = (
       const now = new Date();
       setLastSaved(now);
 
-      // Show success toast
-      toast({
-        title: 'Entwurf gespeichert',
-        description: `Zuletzt gespeichert: ${now.toLocaleTimeString('de-DE', {
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit'
-        })}`,
-        duration: 3000,
-      });
+      // Silent save - no toast notification
     } catch (error) {
       console.error('Auto-save failed:', error);
       // Silently fail - don't interrupt user experience
