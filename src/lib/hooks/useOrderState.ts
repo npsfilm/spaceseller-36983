@@ -207,6 +207,13 @@ export const useOrderState = () => {
     setOrderState(prev => ({ ...prev, selectedPackage: packageId }));
   };
 
+  /**
+   * Navigate to specific step (for progress indicator interaction)
+   */
+  const goToStep = (stepNumber: number) => {
+    setOrderState(prev => ({ ...prev, step: stepNumber }));
+  };
+
   return {
     services,
     orderState,
@@ -217,6 +224,7 @@ export const useOrderState = () => {
     setCategory,
     setAreaRange,
     toggleProduct,
-    setPackage
+    setPackage,
+    goToStep
   };
 };
