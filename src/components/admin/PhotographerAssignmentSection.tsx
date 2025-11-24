@@ -5,7 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Camera, Calculator, Route } from 'lucide-react';
+import { Camera, Calculator, Route, AlertTriangle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { PhotographerSuggestions } from './PhotographerSuggestions';
 import { orderDetailService, type Photographer, type Assignment, type OrderAddress, type OrderItem } from '@/lib/services/OrderDetailService';
 import { useToast } from '@/hooks/use-toast';
@@ -367,6 +368,15 @@ export const PhotographerAssignmentSection = ({
               <p className="text-xs text-muted-foreground mt-1">Auto-berechnet via Mapbox</p>
             </div>
           </div>
+
+          {travelCost > 50 && (
+            <Alert variant="destructive" className="border-amber-500 bg-amber-50 dark:bg-amber-950/20">
+              <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+              <AlertDescription className="text-amber-800 dark:text-amber-300">
+                Hohe Reisekosten: €{travelCost.toFixed(2)} übersteigt den empfohlenen Schwellenwert von €50.
+              </AlertDescription>
+            </Alert>
+          )}
 
           <div className="flex items-center justify-between p-3 bg-background rounded border">
             <span className="font-semibold text-sm">Gesamtvergütung:</span>
