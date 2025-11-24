@@ -41,6 +41,7 @@ export interface OrderState {
   primaryTime: string | null;
   alternativeDate: Date | null;
   alternativeTime: string | null;
+  specialInstructions: string;
   agbAccepted: boolean;
   privacyAccepted: boolean;
 }
@@ -68,6 +69,7 @@ const initialOrderState: OrderState = {
   primaryTime: null,
   alternativeDate: null,
   alternativeTime: null,
+  specialInstructions: '',
   agbAccepted: false,
   privacyAccepted: false
 };
@@ -256,6 +258,13 @@ export const useOrderState = () => {
   };
 
   /**
+   * Set special instructions
+   */
+  const setSpecialInstructions = (text: string) => {
+    setOrderState(prev => ({ ...prev, specialInstructions: text }));
+  };
+
+  /**
    * Navigate to specific step (for progress indicator interaction)
    */
   const goToStep = (stepNumber: number) => {
@@ -275,6 +284,7 @@ export const useOrderState = () => {
     setPackage,
     toggleAddOn,
     setScheduling,
+    setSpecialInstructions,
     setTermsAcceptance,
     goToStep
   };

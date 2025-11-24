@@ -179,7 +179,19 @@ function OrderDetailContent() {
                   </div>
                 )}
 
-                {order.assignment && order.assignment.scheduled_date && (
+              {order.special_instructions && (
+                <>
+                  <Separator />
+                  <div>
+                    <p className="text-sm font-semibold mb-2">Besondere Anweisungen:</p>
+                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                      {order.special_instructions}
+                    </p>
+                  </div>
+                </>
+              )}
+
+              {order.assignment && order.assignment.scheduled_date && (
                   <>
                     <Separator />
                     <div>

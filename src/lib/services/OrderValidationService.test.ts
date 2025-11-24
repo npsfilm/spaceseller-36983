@@ -28,6 +28,7 @@ describe('OrderValidationService', () => {
     primaryTime: null,
     alternativeDate: null,
     alternativeTime: null,
+    specialInstructions: '',
     agbAccepted: false,
     privacyAccepted: false,
     ...overrides
