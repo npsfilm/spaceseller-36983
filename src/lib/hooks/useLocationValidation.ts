@@ -99,7 +99,7 @@ export const useLocationValidation = () => {
           travelCost: 0,
           distance: 0,
           photographyAvailable: false,
-          message: "✅ Fotografie vor Ort ist in Ihrer Region aktuell noch nicht verfügbar. Unsere digitalen Dienstleistungen bieten wir aber selbstverständlich für Sie an."
+          message: "Fotografie vor Ort ist in Ihrer Region aktuell noch nicht verfügbar.<br />Unsere digitalen Dienstleistungen bieten wir aber selbstverständlich für Sie an."
         };
         setValidationResult(result);
         return result;
