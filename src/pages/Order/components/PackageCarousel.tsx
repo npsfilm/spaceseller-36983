@@ -12,14 +12,14 @@ interface PackageCarouselProps {
 
 export const PackageCarousel = ({ packages, selectedPackageId, exactMatchPackageId, onPackageSelect }: PackageCarouselProps) => {
   return (
-    <div className="max-w-6xl mx-auto px-12 py-8">
+    <div className="max-w-6xl mx-auto px-12 py-8 pt-12">
       <AnimatePresence mode="wait">
         <motion.div
           key={packages.map(p => p.id).join('-')}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.3, ease: "easeInOut" }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2, ease: "easeInOut" }}
         >
           <Carousel
             opts={{
