@@ -355,8 +355,18 @@ export const OrderWizard = () => {
               </Button>
             )}
 
-            {orderState.step === 2 && orderState.selectedCategory && (
-              <Button variant="cta" onClick={nextStep} className="gap-2">
+            {orderState.step === 2 && (
+              <Button 
+                variant="cta" 
+                onClick={() => {
+                  console.log('Weiter button clicked - Category:', orderState.selectedCategory);
+                  if (orderState.selectedCategory) {
+                    nextStep();
+                  }
+                }} 
+                disabled={!orderState.selectedCategory}
+                className="gap-2"
+              >
                 Weiter
                 <ArrowRight className="w-4 h-4" />
               </Button>
