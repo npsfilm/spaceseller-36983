@@ -65,7 +65,8 @@ export const OrderWizard = () => {
     setCategory,
     setAreaRange,
     toggleProduct,
-    setPackage
+    setPackage,
+    goToStep
   } = useOrderState();
 
   const { user } = useAuth();
@@ -77,6 +78,20 @@ export const OrderWizard = () => {
     enabled: true,
     intervalMs: 30000 // 30 seconds
   });
+
+  const handleStepClick = (targetStep: number) => {
+    // Only allow navigation to completed steps (steps before current step)
+    if (targetStep < orderState.step) {
+      goToStep(targetStep);
+      
+      // Show feedback toast
+      toast({
+        title: 'Schritt gewechselt',
+        description: `Sie sind zurück zu Schritt ${targetStep}`,
+        duration: 2000,
+      });
+    }
+  };
 
   const handleLocationValidated = (
     travelCost: number,
@@ -142,7 +157,7 @@ export const OrderWizard = () => {
           <ProgressIndicator
             steps={getStepsForCategory(orderState.selectedCategory)}
             currentStep={orderState.step}
-            onStepClick={() => {}}
+            onStepClick={handleStepClick}
           />
           
           {/* Auto-Save Indicator */}
