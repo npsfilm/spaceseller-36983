@@ -1,66 +1,61 @@
 import { ReactNode } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { Layout } from "@/components/Layout";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
+import { Separator } from "@/components/ui/separator";
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import { useLocation } from "react-router-dom";
 
 interface AdminLayoutProps {
   children: ReactNode;
 }
 
 export const AdminLayout = ({ children }: AdminLayoutProps) => {
-  const navigate = useNavigate();
   const location = useLocation();
 
-  const getActiveTab = () => {
-    if (location.pathname === "/admin-backend") return "orders";
-    if (location.pathname === "/admin-backend/photographers") return "photographers";
-    if (location.pathname === "/admin-backend/locations") return "locations";
-    if (location.pathname === "/admin-backend/users") return "users";
-    return "orders";
+  const getBreadcrumb = () => {
+    const path = location.pathname;
+    if (path === "/admin-backend") return "Bestellungen";
+    if (path.startsWith("/admin-backend/photographers")) return "Fotografen";
+    if (path.startsWith("/admin-backend/locations")) return "Standorte";
+    if (path.startsWith("/admin-backend/users")) return "Benutzer";
+    if (path.startsWith("/admin-backend/security")) return "Sicherheit";
+    if (path.startsWith("/admin-backend/orders/")) return "Bestelldetails";
+    return "Admin";
   };
 
   return (
-    <Layout>
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-            <RoleSwitcher />
-          </div>
-          
-          <Tabs value={getActiveTab()} className="w-full">
-            <TabsList className="grid w-full max-w-4xl grid-cols-4">
-              <TabsTrigger 
-                value="orders"
-                onClick={() => navigate("/admin-backend")}
-              >
-                Bestellungen
-              </TabsTrigger>
-              <TabsTrigger 
-                value="photographers"
-                onClick={() => navigate("/admin-backend/photographers")}
-              >
-                Fotografen
-              </TabsTrigger>
-              <TabsTrigger 
-                value="locations"
-                onClick={() => navigate("/admin-backend/locations")}
-              >
-                Standorte
-              </TabsTrigger>
-              <TabsTrigger 
-                value="users"
-                onClick={() => navigate("/admin-backend/users")}
-              >
-                Benutzer
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full">
+        <AdminSidebar />
 
-        {children}
+        <SidebarInset className="flex-1">
+          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 sticky top-0 bg-background z-10">
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mr-2 h-4" />
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem className="hidden md:block">
+                  <BreadcrumbLink href="/admin-backend">
+                    Admin Backend
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator className="hidden md:block" />
+                <BreadcrumbItem>
+                  <BreadcrumbPage>{getBreadcrumb()}</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+            <div className="ml-auto">
+              <RoleSwitcher />
+            </div>
+          </header>
+
+          <main className="flex-1 p-6">
+            {children}
+          </main>
+        </SidebarInset>
       </div>
-    </Layout>
+    </SidebarProvider>
   );
 };
