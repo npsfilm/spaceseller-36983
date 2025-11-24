@@ -32,6 +32,7 @@ describe('Order Validation Integration', () => {
     primaryTime: null,
     alternativeDate: null,
     alternativeTime: null,
+    specialInstructions: '',
     agbAccepted: false,
     privacyAccepted: false,
     ...overrides

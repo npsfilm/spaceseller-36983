@@ -23,8 +23,10 @@ interface PhotographySummaryStepProps {
     plz: string;
     stadt: string;
   };
+  specialInstructions: string;
   agbAccepted: boolean;
   privacyAccepted: boolean;
+  onSpecialInstructionsChange: (text: string) => void;
   onAgbChange: (checked: boolean) => void;
   onPrivacyChange: (checked: boolean) => void;
 }
@@ -38,8 +40,10 @@ export const PhotographySummaryStep = ({
   alternativeDate,
   alternativeTime,
   address,
+  specialInstructions,
   agbAccepted,
   privacyAccepted,
+  onSpecialInstructionsChange,
   onAgbChange,
   onPrivacyChange
 }: PhotographySummaryStepProps) => {
@@ -193,6 +197,18 @@ export const PhotographySummaryStep = ({
         )}
 
         {/* Terms & Conditions */}
+        <div className="bg-card border border-border rounded-xl p-6 space-y-6">
+          <h3 className="text-lg font-semibold">Besondere Anweisungen (optional)</h3>
+          <textarea
+            value={specialInstructions}
+            onChange={(e) => onSpecialInstructionsChange(e.target.value)}
+            placeholder="z.B. Zugangshinweise, spezielle Aufnahmewünsche..."
+            className="w-full min-h-[120px] p-4 border border-border rounded-lg resize-y"
+            maxLength={500}
+          />
+          <p className="text-xs text-muted-foreground">{specialInstructions.length}/500</p>
+        </div>
+
         <div className="bg-card border border-border rounded-xl p-6 space-y-6">
           <h3 className="text-lg font-semibold">Rechtliche Hinweise</h3>
           

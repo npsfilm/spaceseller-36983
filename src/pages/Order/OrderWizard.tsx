@@ -75,6 +75,7 @@ export const OrderWizard = () => {
     setPackage,
     toggleAddOn,
     setScheduling,
+    setSpecialInstructions,
     setTermsAcceptance,
     goToStep
   } = useOrderState();
@@ -298,8 +299,10 @@ export const OrderWizard = () => {
                       alternativeDate={orderState.alternativeDate}
                       alternativeTime={orderState.alternativeTime}
                       address={orderState.address}
+                      specialInstructions={orderState.specialInstructions}
                       agbAccepted={orderState.agbAccepted}
                       privacyAccepted={orderState.privacyAccepted}
+                      onSpecialInstructionsChange={setSpecialInstructions}
                       onAgbChange={(checked) => setTermsAcceptance(checked, orderState.privacyAccepted)}
                       onPrivacyChange={(checked) => setTermsAcceptance(orderState.agbAccepted, checked)}
                     />
