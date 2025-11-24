@@ -203,6 +203,40 @@ export default function OrderDetail() {
                   </div>
                 </div>
 
+                {(order as any).requested_date && (
+                  <div className="flex items-start gap-3">
+                    <Calendar className="h-5 w-5 text-primary mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium">Gewünschter Aufnahmetermin</p>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date((order as any).requested_date).toLocaleDateString('de-DE', {
+                          day: '2-digit',
+                          month: 'long',
+                          year: 'numeric'
+                        })}
+                        {(order as any).requested_time && ` um ${(order as any).requested_time.slice(0, 5)} Uhr`}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {(order as any).alternative_date && (
+                  <div className="flex items-start gap-3">
+                    <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium">Alternativer Termin</p>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date((order as any).alternative_date).toLocaleDateString('de-DE', {
+                          day: '2-digit',
+                          month: 'long',
+                          year: 'numeric'
+                        })}
+                        {(order as any).alternative_time && ` um ${(order as any).alternative_time.slice(0, 5)} Uhr`}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 {order.delivery_deadline && (
                   <div className="flex items-start gap-3">
                     <Package className="h-5 w-5 text-primary mt-0.5" />
