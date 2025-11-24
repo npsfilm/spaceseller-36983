@@ -5,9 +5,10 @@ import { PropertySize } from '@/types/photography';
 interface PropertySizeSelectorProps {
   selectedSize: PropertySize | null;
   onSizeChange: (size: PropertySize) => void;
+  compact?: boolean;
 }
 
-export const PropertySizeSelector = ({ selectedSize, onSizeChange }: PropertySizeSelectorProps) => {
+export const PropertySizeSelector = ({ selectedSize, onSizeChange, compact = false }: PropertySizeSelectorProps) => {
   const sizes = [
     {
       id: 'klein' as PropertySize,
@@ -31,6 +32,42 @@ export const PropertySizeSelector = ({ selectedSize, onSizeChange }: PropertySiz
       range: '20-50 Fotos'
     }
   ];
+
+  if (compact) {
+    return (
+      <div className="flex flex-col gap-2">
+        {sizes.map((size) => {
+          const Icon = size.icon;
+          const isSelected = selectedSize === size.id;
+          
+          return (
+            <button
+              key={size.id}
+              onClick={() => onSizeChange(size.id)}
+              className={`flex items-center gap-3 p-3 rounded-lg border transition-all text-left ${
+                isSelected
+                  ? 'border-primary bg-primary/5 shadow-sm'
+                  : 'border-border hover:border-primary/50'
+              }`}
+            >
+              <Icon className={`w-5 h-5 shrink-0 ${
+                isSelected ? 'text-primary' : 'text-muted-foreground'
+              }`} />
+              
+              <div className="flex-1 min-w-0">
+                <p className={`font-medium text-sm ${
+                  isSelected ? 'text-primary' : 'text-foreground'
+                }`}>
+                  {size.label}
+                </p>
+                <p className="text-xs text-muted-foreground truncate">{size.description}</p>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">

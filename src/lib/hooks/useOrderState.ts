@@ -36,6 +36,13 @@ export interface OrderState {
     }
   };
   selectedPackage: string | null;
+  selectedAddOns: string[];
+  primaryDate: Date | null;
+  primaryTime: string | null;
+  alternativeDate: Date | null;
+  alternativeTime: string | null;
+  agbAccepted: boolean;
+  privacyAccepted: boolean;
 }
 
 const initialOrderState: OrderState = {
@@ -55,7 +62,14 @@ const initialOrderState: OrderState = {
   locationValidated: false,
   selectedAreaRange: null,
   selectedProducts: {},
-  selectedPackage: null
+  selectedPackage: null,
+  selectedAddOns: [],
+  primaryDate: null,
+  primaryTime: null,
+  alternativeDate: null,
+  alternativeTime: null,
+  agbAccepted: false,
+  privacyAccepted: false
 };
 
 /**
@@ -208,6 +222,37 @@ export const useOrderState = () => {
   };
 
   /**
+   * Toggle add-on selection
+   */
+  const toggleAddOn = (addOnId: string) => {
+    setOrderState(prev => {
+      const newAddOns = prev.selectedAddOns.includes(addOnId)
+        ? prev.selectedAddOns.filter(id => id !== addOnId)
+        : [...prev.selectedAddOns, addOnId];
+      return { ...prev, selectedAddOns: newAddOns };
+    });
+  };
+
+  /**
+   * Set scheduling information
+   */
+  const setScheduling = (data: {
+    primaryDate?: Date | null;
+    primaryTime?: string | null;
+    alternativeDate?: Date | null;
+    alternativeTime?: string | null;
+  }) => {
+    setOrderState(prev => ({ ...prev, ...data }));
+  };
+
+  /**
+   * Set terms acceptance
+   */
+  const setTermsAcceptance = (agb: boolean, privacy: boolean) => {
+    setOrderState(prev => ({ ...prev, agbAccepted: agb, privacyAccepted: privacy }));
+  };
+
+  /**
    * Navigate to specific step (for progress indicator interaction)
    */
   const goToStep = (stepNumber: number) => {
@@ -225,6 +270,9 @@ export const useOrderState = () => {
     setAreaRange,
     toggleProduct,
     setPackage,
+    toggleAddOn,
+    setScheduling,
+    setTermsAcceptance,
     goToStep
   };
 };

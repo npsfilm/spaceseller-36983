@@ -13,6 +13,10 @@ import { ProgressIndicator } from './components/ProgressIndicator';
 import { LocationCheckStep } from './steps/LocationCheckStep';
 import { CategorySelectionStep } from './steps/CategorySelectionStep';
 import { ProductConfigurationStep } from './steps/ProductConfigurationStep';
+import { PhotographyPackageSelectionStep } from './steps/PhotographyPackageSelectionStep';
+import { PhotographyAddOnsStep } from './steps/PhotographyAddOnsStep';
+import { PhotographySchedulingStep } from './steps/PhotographySchedulingStep';
+import { PhotographySummaryStep } from './steps/PhotographySummaryStep';
 import { OrderSummarySidebar } from '@/components/order/OrderSummarySidebar';
 import { cn } from '@/lib/utils';
 
@@ -25,7 +29,10 @@ const getStepsForCategory = (category: string | null) => {
     return [
       { number: 1, title: 'Standort', description: 'Objektadresse' },
       { number: 2, title: 'Kategorie', description: 'Dienstleistung' },
-      { number: 3, title: 'Konfiguration', description: 'Aufnahmepaket' }
+      { number: 3, title: 'Paket', description: 'Aufnahmepaket wählen' },
+      { number: 4, title: 'Zusatzleistungen', description: 'Optionale Services' },
+      { number: 5, title: 'Termin', description: 'Wunschdatum' },
+      { number: 6, title: 'Zusammenfassung', description: 'Bestellung abschließen' }
     ];
   } else if (category === 'photo_editing') {
     return [
@@ -66,6 +73,9 @@ export const OrderWizard = () => {
     setAreaRange,
     toggleProduct,
     setPackage,
+    toggleAddOn,
+    setScheduling,
+    setTermsAcceptance,
     goToStep
   } = useOrderState();
 
@@ -196,8 +206,8 @@ export const OrderWizard = () => {
 
         {/* Step Content with Sidebar Layout */}
         <div className="flex-1 overflow-y-auto">
-          {orderState.step === 3 ? (
-            // Step 3: Two-column layout with sticky sidebar on desktop
+          {orderState.step === 3 && orderState.selectedCategory !== 'onsite' ? (
+            // Step 3: Two-column layout with sticky sidebar for non-photography categories
             <div className="flex gap-8 container mx-auto max-w-7xl p-6">
               {/* Main Content Area */}
               <div className="flex-1 min-w-0">
@@ -221,16 +231,18 @@ export const OrderWizard = () => {
               />
             </div>
           ) : (
-            // Steps 1 & 2: Full-width layout without sidebar
-            <div className={orderState.step === 2 ? "w-full px-[15%]" : "container mx-auto max-w-4xl p-6"}>
+            // Full-width layout for steps 1, 2, and photography steps
+            <div className={orderState.step === 2 ? "w-full px-[15%]" : "w-full"}>
               {/* Step 1: Location Check */}
               {orderState.step === 1 && (
-                <LocationCheckStep
-                  address={orderState.address}
-                  onUpdateAddress={updateAddressField}
-                  onLocationValidated={handleLocationValidated}
-                  onBack={() => navigate('/dashboard')}
-                />
+                <div className="container mx-auto max-w-4xl p-6">
+                  <LocationCheckStep
+                    address={orderState.address}
+                    onUpdateAddress={updateAddressField}
+                    onLocationValidated={handleLocationValidated}
+                    onBack={() => navigate('/dashboard')}
+                  />
+                </div>
               )}
 
               {/* Step 2: Category Selection */}
@@ -240,6 +252,59 @@ export const OrderWizard = () => {
                   onSelectCategory={setCategory}
                   selectedCategory={orderState.selectedCategory || undefined}
                 />
+              )}
+
+              {/* Photography Steps (3-6) */}
+              {orderState.selectedCategory === 'onsite' && (
+                <>
+                  {/* Step 3: Package Selection */}
+                  {orderState.step === 3 && (
+                    <PhotographyPackageSelectionStep
+                      selectedPackage={orderState.selectedPackage}
+                      onPackageSelect={setPackage}
+                    />
+                  )}
+
+                  {/* Step 4: Add-ons */}
+                  {orderState.step === 4 && (
+                    <PhotographyAddOnsStep
+                      selectedAddOns={orderState.selectedAddOns}
+                      onAddOnToggle={toggleAddOn}
+                    />
+                  )}
+
+                  {/* Step 5: Scheduling */}
+                  {orderState.step === 5 && (
+                    <PhotographySchedulingStep
+                      primaryDate={orderState.primaryDate}
+                      primaryTime={orderState.primaryTime}
+                      alternativeDate={orderState.alternativeDate}
+                      alternativeTime={orderState.alternativeTime}
+                      onPrimaryDateChange={(date) => setScheduling({ primaryDate: date })}
+                      onPrimaryTimeChange={(time) => setScheduling({ primaryTime: time })}
+                      onAlternativeDateChange={(date) => setScheduling({ alternativeDate: date })}
+                      onAlternativeTimeChange={(time) => setScheduling({ alternativeTime: time })}
+                    />
+                  )}
+
+                  {/* Step 6: Summary */}
+                  {orderState.step === 6 && (
+                    <PhotographySummaryStep
+                      selectedPackage={orderState.selectedPackage}
+                      selectedAddOns={orderState.selectedAddOns}
+                      travelCost={orderState.travelCost}
+                      primaryDate={orderState.primaryDate}
+                      primaryTime={orderState.primaryTime}
+                      alternativeDate={orderState.alternativeDate}
+                      alternativeTime={orderState.alternativeTime}
+                      address={orderState.address}
+                      agbAccepted={orderState.agbAccepted}
+                      privacyAccepted={orderState.privacyAccepted}
+                      onAgbChange={(checked) => setTermsAcceptance(checked, orderState.privacyAccepted)}
+                      onPrivacyChange={(checked) => setTermsAcceptance(orderState.agbAccepted, checked)}
+                    />
+                  )}
+                </>
               )}
             </div>
           )}
@@ -297,7 +362,37 @@ export const OrderWizard = () => {
               </Button>
             )}
 
-            {orderState.step === 3 && (
+            {/* Photography Steps 3-5: Next Button */}
+            {orderState.selectedCategory === 'onsite' && orderState.step >= 3 && orderState.step <= 5 && (
+              <Button 
+                variant="cta" 
+                onClick={nextStep}
+                disabled={
+                  (orderState.step === 3 && !orderState.selectedPackage) ||
+                  (orderState.step === 5 && (!orderState.primaryDate || !orderState.primaryTime))
+                }
+                className="gap-2"
+              >
+                Weiter
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            )}
+
+            {/* Photography Step 6: Submit Button */}
+            {orderState.selectedCategory === 'onsite' && orderState.step === 6 && (
+              <Button 
+                variant="cta" 
+                onClick={handleSubmitOrder} 
+                disabled={!orderState.agbAccepted || !orderState.privacyAccepted}
+                className="gap-2"
+              >
+                Bestellung aufgeben
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            )}
+
+            {/* Other Categories Step 3: Submit Button */}
+            {orderState.step === 3 && orderState.selectedCategory !== 'onsite' && (
               <Button 
                 variant="cta" 
                 onClick={handleSubmitOrder} 
