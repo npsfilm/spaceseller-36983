@@ -33,6 +33,7 @@ export class AdminOrderService {
           telefon
         )
       `)
+      .neq('status', 'draft')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
