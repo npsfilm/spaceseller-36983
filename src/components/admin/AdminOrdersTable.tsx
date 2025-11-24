@@ -3,11 +3,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Eye } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import type { Order } from '@/lib/services/AdminOrderService';
 
 interface AdminOrdersTableProps {
   orders: Order[];
-  onViewDetails: (order: Order) => void;
 }
 
 const statusColors: Record<string, string> = {
@@ -28,7 +28,7 @@ const statusLabels: Record<string, string> = {
   cancelled: 'Storniert',
 };
 
-export const AdminOrdersTable = ({ orders, onViewDetails }: AdminOrdersTableProps) => {
+export const AdminOrdersTable = ({ orders }: AdminOrdersTableProps) => {
   return (
     <Card>
       <CardHeader>
@@ -75,14 +75,12 @@ export const AdminOrdersTable = ({ orders, onViewDetails }: AdminOrdersTableProp
                   <TableCell>{new Date(order.created_at).toLocaleDateString('de-DE')}</TableCell>
                   <TableCell className="text-right">{order.total_amount.toFixed(2)} €</TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onViewDetails(order)}
-                    >
-                      <Eye className="h-4 w-4 mr-2" />
-                      Details
-                    </Button>
+                    <Link to={`/admin-backend/orders/${order.id}`}>
+                      <Button variant="ghost" size="sm">
+                        <Eye className="h-4 w-4 mr-2" />
+                        Details
+                      </Button>
+                    </Link>
                   </TableCell>
                 </TableRow>
               ))
