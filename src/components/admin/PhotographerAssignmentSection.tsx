@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
@@ -56,14 +56,7 @@ export const PhotographerAssignmentSection = ({
     }
   }, [currentAssignment]);
 
-  // Auto-calculate travel cost and suggest payment when photographer is selected
-  useEffect(() => {
-    if (selectedPhotographer && !currentAssignment) {
-      calculateCostsForPhotographer(selectedPhotographer);
-    }
-  }, [selectedPhotographer]);
-
-  const calculateCostsForPhotographer = async (photographerId: string) => {
+  const calculateCostsForPhotographer = useCallback(async (photographerId: string) => {
     if (!shootingAddress || calculating) return;
 
     setCalculating(true);
@@ -136,7 +129,14 @@ export const PhotographerAssignmentSection = ({
     } finally {
       setCalculating(false);
     }
-  };
+  }, [shootingAddress, orderItems, toast]);
+
+  // Auto-calculate travel cost and suggest payment when photographer is selected
+  useEffect(() => {
+    if (selectedPhotographer && !currentAssignment) {
+      calculateCostsForPhotographer(selectedPhotographer);
+    }
+  }, [selectedPhotographer, currentAssignment, calculateCostsForPhotographer]);
 
   const handleAssignPhotographer = async () => {
     if (!selectedPhotographer) {
