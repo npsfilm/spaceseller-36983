@@ -103,7 +103,7 @@ export const LocationCheckStep = ({
     
     // Check if it contains at least a number (for house number)
     if (!/\d/.test(value)) {
-      return 'Bitte geben Sie die Hausnummer an';
+      return 'Bitte geben Sie die Hausnummer an (z.B. Musterstraße 123)';
     }
     
     // Check if it contains at least 5 digits (postal code)
@@ -158,6 +158,27 @@ export const LocationCheckStep = ({
   };
 
   const handleValidateLocation = async () => {
+    // Before validating, ensure the address has been parsed
+    // If user typed manually without selecting a suggestion, we need to parse it
+    if (!address.hausnummer) {
+      // Try to extract house number from the input
+      const numberMatch = addressInput.match(/\d+/);
+      if (numberMatch) {
+        onUpdateAddress('hausnummer', numberMatch[0]);
+      } else {
+        setValidationError('Bitte geben Sie eine Hausnummer in der Adresse an (z.B. Musterstraße 123)');
+        setTouched(true);
+        return;
+      }
+    }
+    
+    // Additional check to ensure house number exists
+    if (!address.hausnummer || address.hausnummer.trim() === '') {
+      setValidationError('Bitte geben Sie eine Hausnummer in der Adresse an (z.B. Musterstraße 123)');
+      setTouched(true);
+      return;
+    }
+    
     await validateLocation(address);
   };
 
