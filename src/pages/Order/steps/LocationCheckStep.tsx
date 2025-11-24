@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
-import { MapPin, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { MapPin, Loader2, CheckCircle2, AlertCircle, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { locationService, type AddressSuggestion } from '@/lib/services/LocationService';
 import { useLocationValidation } from '@/lib/hooks/useLocationValidation';
+import { cn } from '@/lib/utils';
 
 interface LocationCheckStepProps {
   address: {
@@ -32,6 +33,8 @@ export const LocationCheckStep = ({
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+  const [touched, setTouched] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -89,9 +92,38 @@ export const LocationCheckStep = ({
     }
   };
 
+  const validateAddressInput = (value: string) => {
+    if (!value || value.trim().length === 0) {
+      return 'Bitte geben Sie eine Adresse ein';
+    }
+    
+    if (value.length < 5) {
+      return 'Adresse ist zu kurz (mindestens 5 Zeichen)';
+    }
+    
+    // Check if it contains at least a number (for house number)
+    if (!/\d/.test(value)) {
+      return 'Bitte geben Sie die Hausnummer an';
+    }
+    
+    // Check if it contains at least 5 digits (postal code)
+    const digits = value.match(/\d{5}/);
+    if (!digits) {
+      return 'Bitte geben Sie eine gültige Postleitzahl an (5 Ziffern)';
+    }
+    
+    return null;
+  };
+
   const handleAddressInputChange = (value: string) => {
     setAddressInput(value);
     resetValidation();
+    
+    // Validate on change if field has been touched
+    if (touched) {
+      const error = validateAddressInput(value);
+      setValidationError(error);
+    }
     
     // Cancel previous timeout
     if (timeoutRef.current) {
@@ -104,11 +136,19 @@ export const LocationCheckStep = ({
     }, 300);
   };
 
+  const handleAddressBlur = () => {
+    setTouched(true);
+    const error = validateAddressInput(addressInput);
+    setValidationError(error);
+  };
+
   const handleSuggestionSelect = (suggestion: AddressSuggestion) => {
     const parsed = locationService.parseAddressFromSuggestion(suggestion);
     
     setAddressInput(suggestion.place_name);
     setShowSuggestions(false);
+    setTouched(true);
+    setValidationError(null); // Clear error when valid address selected
     
     // Update all address fields
     onUpdateAddress('strasse', parsed.streetName);
@@ -121,7 +161,8 @@ export const LocationCheckStep = ({
     await validateLocation(address);
   };
 
-  const canValidate = addressInput.length > 0 && address.strasse && address.plz && address.stadt && address.hausnummer;
+  const hasValidationError = touched && validationError !== null;
+  const canValidate = addressInput.length > 0 && address.strasse && address.plz && address.stadt && address.hausnummer && !hasValidationError;
   const canProceed = validationResult?.valid;
 
   return (
@@ -159,10 +200,20 @@ export const LocationCheckStep = ({
                 id="address"
                 value={addressInput}
                 onChange={(e) => handleAddressInputChange(e.target.value)}
-                onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                onBlur={handleAddressBlur}
+                onFocus={() => {
+                  if (suggestions.length > 0) setShowSuggestions(true);
+                }}
                 placeholder="z.B. Musterstraße 123, 80331 München"
                 disabled={isValidating}
-                className="h-14 text-base px-5 rounded-xl border-2 focus:border-primary transition-all duration-200"
+                className={cn(
+                  "h-14 text-base px-5 rounded-xl border-2 transition-all duration-200",
+                  hasValidationError 
+                    ? "border-destructive focus:border-destructive focus-visible:ring-destructive" 
+                    : "focus:border-primary"
+                )}
+                aria-invalid={hasValidationError}
+                aria-describedby={hasValidationError ? "address-error" : undefined}
               />
           
               {showSuggestions && suggestions.length > 0 && (
@@ -192,11 +243,32 @@ export const LocationCheckStep = ({
                 </div>
               )}
             </div>
+
+            {/* Inline Error Message */}
+            <AnimatePresence mode="wait">
+              {hasValidationError && (
+                <motion.div
+                  id="address-error"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex items-start gap-2 px-4 py-3 rounded-lg bg-destructive/10 border border-destructive/30"
+                  role="alert"
+                  aria-live="polite"
+                >
+                  <AlertTriangle className="h-4 w-4 text-destructive flex-shrink-0 mt-0.5" />
+                  <p className="text-sm text-destructive font-medium">
+                    {validationError}
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           <Button
             onClick={handleValidateLocation}
-            disabled={!canValidate || isValidating}
+            disabled={!canValidate || isValidating || hasValidationError}
             className="w-full h-14 text-base font-semibold rounded-xl"
             size="lg"
           >
@@ -212,6 +284,13 @@ export const LocationCheckStep = ({
               </>
             )}
           </Button>
+
+          {/* Helper Text */}
+          {!touched && (
+            <p className="text-xs text-muted-foreground text-center px-4">
+              💡 Tipp: Wählen Sie eine Adresse aus den Vorschlägen für beste Ergebnisse
+            </p>
+          )}
 
           {validationResult && (
             <Alert 

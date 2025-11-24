@@ -10,6 +10,7 @@ import { PackageTypeFilter } from '../components/PackageTypeFilter';
 import { PropertySizeSelector } from '../components/PropertySizeSelector';
 import { PhotographyPackageCard } from '../components/PhotographyPackageCard';
 import { AddOnsList } from '../components/AddOnsList';
+import { SpecialInstructionsField } from '@/components/order/SpecialInstructionsField';
 import { Button } from '@/components/ui/button';
 
 interface PhotographyConfigStepProps {
@@ -28,6 +29,7 @@ export const PhotographyConfigStep = ({
   const [packageType, setPackageType] = useState<PackageType>('photo');
   const [propertySize, setPropertySize] = useState<PropertySize | null>(null);
   const [showAllPackages, setShowAllPackages] = useState(false);
+  const [specialInstructions, setSpecialInstructions] = useState('');
 
   const handlePackageTypeChange = (type: PackageType) => {
     setPackageType(type);
@@ -247,6 +249,14 @@ export const PhotographyConfigStep = ({
           emptyMessage="Bitte wählen Sie ein Paket aus"
         />
       )}
+
+      {/* Special Instructions */}
+      <div className="max-w-3xl mx-auto px-4">
+        <SpecialInstructionsField
+          value={specialInstructions}
+          onChange={setSpecialInstructions}
+        />
+      </div>
     </div>
   );
 };
