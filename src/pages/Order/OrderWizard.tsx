@@ -1,10 +1,12 @@
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { OrderLayout } from '@/components/OrderLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useOrderState, type Service, type OrderState } from '@/lib/hooks/useOrderState';
+import { useDraftAutoSave } from '@/lib/hooks/useDraftAutoSave';
 import { orderSubmissionService } from '@/lib/services/OrderSubmissionService';
 import { orderValidationService } from '@/lib/services/OrderValidationService';
 import { ProgressIndicator } from './components/ProgressIndicator';
@@ -12,6 +14,7 @@ import { LocationCheckStep } from './steps/LocationCheckStep';
 import { CategorySelectionStep } from './steps/CategorySelectionStep';
 import { ProductConfigurationStep } from './steps/ProductConfigurationStep';
 import { OrderSummarySidebar } from '@/components/order/OrderSummarySidebar';
+import { cn } from '@/lib/utils';
 
 // Re-export types for backward compatibility
 export type { Service, OrderState };
@@ -68,6 +71,12 @@ export const OrderWizard = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Auto-save draft every 30 seconds
+  const { lastSaved, isSaving, saveNow } = useDraftAutoSave(orderState, {
+    enabled: true,
+    intervalMs: 30000 // 30 seconds
+  });
 
   const handleLocationValidated = (
     travelCost: number,
@@ -128,12 +137,47 @@ export const OrderWizard = () => {
   return (
     <OrderLayout>
       <div className="h-full flex flex-col">
-        {/* Progress Indicator */}
-        <ProgressIndicator
-          steps={getStepsForCategory(orderState.selectedCategory)}
-          currentStep={orderState.step}
-          onStepClick={() => {}}
-        />
+        {/* Progress Indicator with Auto-Save Status */}
+        <div className="relative">
+          <ProgressIndicator
+            steps={getStepsForCategory(orderState.selectedCategory)}
+            currentStep={orderState.step}
+            onStepClick={() => {}}
+          />
+          
+          {/* Auto-Save Indicator */}
+          {orderState.step > 1 && (
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 hidden md:flex items-center gap-2">
+              {isSaving ? (
+                <Badge variant="outline" className="gap-2 bg-background/95 backdrop-blur-sm">
+                  <div className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+                  <span className="text-xs">Speichert...</span>
+                </Badge>
+              ) : lastSaved ? (
+                <Badge variant="outline" className="gap-2 bg-background/95 backdrop-blur-sm">
+                  <div className="h-2 w-2 rounded-full bg-green-500" />
+                  <span className="text-xs">
+                    {lastSaved.toLocaleTimeString('de-DE', {
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </span>
+                </Badge>
+              ) : null}
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={saveNow}
+                disabled={isSaving}
+                className="h-8 gap-2"
+              >
+                <Save className="h-4 w-4" />
+                <span className="text-xs">Jetzt speichern</span>
+              </Button>
+            </div>
+          )}
+        </div>
 
         {/* Step Content with Sidebar Layout */}
         <div className="flex-1 overflow-y-auto">
@@ -189,12 +233,35 @@ export const OrderWizard = () => {
         {/* Bottom Navigation */}
         <div className="border-t border-border bg-card p-4">
           <div className="container mx-auto max-w-6xl flex items-center justify-between">
-            {orderState.step > 1 ? (
-              <Button variant="outline" onClick={prevStep} className="gap-2">
-                <ArrowLeft className="w-4 h-4" />
-                Zurück
-              </Button>
-            ) : <div />}
+            {/* Mobile Auto-Save Status */}
+            {orderState.step > 1 && (
+              <div className="md:hidden flex items-center gap-2">
+                {isSaving ? (
+                  <Badge variant="outline" className="gap-1.5">
+                    <div className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                    <span className="text-xs">Speichert...</span>
+                  </Badge>
+                ) : lastSaved ? (
+                  <Badge variant="outline" className="gap-1.5">
+                    <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                    <span className="text-xs">
+                      {lastSaved.toLocaleTimeString('de-DE', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </span>
+                  </Badge>
+                ) : null}
+              </div>
+            )}
+            <div className="flex items-center gap-3">
+              {orderState.step > 1 ? (
+                <Button variant="outline" onClick={prevStep} className="gap-2">
+                  <ArrowLeft className="w-4 h-4" />
+                  Zurück
+                </Button>
+              ) : <div />}
+            </div>
 
             {orderState.step === 1 && (
               <Button 
