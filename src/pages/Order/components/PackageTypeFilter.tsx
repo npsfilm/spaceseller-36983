@@ -6,9 +6,10 @@ import { cn } from '@/lib/utils';
 interface PackageTypeFilterProps {
   packageType: PackageType;
   onPackageTypeChange: (type: PackageType) => void;
+  compact?: boolean;
 }
 
-export const PackageTypeFilter = ({ packageType, onPackageTypeChange }: PackageTypeFilterProps) => {
+export const PackageTypeFilter = ({ packageType, onPackageTypeChange, compact = false }: PackageTypeFilterProps) => {
   const options = [
     {
       value: 'photo' as PackageType,
@@ -29,6 +30,49 @@ export const PackageTypeFilter = ({ packageType, onPackageTypeChange }: PackageT
       description: 'Kombination',
     },
   ];
+
+  if (compact) {
+    return (
+      <div className="flex flex-col gap-2">
+        {options.map((option) => {
+          const Icon = option.icon;
+          const isSelected = packageType === option.value;
+          
+          return (
+            <button
+              key={option.value}
+              onClick={() => onPackageTypeChange(option.value)}
+              className={cn(
+                "flex items-center gap-3 p-3 rounded-lg border transition-all text-left",
+                isSelected 
+                  ? "border-primary bg-primary/5 shadow-sm" 
+                  : "border-border hover:border-primary/50"
+              )}
+            >
+              {option.value === 'photo_drone' ? (
+                <div className="flex items-center gap-1 text-primary shrink-0">
+                  <Camera className="w-4 h-4" />
+                  <Plus className="w-3 h-3" />
+                  <Plane className="w-4 h-4" />
+                </div>
+              ) : Icon && (
+                <Icon className={cn("w-5 h-5 shrink-0", isSelected ? "text-primary" : "text-muted-foreground")} />
+              )}
+              
+              <div className="flex-1 min-w-0">
+                <p className={cn("font-medium text-sm", isSelected && "text-primary")}>
+                  {option.label}
+                </p>
+                <p className="text-xs text-muted-foreground truncate">
+                  {option.description}
+                </p>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-5xl mx-auto px-4">

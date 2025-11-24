@@ -38,12 +38,19 @@ describe('OrderSubmissionService', () => {
         additional_info: ''
       },
       draftOrderId: 'order-123',
-      travelCost: 25,
+      travelCost: 0,
       distance: 50,
       locationValidated: true,
-      selectedAreaRange: '100-199',
+      selectedAreaRange: null,
       selectedProducts: {},
-      selectedPackage: 'basic-package'
+      selectedPackage: 'photo-premium',
+      selectedAddOns: [],
+      primaryDate: null,
+      primaryTime: null,
+      alternativeDate: null,
+      alternativeTime: null,
+      agbAccepted: false,
+      privacyAccepted: false
     };
   });
 

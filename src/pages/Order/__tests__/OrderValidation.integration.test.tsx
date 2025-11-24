@@ -27,6 +27,13 @@ describe('Order Validation Integration', () => {
     selectedAreaRange: null,
     selectedProducts: {},
     selectedPackage: null,
+    selectedAddOns: [],
+    primaryDate: null,
+    primaryTime: null,
+    alternativeDate: null,
+    alternativeTime: null,
+    agbAccepted: false,
+    privacyAccepted: false,
     ...overrides
   });
 
