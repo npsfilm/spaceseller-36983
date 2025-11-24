@@ -10,6 +10,7 @@ import { orderDetailService } from '@/lib/services/OrderDetailService';
 import { CustomerInfoSection } from '@/components/admin/CustomerInfoSection';
 import { OrderInfoSection } from '@/components/admin/OrderInfoSection';
 import { OrderItemsSection } from '@/components/admin/OrderItemsSection';
+import { OrderUpgradesSection } from '@/components/admin/OrderUpgradesSection';
 import { OrderAddressSection } from '@/components/admin/OrderAddressSection';
 import { OrderUploadsSection } from '@/components/admin/OrderUploadsSection';
 import { OrderStatusUpdate } from '@/components/admin/OrderStatusUpdate';
@@ -285,6 +286,8 @@ export default function OrderDetail() {
               />
 
               <OrderItemsSection items={details.items} />
+
+              <OrderUpgradesSection upgrades={details.upgrades} />
 
               {details.addresses.length > 0 && (
                 <OrderAddressSection addresses={details.addresses} />

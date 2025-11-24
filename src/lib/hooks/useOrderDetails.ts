@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 export const useOrderDetails = (orderId: string, open: boolean) => {
   const [details, setDetails] = useState<OrderDetails>({
     items: [],
+    upgrades: [],
     uploads: [],
     deliverables: [],
     addresses: [],
