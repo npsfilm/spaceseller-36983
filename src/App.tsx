@@ -17,6 +17,7 @@ import OrderConfirmation from "./pages/OrderConfirmation";
 import MyOrders from "./pages/MyOrders";
 import Settings from "./pages/Settings";
 import Admin from "./pages/Admin";
+import OrderDetail from "./pages/admin/OrderDetail";
 import PhotographerManagement from "./pages/admin/PhotographerManagement";
 import PhotographerLocations from "./pages/admin/PhotographerLocations";
 import UserRoleManagement from "./pages/admin/UserRoleManagement";
@@ -47,6 +48,7 @@ const App = () => (
             <Route path="/my-orders" element={<ProtectedRoute requireOnboarding requireClient><MyOrders /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute requireOnboarding><Settings /></ProtectedRoute>} />
             <Route path="/admin-backend" element={<ProtectedRoute requireOnboarding requireAdmin><Admin /></ProtectedRoute>} />
+            <Route path="/admin-backend/orders/:orderId" element={<ProtectedRoute requireOnboarding requireAdmin><OrderDetail /></ProtectedRoute>} />
             <Route path="/admin-backend/photographers" element={<ProtectedRoute requireOnboarding requireAdmin><PhotographerManagement /></ProtectedRoute>} />
             <Route path="/admin-backend/locations" element={<ProtectedRoute requireOnboarding requireAdmin><PhotographerLocations /></ProtectedRoute>} />
             <Route path="/admin-backend/users" element={<ProtectedRoute requireOnboarding requireAdmin><UserRoleManagement /></ProtectedRoute>} />
