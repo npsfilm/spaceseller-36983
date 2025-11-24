@@ -204,7 +204,7 @@ export class OrderDetailService {
     scheduledDate: string,
     scheduledTime: string,
     currentAssignmentId?: string
-  ): Promise<void> {
+  ): Promise<string> {
     const { data: userData } = await supabase.auth.getUser();
     
     const assignmentData = {
@@ -224,12 +224,16 @@ export class OrderDetailService {
         .eq('id', currentAssignmentId);
 
       if (error) throw error;
+      return currentAssignmentId;
     } else {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('order_assignments')
-        .insert(assignmentData);
+        .insert(assignmentData)
+        .select('id')
+        .single();
 
       if (error) throw error;
+      return data.id;
     }
   }
 
@@ -255,6 +259,7 @@ export class OrderDetailService {
   async triggerZapierWebhook(
     orderNumber: string,
     orderId: string,
+    assignmentId: string,
     photographerId: string,
     photographerEmail: string,
     scheduledDate: string,
@@ -268,6 +273,7 @@ export class OrderDetailService {
           assignmentData: {
             order_number: orderNumber,
             order_id: orderId,
+            assignment_id: assignmentId,
             photographer_id: photographerId,
             photographer_email: photographerEmail,
             scheduled_date: scheduledDate,

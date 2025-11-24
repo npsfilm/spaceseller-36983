@@ -58,7 +58,7 @@ export const PhotographerAssignmentSection = ({
     setAssigning(true);
 
     try {
-      await orderDetailService.assignPhotographer(
+      const assignmentId = await orderDetailService.assignPhotographer(
         orderId,
         selectedPhotographer,
         adminNotes,
@@ -79,6 +79,7 @@ export const PhotographerAssignmentSection = ({
         await orderDetailService.triggerZapierWebhook(
           orderNumber,
           orderId,
+          assignmentId,
           selectedPhotographer,
           photographer.email,
           scheduledDate,
