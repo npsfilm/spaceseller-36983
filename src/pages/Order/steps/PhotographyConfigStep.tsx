@@ -44,7 +44,13 @@ export const PhotographyConfigStep = ({
     );
   };
 
-  const filteredPackages = filterPackagesByType(PACKAGE_TIERS, packageType);
+  const filteredPackages = filterPackagesByType(PACKAGE_TIERS, packageType).filter(pkg => {
+    // For photo packages, filter by photo count (±1 range)
+    if (packageType === 'photo') {
+      return pkg.photoCount >= photoCount - 1 && pkg.photoCount <= photoCount + 1;
+    }
+    return true;
+  });
   const selectedPackageData = filteredPackages.find(p => p.id === selectedPackage);
   
   const selectedAddOnsData = selectedAddOns
