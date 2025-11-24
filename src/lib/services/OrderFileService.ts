@@ -40,10 +40,6 @@ export interface OrderWithDetails extends Order {
     photographer_id: string;
     scheduled_date: string | null;
     scheduled_time: string | null;
-    photographer?: {
-      vorname: string | null;
-      nachname: string | null;
-    };
   } | null;
 }
 
@@ -87,11 +83,7 @@ export class OrderFileService {
           id,
           photographer_id,
           scheduled_date,
-          scheduled_time,
-          photographer:profiles!photographer_id (
-            vorname,
-            nachname
-          )
+          scheduled_time
         )
       `)
       .eq('id', orderId)
@@ -107,12 +99,7 @@ export class OrderFileService {
     const formattedData = {
       ...data,
       assignment: Array.isArray(data.assignment) && data.assignment.length > 0 
-        ? {
-            ...data.assignment[0],
-            photographer: Array.isArray(data.assignment[0].photographer) && data.assignment[0].photographer.length > 0
-              ? data.assignment[0].photographer[0]
-              : null
-          }
+        ? data.assignment[0]
         : null
     };
 

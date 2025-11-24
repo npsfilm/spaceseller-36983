@@ -179,23 +179,18 @@ function OrderDetailContent() {
                   </div>
                 )}
 
-                {order.assignment && (
+                {order.assignment && order.assignment.scheduled_date && (
                   <>
                     <Separator />
                     <div>
                       <p className="text-sm font-semibold mb-2 flex items-center gap-2">
                         <User className="h-4 w-4" />
-                        Zugewiesener Fotograf:
+                        Geplanter Aufnahmetermin:
                       </p>
-                      <p className="text-sm font-medium">
-                        {order.assignment.photographer?.vorname} {order.assignment.photographer?.nachname}
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(order.assignment.scheduled_date).toLocaleDateString('de-DE')}
+                        {order.assignment.scheduled_time && ` um ${order.assignment.scheduled_time}`}
                       </p>
-                      {order.assignment.scheduled_date && (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Geplant: {new Date(order.assignment.scheduled_date).toLocaleDateString('de-DE')}
-                          {order.assignment.scheduled_time && ` um ${order.assignment.scheduled_time}`}
-                        </p>
-                      )}
                     </div>
                   </>
                 )}
