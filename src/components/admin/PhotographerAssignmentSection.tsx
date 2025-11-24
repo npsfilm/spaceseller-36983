@@ -5,10 +5,14 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Camera } from 'lucide-react';
+import { Camera, Calculator, Route } from 'lucide-react';
 import { PhotographerSuggestions } from './PhotographerSuggestions';
-import { orderDetailService, type Photographer, type Assignment, type OrderAddress } from '@/lib/services/OrderDetailService';
+import { orderDetailService, type Photographer, type Assignment, type OrderAddress, type OrderItem } from '@/lib/services/OrderDetailService';
 import { useToast } from '@/hooks/use-toast';
+import { mapboxDistanceCalculator } from '@/lib/services/MapboxDistanceCalculator';
+import { travelCostCalculator } from '@/lib/services/TravelCostCalculator';
+import { photographerPaymentCalculator } from '@/lib/services/PhotographerPaymentCalculator';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PhotographerAssignmentSectionProps {
   orderId: string;
@@ -17,6 +21,7 @@ interface PhotographerAssignmentSectionProps {
   photographers: Photographer[];
   currentAssignment: Assignment | null;
   shootingAddress?: OrderAddress;
+  orderItems: OrderItem[];
   onAssignmentUpdate: () => void;
 }
 
@@ -27,6 +32,7 @@ export const PhotographerAssignmentSection = ({
   photographers,
   currentAssignment,
   shootingAddress,
+  orderItems,
   onAssignmentUpdate,
 }: PhotographerAssignmentSectionProps) => {
   const [selectedPhotographer, setSelectedPhotographer] = useState<string>('');
@@ -35,6 +41,7 @@ export const PhotographerAssignmentSection = ({
   const [scheduledTime, setScheduledTime] = useState('');
   const [paymentAmount, setPaymentAmount] = useState<number>(0);
   const [travelCost, setTravelCost] = useState<number>(0);
+  const [calculating, setCalculating] = useState(false);
   const [assigning, setAssigning] = useState(false);
   const { toast } = useToast();
 
@@ -48,6 +55,88 @@ export const PhotographerAssignmentSection = ({
       setTravelCost(currentAssignment.travel_cost || 0);
     }
   }, [currentAssignment]);
+
+  // Auto-calculate travel cost and suggest payment when photographer is selected
+  useEffect(() => {
+    if (selectedPhotographer && !currentAssignment) {
+      calculateCostsForPhotographer(selectedPhotographer);
+    }
+  }, [selectedPhotographer]);
+
+  const calculateCostsForPhotographer = async (photographerId: string) => {
+    if (!shootingAddress || calculating) return;
+
+    setCalculating(true);
+
+    try {
+      // Fetch photographer location
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('location_lat, location_lng')
+        .eq('id', photographerId)
+        .single();
+
+      if (error || !profile?.location_lat || !profile?.location_lng) {
+        console.log('Photographer location not set');
+        // Still suggest payment amount based on order
+        const suggested = photographerPaymentCalculator.calculateSuggestedPayment(orderItems);
+        setPaymentAmount(suggested);
+        return;
+      }
+
+      // Build shooting address string
+      const addressString = `${shootingAddress.strasse} ${shootingAddress.hausnummer || ''}, ${shootingAddress.plz} ${shootingAddress.stadt}`.trim();
+
+      // Geocode shooting address if coordinates aren't available
+      let shootingCoords: [number, number] | null = null;
+      
+      if (shootingAddress.latitude && shootingAddress.longitude) {
+        shootingCoords = [shootingAddress.longitude, shootingAddress.latitude];
+      } else {
+        shootingCoords = await mapboxDistanceCalculator.geocodeAddress(addressString);
+      }
+
+      if (!shootingCoords) {
+        toast({
+          title: 'Hinweis',
+          description: 'Shooting-Adresse konnte nicht gefunden werden. Reisekosten konnten nicht berechnet werden.',
+          variant: 'default',
+        });
+        // Still suggest payment
+        const suggested = photographerPaymentCalculator.calculateSuggestedPayment(orderItems);
+        setPaymentAmount(suggested);
+        return;
+      }
+
+      // Calculate driving distance
+      const result = await mapboxDistanceCalculator.calculateDistance(
+        profile.location_lng,
+        profile.location_lat,
+        shootingCoords[0],
+        shootingCoords[1]
+      );
+
+      // Calculate travel cost
+      const calculatedTravelCost = travelCostCalculator.calculateTravelCost(result.distance);
+      setTravelCost(calculatedTravelCost);
+
+      // Suggest payment amount
+      const suggested = photographerPaymentCalculator.calculateSuggestedPayment(orderItems);
+      setPaymentAmount(suggested);
+
+      toast({
+        title: 'Kosten berechnet',
+        description: `Entfernung: ${result.distance.toFixed(1)} km • Fahrtzeit: ~${Math.round(result.duration)} Min`,
+      });
+    } catch (error) {
+      console.error('Error calculating costs:', error);
+      // Still suggest payment on error
+      const suggested = photographerPaymentCalculator.calculateSuggestedPayment(orderItems);
+      setPaymentAmount(suggested);
+    } finally {
+      setCalculating(false);
+    }
+  };
 
   const handleAssignPhotographer = async () => {
     if (!selectedPhotographer) {
@@ -217,11 +306,22 @@ export const PhotographerAssignmentSection = ({
         </div>
 
         <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
-          <h4 className="font-semibold text-sm">Vergütung & Reisekosten</h4>
+          <div className="flex items-center justify-between">
+            <h4 className="font-semibold text-sm">Vergütung & Reisekosten</h4>
+            {calculating && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Calculator className="h-3 w-3 animate-pulse" />
+                <span>Berechne...</span>
+              </div>
+            )}
+          </div>
           
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="payment-amount">Vergütung (€)</Label>
+              <div className="flex items-center justify-between mb-1">
+                <Label htmlFor="payment-amount">Vergütung (€)</Label>
+                <Calculator className="h-3 w-3 text-muted-foreground" />
+              </div>
               <Input
                 id="payment-amount"
                 type="number"
@@ -230,10 +330,15 @@ export const PhotographerAssignmentSection = ({
                 value={paymentAmount || ''}
                 onChange={(e) => setPaymentAmount(parseFloat(e.target.value) || 0)}
                 placeholder="0.00"
+                disabled={calculating}
               />
+              <p className="text-xs text-muted-foreground mt-1">Automatisch vorgeschlagen</p>
             </div>
             <div>
-              <Label htmlFor="travel-cost">Reisekosten (€)</Label>
+              <div className="flex items-center justify-between mb-1">
+                <Label htmlFor="travel-cost">Reisekosten (€)</Label>
+                <Route className="h-3 w-3 text-muted-foreground" />
+              </div>
               <Input
                 id="travel-cost"
                 type="number"
@@ -242,7 +347,9 @@ export const PhotographerAssignmentSection = ({
                 value={travelCost || ''}
                 onChange={(e) => setTravelCost(parseFloat(e.target.value) || 0)}
                 placeholder="0.00"
+                disabled={calculating}
               />
+              <p className="text-xs text-muted-foreground mt-1">Auto-berechnet via Mapbox</p>
             </div>
           </div>
 

@@ -282,6 +282,7 @@ export default function OrderDetail() {
                 photographers={photographers}
                 currentAssignment={currentAssignment}
                 shootingAddress={shootingAddress}
+                orderItems={details.items}
                 onAssignmentUpdate={handleAssignmentUpdate}
               />
 

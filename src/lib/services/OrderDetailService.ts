@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 export interface OrderItem {
   id: string;
   quantity: number;
+  unit_price: number;
   total_price: number;
   item_notes?: string;
   services?: {
@@ -35,6 +36,8 @@ export interface OrderAddress {
   land: string;
   address_type: string;
   additional_info?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface Photographer {
