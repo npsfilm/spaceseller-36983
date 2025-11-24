@@ -44,13 +44,32 @@ export const PhotographyConfigStep = ({
     );
   };
 
-  const filteredPackages = filterPackagesByType(PACKAGE_TIERS, packageType).filter(pkg => {
-    // For photo packages, filter by photo count (±1 range)
+  const filteredPackages = useMemo(() => {
+    const typeFiltered = filterPackagesByType(PACKAGE_TIERS, packageType);
+    
+    // For photo packages, show exactly 3 packages: closest match + one above + one below
     if (packageType === 'photo') {
-      return pkg.photoCount >= photoCount - 1 && pkg.photoCount <= photoCount + 1;
+      const sorted = [...typeFiltered].sort((a, b) => a.photoCount - b.photoCount);
+      
+      // Find the index of the closest matching package
+      const closestIndex = sorted.findIndex(pkg => pkg.photoCount >= photoCount);
+      
+      if (closestIndex === -1) {
+        // All packages are below the selected count, show last 3
+        return sorted.slice(-3);
+      }
+      
+      if (closestIndex === 0) {
+        // Selected count is at or below the first package, show first 3
+        return sorted.slice(0, 3);
+      }
+      
+      // Show the closest package, one below, and one above
+      return sorted.slice(closestIndex - 1, closestIndex + 2);
     }
-    return true;
-  });
+    
+    return typeFiltered;
+  }, [packageType, photoCount]);
   const selectedPackageData = filteredPackages.find(p => p.id === selectedPackage);
   
   const selectedAddOnsData = selectedAddOns
