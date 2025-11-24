@@ -15,7 +15,7 @@ export const MAPBOX_CONFIG = {
   baseAddress: "Klinkerberg 9, 86152 Augsburg",
   
   // Pricing configuration
-  costPerKm: 0.65,
-  costPerKmOver200: 0.85,
-  freeTravelThreshold: 20,
+  costPerKmFirst20: 0.30,
+  costPerKmAfter20: 0.38,
+  firstTierKm: 20,
 };
