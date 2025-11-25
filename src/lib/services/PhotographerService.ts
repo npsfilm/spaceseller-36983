@@ -12,6 +12,17 @@ export interface Photographer {
   declined: number;
   completed: number;
   acceptance_rate: number;
+  // Tax & Business Information
+  kleinunternehmer: boolean | null;
+  umsatzsteuer_pflichtig: boolean | null;
+  umsatzsteuer_id: string | null;
+  steuernummer: string | null;
+  // Insurance
+  berufshaftpflicht_bis: string | null;
+  // Banking
+  iban: string | null;
+  bic: string | null;
+  kontoinhaber: string | null;
 }
 
 export interface User {
@@ -48,7 +59,7 @@ export class PhotographerService {
     // Get profiles for these users
     const { data: profiles, error: profilesError } = await supabase
       .from('profiles')
-      .select('id, email, vorname, nachname, telefon')
+      .select('id, email, vorname, nachname, telefon, kleinunternehmer, umsatzsteuer_pflichtig, umsatzsteuer_id, steuernummer, berufshaftpflicht_bis, iban, bic, kontoinhaber')
       .in('id', photographerIds);
 
     if (profilesError) throw profilesError;
@@ -78,6 +89,14 @@ export class PhotographerService {
           declined,
           completed,
           acceptance_rate: Math.round(acceptanceRate),
+          kleinunternehmer: profile.kleinunternehmer,
+          umsatzsteuer_pflichtig: profile.umsatzsteuer_pflichtig,
+          umsatzsteuer_id: profile.umsatzsteuer_id,
+          steuernummer: profile.steuernummer,
+          berufshaftpflicht_bis: profile.berufshaftpflicht_bis,
+          iban: profile.iban,
+          bic: profile.bic,
+          kontoinhaber: profile.kontoinhaber,
         };
       })
     );
