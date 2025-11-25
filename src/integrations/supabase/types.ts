@@ -478,67 +478,103 @@ export type Database = {
       profiles: {
         Row: {
           aufmerksam_geworden_durch: string | null
+          berufshaftpflicht_bis: string | null
+          bic: string | null
           branche: string | null
           city: string | null
           created_at: string | null
           email: string
+          equipment: string | null
           firma: string | null
+          handelsregister_nr: string | null
+          iban: string | null
           id: string
+          kleinunternehmer: boolean | null
+          kontoinhaber: string | null
           land: string | null
           location_lat: number | null
           location_lng: number | null
           nachname: string | null
           onboarding_completed: boolean | null
           plz: string | null
+          portfolio_url: string | null
           postal_code: string | null
+          rechtsform: string | null
           service_radius_km: number | null
           stadt: string | null
+          steuernummer: string | null
           strasse: string | null
           telefon: string | null
+          umsatzsteuer_id: string | null
+          umsatzsteuer_pflichtig: boolean | null
           updated_at: string | null
           vorname: string | null
         }
         Insert: {
           aufmerksam_geworden_durch?: string | null
+          berufshaftpflicht_bis?: string | null
+          bic?: string | null
           branche?: string | null
           city?: string | null
           created_at?: string | null
           email: string
+          equipment?: string | null
           firma?: string | null
+          handelsregister_nr?: string | null
+          iban?: string | null
           id: string
+          kleinunternehmer?: boolean | null
+          kontoinhaber?: string | null
           land?: string | null
           location_lat?: number | null
           location_lng?: number | null
           nachname?: string | null
           onboarding_completed?: boolean | null
           plz?: string | null
+          portfolio_url?: string | null
           postal_code?: string | null
+          rechtsform?: string | null
           service_radius_km?: number | null
           stadt?: string | null
+          steuernummer?: string | null
           strasse?: string | null
           telefon?: string | null
+          umsatzsteuer_id?: string | null
+          umsatzsteuer_pflichtig?: boolean | null
           updated_at?: string | null
           vorname?: string | null
         }
         Update: {
           aufmerksam_geworden_durch?: string | null
+          berufshaftpflicht_bis?: string | null
+          bic?: string | null
           branche?: string | null
           city?: string | null
           created_at?: string | null
           email?: string
+          equipment?: string | null
           firma?: string | null
+          handelsregister_nr?: string | null
+          iban?: string | null
           id?: string
+          kleinunternehmer?: boolean | null
+          kontoinhaber?: string | null
           land?: string | null
           location_lat?: number | null
           location_lng?: number | null
           nachname?: string | null
           onboarding_completed?: boolean | null
           plz?: string | null
+          portfolio_url?: string | null
           postal_code?: string | null
+          rechtsform?: string | null
           service_radius_km?: number | null
           stadt?: string | null
+          steuernummer?: string | null
           strasse?: string | null
           telefon?: string | null
+          umsatzsteuer_id?: string | null
+          umsatzsteuer_pflichtig?: boolean | null
           updated_at?: string | null
           vorname?: string | null
         }
