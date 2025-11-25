@@ -84,6 +84,7 @@ function SettingsContent() {
   const [vorname, setVorname] = useState("");
   const [nachname, setNachname] = useState("");
   const [telefon, setTelefon] = useState("");
+  const [countryCode, setCountryCode] = useState("+49");
   const [strasse, setStrasse] = useState("");
   const [plz, setPlz] = useState("");
   const [stadt, setStadt] = useState("");
@@ -149,12 +150,42 @@ function SettingsContent() {
       if (error) throw error;
 
       if (data) {
-        setProfile(data);
+        // Extract country code from phone number for client profile
+        const phone = data.telefon || "";
+        let clientCountryCode = "+49";
+        let clientPhone = phone;
+        
+        if (phone.startsWith("+49")) {
+          clientCountryCode = "+49";
+          clientPhone = phone.substring(3).trim();
+        } else if (phone.startsWith("+43")) {
+          clientCountryCode = "+43";
+          clientPhone = phone.substring(3).trim();
+        } else if (phone.startsWith("+41")) {
+          clientCountryCode = "+41";
+          clientPhone = phone.substring(3).trim();
+        }
+        
+        setProfile({ ...data, telefon: clientPhone, countryCode: clientCountryCode });
         
         if (isPhotographer) {
           setVorname(data.vorname || "");
           setNachname(data.nachname || "");
-          setTelefon(data.telefon || "");
+          const phone = data.telefon || "";
+          // Extract country code if present
+          if (phone.startsWith("+49")) {
+            setCountryCode("+49");
+            setTelefon(phone.substring(3).trim());
+          } else if (phone.startsWith("+43")) {
+            setCountryCode("+43");
+            setTelefon(phone.substring(3).trim());
+          } else if (phone.startsWith("+41")) {
+            setCountryCode("+41");
+            setTelefon(phone.substring(3).trim());
+          } else {
+            setCountryCode("+49");
+            setTelefon(phone);
+          }
           setStrasse(data.strasse || "");
           setPlz(data.plz || data.postal_code || "");
           setStadt(data.stadt || data.city || "");
@@ -213,12 +244,17 @@ function SettingsContent() {
     try {
       profileSchema.parse(profile);
 
+      // Combine country code with phone number
+      const fullPhoneNumber = profile.telefon 
+        ? `${profile.countryCode || '+49'} ${profile.telefon}` 
+        : null;
+
       const { error } = await supabase
         .from('profiles')
         .update({
           vorname: profile.vorname,
           nachname: profile.nachname,
-          telefon: profile.telefon,
+          telefon: fullPhoneNumber,
           firma: profile.firma,
           strasse: profile.strasse,
           plz: profile.plz,
@@ -295,12 +331,15 @@ function SettingsContent() {
 
     setLoading(true);
     try {
+      // Combine country code with phone number
+      const fullPhoneNumber = telefon ? `${countryCode} ${telefon}` : null;
+      
       const { error } = await supabase
         .from("profiles")
         .update({
           vorname,
           nachname,
-          telefon: telefon || null,
+          telefon: fullPhoneNumber,
           updated_at: new Date().toISOString(),
         })
         .eq("id", user?.id);
@@ -543,10 +582,27 @@ function SettingsContent() {
 
                           <div className="space-y-2">
                             <Label>Telefon</Label>
-                            <Input
-                              value={profile.telefon || ''}
-                              onChange={(e) => setProfile({ ...profile, telefon: e.target.value })}
-                            />
+                            <div className="flex gap-2">
+                              <Select 
+                                value={profile.countryCode || '+49'} 
+                                onValueChange={(value) => setProfile({ ...profile, countryCode: value })}
+                              >
+                                <SelectTrigger className="w-32">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="+49">🇩🇪 +49</SelectItem>
+                                  <SelectItem value="+43">🇦🇹 +43</SelectItem>
+                                  <SelectItem value="+41">🇨🇭 +41</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <Input
+                                value={profile.telefon || ''}
+                                onChange={(e) => setProfile({ ...profile, telefon: e.target.value })}
+                                placeholder="123 456789"
+                                className="flex-1"
+                              />
+                            </div>
                           </div>
 
                           <div className="space-y-2">
@@ -696,12 +752,25 @@ function SettingsContent() {
                           
                           <div className="space-y-2">
                             <Label htmlFor="telefon">Telefonnummer</Label>
-                            <Input
-                              id="telefon"
-                              value={telefon}
-                              onChange={(e) => setTelefon(e.target.value)}
-                              placeholder="+49 123 456789"
-                            />
+                            <div className="flex gap-2">
+                              <Select value={countryCode} onValueChange={setCountryCode}>
+                                <SelectTrigger className="w-32">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="+49">🇩🇪 +49</SelectItem>
+                                  <SelectItem value="+43">🇦🇹 +43</SelectItem>
+                                  <SelectItem value="+41">🇨🇭 +41</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <Input
+                                id="telefon"
+                                value={telefon}
+                                onChange={(e) => setTelefon(e.target.value)}
+                                placeholder="123 456789"
+                                className="flex-1"
+                              />
+                            </div>
                           </div>
 
                           <Button onClick={handleSavePersonal} disabled={loading}>
