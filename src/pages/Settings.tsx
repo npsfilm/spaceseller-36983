@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
+import { FreelancerLayout } from '@/components/freelancer/FreelancerLayout';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -534,19 +535,22 @@ function SettingsContent() {
   });
 
   if (loadingProfile) {
+    const LayoutWrapper = isPhotographer ? FreelancerLayout : Layout;
     return (
-      <Layout>
+      <LayoutWrapper>
         <div className="min-h-screen pt-32 pb-16 px-4">
           <div className="container mx-auto">
             <p>Lädt...</p>
           </div>
         </div>
-      </Layout>
+      </LayoutWrapper>
     );
   }
 
+  const LayoutWrapper = isPhotographer ? FreelancerLayout : Layout;
+
   return (
-    <Layout>
+    <LayoutWrapper>
       <div className="min-h-screen pt-32 pb-16">
         <div className="container mx-auto px-4">
           <div className="mb-8">
@@ -1133,7 +1137,7 @@ function SettingsContent() {
           </div>
         </div>
       </div>
-    </Layout>
+    </LayoutWrapper>
   );
 }
 
