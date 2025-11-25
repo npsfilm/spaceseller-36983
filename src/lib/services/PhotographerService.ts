@@ -12,11 +12,6 @@ export interface Photographer {
   declined: number;
   completed: number;
   acceptance_rate: number;
-  kleinunternehmer: boolean;
-  berufshaftpflicht_bis: string | null;
-  iban: string | null;
-  bic: string | null;
-  kontoinhaber: string | null;
 }
 
 export interface User {
@@ -53,7 +48,7 @@ export class PhotographerService {
     // Get profiles for these users
     const { data: profiles, error: profilesError } = await supabase
       .from('profiles')
-      .select('id, email, vorname, nachname, telefon, kleinunternehmer, berufshaftpflicht_bis, iban, bic, kontoinhaber')
+      .select('id, email, vorname, nachname, telefon')
       .in('id', photographerIds);
 
     if (profilesError) throw profilesError;
@@ -83,11 +78,6 @@ export class PhotographerService {
           declined,
           completed,
           acceptance_rate: Math.round(acceptanceRate),
-          kleinunternehmer: profile.kleinunternehmer || false,
-          berufshaftpflicht_bis: profile.berufshaftpflicht_bis,
-          iban: profile.iban,
-          bic: profile.bic,
-          kontoinhaber: profile.kontoinhaber,
         };
       })
     );
