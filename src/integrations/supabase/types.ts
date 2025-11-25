@@ -499,6 +499,7 @@ export type Database = {
           plz: string | null
           portfolio_url: string | null
           postal_code: string | null
+          profile_complete: boolean | null
           rechtsform: string | null
           service_radius_km: number | null
           stadt: string | null
@@ -533,6 +534,7 @@ export type Database = {
           plz?: string | null
           portfolio_url?: string | null
           postal_code?: string | null
+          profile_complete?: boolean | null
           rechtsform?: string | null
           service_radius_km?: number | null
           stadt?: string | null
@@ -567,6 +569,7 @@ export type Database = {
           plz?: string | null
           portfolio_url?: string | null
           postal_code?: string | null
+          profile_complete?: boolean | null
           rechtsform?: string | null
           service_radius_km?: number | null
           stadt?: string | null
@@ -761,6 +764,10 @@ export type Database = {
       calculate_assignment_deadline: {
         Args: { assigned_at_param: string; scheduled_date_param: string }
         Returns: string
+      }
+      check_photographer_profile_complete: {
+        Args: { profile_row: Database["public"]["Tables"]["profiles"]["Row"] }
+        Returns: boolean
       }
       check_rate_limit: {
         Args: {

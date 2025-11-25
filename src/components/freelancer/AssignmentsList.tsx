@@ -7,13 +7,15 @@ export interface AssignmentsListProps {
   emptyMessage?: string;
   onAccept?: (assignmentId: string) => void;
   onDecline?: (assignmentId: string) => void;
+  disableActions?: boolean;
 }
 
 export const AssignmentsList = ({ 
   assignments, 
   emptyMessage = 'Keine Aufträge', 
   onAccept,
-  onDecline 
+  onDecline,
+  disableActions = false
 }: AssignmentsListProps) => {
   if (assignments.length === 0) {
     return (
@@ -34,6 +36,7 @@ export const AssignmentsList = ({
           onViewDetails={() => {}}
           onAccept={onAccept ? () => onAccept(assignment.id) : undefined}
           onDecline={onDecline ? () => onDecline(assignment.id) : undefined}
+          disableActions={disableActions}
         />
       ))}
     </div>

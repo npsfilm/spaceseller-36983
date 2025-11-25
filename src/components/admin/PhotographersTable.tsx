@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { UserMinus, Pencil, Mail, AlertTriangle, CheckCircle2, CreditCard } from 'lucide-react';
 import { type Photographer } from '@/lib/services/PhotographerService';
+import { ProfileCompletenessService } from '@/lib/services/ProfileCompletenessService';
 
 interface PhotographersTableProps {
   photographers: Photographer[];
@@ -64,6 +65,7 @@ export const PhotographersTable = ({ photographers, loading, onEdit, onRemove, o
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>E-Mail</TableHead>
+                  <TableHead>Profil-Status</TableHead>
                   <TableHead>Steuer-Status</TableHead>
                   <TableHead>Versicherung</TableHead>
                   <TableHead>Bankdaten</TableHead>
@@ -75,12 +77,48 @@ export const PhotographersTable = ({ photographers, loading, onEdit, onRemove, o
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {photographers.map((photographer) => (
+                {photographers.map((photographer) => {
+                  const profileStatus = ProfileCompletenessService.checkProfile(photographer as any);
+                  const missingFieldsMap = ProfileCompletenessService.groupMissingFieldsBySection(profileStatus.missingFields);
+                  
+                  return (
                   <TableRow key={photographer.user_id}>
                     <TableCell className="font-medium">
                       {photographer.vorname} {photographer.nachname}
                     </TableCell>
                     <TableCell className="text-sm">{photographer.email}</TableCell>
+                    
+                    {/* Profile Status */}
+                    <TableCell>
+                      {profileStatus.isComplete ? (
+                        <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/20 text-xs">
+                          <CheckCircle2 className="h-3 w-3 mr-1" />
+                          Einsatzbereit
+                        </Badge>
+                      ) : (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Badge variant="outline" className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20 text-xs cursor-help">
+                                <AlertTriangle className="h-3 w-3 mr-1" />
+                                Unvollständig ({profileStatus.completionPercentage}%)
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent side="right" className="max-w-xs">
+                              <div className="text-xs space-y-1">
+                                <p className="font-semibold">Fehlende Informationen:</p>
+                                {Array.from(missingFieldsMap.entries()).map(([section, fields]) => (
+                                  <div key={section}>
+                                    <p className="font-medium">{section}:</p>
+                                    <p className="text-muted-foreground">{fields.join(', ')}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
+                    </TableCell>
                     
                     {/* Tax Status */}
                     <TableCell>
@@ -214,7 +252,8 @@ export const PhotographersTable = ({ photographers, loading, onEdit, onRemove, o
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                  );
+                })}
               </TableBody>
             </Table>
           </div>

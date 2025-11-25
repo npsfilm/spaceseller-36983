@@ -7,6 +7,7 @@ import { AlertCircle } from 'lucide-react';
 import { DeclineReasonDialog } from '@/components/freelancer/DeclineReasonDialog';
 import { AssignmentStatsCards } from '@/components/freelancer/AssignmentStatsCards';
 import { AssignmentsList } from '@/components/freelancer/AssignmentsList';
+import { ProfileCompletionBanner } from '@/components/freelancer/ProfileCompletionBanner';
 import { 
   usePhotographerAssignments, 
   useAssignmentStats, 
@@ -14,12 +15,14 @@ import {
   useAssignmentActions 
 } from '@/lib/hooks/useAssignments';
 import { calculateAssignmentDeadline, isUrgentDeadline } from '@/lib/assignmentDeadline';
+import { usePhotographerProfile } from '@/lib/hooks/usePhotographerProfile';
 
 export default function FreelancerDashboard() {
   const { data: assignments = [], isLoading } = usePhotographerAssignments();
   const stats = useAssignmentStats(assignments);
   const groups = useAssignmentGroups(assignments);
   const { acceptAssignment, declineAssignment } = useAssignmentActions();
+  const { isComplete, missingFields, completionPercentage, isLoading: profileLoading } = usePhotographerProfile();
   
   const [declineDialogOpen, setDeclineDialogOpen] = useState(false);
   const [assignmentToDecline, setAssignmentToDecline] = useState<string | null>(null);
@@ -83,6 +86,14 @@ export default function FreelancerDashboard() {
           <p className="text-muted-foreground">Verwalten Sie Ihre Shooting-Aufträge</p>
         </div>
 
+        {/* Profile Completion Banner */}
+        {!profileLoading && !isComplete && (
+          <ProfileCompletionBanner 
+            missingFields={missingFields}
+            completionPercentage={completionPercentage}
+          />
+        )}
+
         <AssignmentStatsCards stats={stats} />
 
         {/* Assignments Tabs */}
@@ -125,6 +136,7 @@ export default function FreelancerDashboard() {
               emptyMessage="Keine dringenden Aufträge"
               onAccept={handleAccept}
               onDecline={onDeclineClick}
+              disableActions={!isComplete}
             />
           </TabsContent>
 
@@ -134,6 +146,7 @@ export default function FreelancerDashboard() {
               emptyMessage="Keine ausstehenden Aufträge"
               onAccept={handleAccept}
               onDecline={onDeclineClick}
+              disableActions={!isComplete}
             />
           </TabsContent>
 

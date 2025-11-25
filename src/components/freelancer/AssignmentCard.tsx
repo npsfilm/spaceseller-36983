@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Calendar, MapPin, Package, Clock, Euro, User, FileText } from 'lucide-react';
 import { useState } from 'react';
 import { format, isWithinInterval, subHours } from 'date-fns';
@@ -49,6 +50,7 @@ interface AssignmentCardProps {
   onViewDetails: () => void;
   onAccept?: () => void;
   onDecline?: () => void;
+  disableActions?: boolean;
 }
 
 const statusConfig = {
@@ -62,7 +64,8 @@ export const AssignmentCard = ({
   assignment, 
   onViewDetails, 
   onAccept, 
-  onDecline 
+  onDecline,
+  disableActions = false
 }: AssignmentCardProps) => {
   const [detailsOpen, setDetailsOpen] = useState(false);
 
@@ -248,10 +251,27 @@ export const AssignmentCard = ({
           </Button>
           {assignment.status === 'pending' && onAccept && onDecline && !isExpired && (
             <>
-              <Button onClick={onAccept} className="flex-1">
-                Annehmen
-              </Button>
-              <Button onClick={onDecline} variant="destructive" className="flex-1">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="flex-1">
+                      <Button 
+                        onClick={onAccept} 
+                        className="w-full"
+                        disabled={disableActions}
+                      >
+                        Annehmen
+                      </Button>
+                    </span>
+                  </TooltipTrigger>
+                  {disableActions && (
+                    <TooltipContent>
+                      <p>Bitte vervollständigen Sie zuerst Ihr Profil</p>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
+              <Button onClick={onDecline} variant="destructive" className="flex-1" disabled={disableActions}>
                 Ablehnen
               </Button>
             </>
