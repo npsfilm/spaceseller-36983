@@ -754,7 +754,7 @@ function SettingsContent() {
                           </div>
                           
                           <div className="space-y-2">
-                            <Label htmlFor="telefon">Telefonnummer</Label>
+                            <Label htmlFor="telefon">Telefonnummer *</Label>
                             <div className="flex gap-2">
                               <Select value={countryCode} onValueChange={setCountryCode}>
                                 <SelectTrigger className="w-32">
@@ -787,13 +787,13 @@ function SettingsContent() {
                       <section id="photographer-location" className="scroll-mt-8">
                         <div className="bg-card border border-border rounded-xl p-6 space-y-6">
                           <div>
-                            <h2 className="text-2xl font-bold mb-2">Standort & Serviceradius</h2>
-                            <p className="text-sm text-muted-foreground">Ihr Arbeitsbereich für Aufträge</p>
+                            <h2 className="text-2xl font-bold mb-2">Standort & Serviceradius *</h2>
+                            <p className="text-sm text-muted-foreground">Ihr Arbeitsbereich für Aufträge - Standort-Koordinaten werden beim Speichern automatisch ermittelt</p>
                           </div>
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2 md:col-span-2">
-                              <Label htmlFor="strasse">Straße</Label>
+                              <Label htmlFor="strasse">Straße *</Label>
                               <Input
                                 id="strasse"
                                 value={strasse}
@@ -803,7 +803,7 @@ function SettingsContent() {
                             </div>
 
                             <div className="space-y-2">
-                              <Label htmlFor="plz">PLZ</Label>
+                              <Label htmlFor="plz">PLZ *</Label>
                               <Input
                                 id="plz"
                                 value={plz}
@@ -813,7 +813,7 @@ function SettingsContent() {
                             </div>
 
                             <div className="space-y-2">
-                              <Label htmlFor="stadt">Stadt</Label>
+                              <Label htmlFor="stadt">Stadt *</Label>
                               <Input
                                 id="stadt"
                                 value={stadt}
@@ -824,7 +824,7 @@ function SettingsContent() {
                           </div>
 
                           <div className="space-y-2">
-                            <Label>Serviceradius: {serviceRadius[0]} km</Label>
+                            <Label>Serviceradius *: {serviceRadius[0]} km</Label>
                             <Slider
                               value={serviceRadius}
                               onValueChange={setServiceRadius}
@@ -849,8 +849,8 @@ function SettingsContent() {
                       <section id="photographer-business" className="scroll-mt-8">
                         <div className="bg-card border border-border rounded-xl p-6 space-y-6">
                           <div>
-                            <h2 className="text-2xl font-bold mb-2">Geschäftsdaten & Steuern</h2>
-                            <p className="text-sm text-muted-foreground">Steuerrelevante Informationen für Rechnungsstellung</p>
+                            <h2 className="text-2xl font-bold mb-2">Geschäftsdaten & Steuern *</h2>
+                            <p className="text-sm text-muted-foreground">Steuerrelevante Informationen für Rechnungsstellung - Sie müssen entweder Kleinunternehmer sein oder Steuernummer/USt-IdNr. angeben</p>
                           </div>
 
                           <div className="space-y-2">
@@ -947,12 +947,12 @@ function SettingsContent() {
                       <section id="photographer-banking" className="scroll-mt-8">
                         <div className="bg-card border border-border rounded-xl p-6 space-y-6">
                           <div>
-                            <h2 className="text-2xl font-bold mb-2">Bankverbindung</h2>
+                            <h2 className="text-2xl font-bold mb-2">Bankverbindung *</h2>
                             <p className="text-sm text-muted-foreground">Für Honorarzahlungen</p>
                           </div>
 
                           <div className="space-y-2">
-                            <Label htmlFor="iban">IBAN</Label>
+                            <Label htmlFor="iban">IBAN *</Label>
                             <Input
                               id="iban"
                               value={iban}
@@ -973,7 +973,7 @@ function SettingsContent() {
                           </div>
 
                           <div className="space-y-2">
-                            <Label htmlFor="kontoinhaber">Kontoinhaber</Label>
+                            <Label htmlFor="kontoinhaber">Kontoinhaber *</Label>
                             <Input
                               id="kontoinhaber"
                               value={kontoinhaber}
@@ -993,8 +993,8 @@ function SettingsContent() {
                       <section id="photographer-availability" className="scroll-mt-8">
                         <div className="bg-card border border-border rounded-xl p-6 space-y-6">
                           <div>
-                            <h2 className="text-2xl font-bold mb-2">Verfügbarkeit</h2>
-                            <p className="text-sm text-muted-foreground">Tage, an denen Sie nicht verfügbar sind</p>
+                            <h2 className="text-2xl font-bold mb-2">Verfügbarkeit *</h2>
+                            <p className="text-sm text-muted-foreground">Tage, an denen Sie nicht verfügbar sind - Bitte halten Sie dies aktuell</p>
                           </div>
 
                           <div className="space-y-4">
@@ -1027,8 +1027,8 @@ function SettingsContent() {
                       <section id="photographer-professional" className="scroll-mt-8">
                         <div className="bg-card border border-border rounded-xl p-6 space-y-6">
                           <div>
-                            <h2 className="text-2xl font-bold mb-2">Qualifikation</h2>
-                            <p className="text-sm text-muted-foreground">Berufliche Qualifikationen und Ausstattung</p>
+                            <h2 className="text-2xl font-bold mb-2">Qualifikation *</h2>
+                            <p className="text-sm text-muted-foreground">Berufliche Qualifikationen und Ausstattung - Berufshaftpflicht ist Pflicht</p>
                           </div>
 
                           {isInsuranceExpired && (
@@ -1041,7 +1041,7 @@ function SettingsContent() {
                           )}
 
                           <div className="space-y-2">
-                            <Label htmlFor="berufshaftpflicht">Berufshaftpflicht gültig bis</Label>
+                            <Label htmlFor="berufshaftpflicht">Berufshaftpflicht gültig bis *</Label>
                             <Input
                               id="berufshaftpflicht"
                               type="date"
