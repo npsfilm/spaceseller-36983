@@ -4,6 +4,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
@@ -11,11 +12,13 @@ import { Calendar } from '@/components/ui/calendar';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { toast as sonnerToast } from 'sonner';
 import { useUserRole } from '@/hooks/useUserRole';
+import { usePhotographerProfile } from '@/lib/hooks/usePhotographerProfile';
 import { 
   User, 
   Lock, 
@@ -26,7 +29,8 @@ import {
   MapPin, 
   Calendar as CalendarIcon,
   Award,
-  AlertCircle 
+  AlertCircle,
+  CheckCircle2
 } from 'lucide-react';
 import { z } from 'zod';
 import { GDPRSection } from '@/components/settings/GDPRSection';
@@ -85,6 +89,7 @@ function SettingsContent() {
   const { toast } = useToast();
   const { role } = useUserRole();
   const isPhotographer = role === 'photographer';
+  const { isComplete, missingFields, completionPercentage, refresh: refreshProfile } = usePhotographerProfile();
 
   // Photographer-specific state
   const [vorname, setVorname] = useState("");
@@ -386,6 +391,7 @@ function SettingsContent() {
         .eq("id", user?.id);
 
       if (error) throw error;
+      await refreshProfile();
       sonnerToast.success("Geschäftsdaten erfolgreich gespeichert");
     } catch (error) {
       console.error("Error saving tax/business data:", error);
@@ -414,6 +420,7 @@ function SettingsContent() {
         .eq("id", user?.id);
 
       if (error) throw error;
+      await refreshProfile();
       sonnerToast.success("Bankverbindung erfolgreich gespeichert");
     } catch (error) {
       console.error("Error saving banking data:", error);
@@ -579,6 +586,31 @@ function SettingsContent() {
             <div className="flex-1 min-w-0">
               <ScrollArea id="settings-scroll-area" className="h-[calc(100vh-240px)]">
                 <div className="space-y-12 pr-4">
+                  {/* Photographer Profile Completion Indicator */}
+                  {isPhotographer && (
+                    <div className="bg-card border border-border rounded-xl p-6">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-lg font-semibold">Profil-Vollständigkeit</h3>
+                        {isComplete ? (
+                          <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/20">
+                            <CheckCircle2 className="h-3 w-3 mr-1" />
+                            Vollständig
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">
+                            <AlertCircle className="h-3 w-3 mr-1" />
+                            {completionPercentage}%
+                          </Badge>
+                        )}
+                      </div>
+                      <Progress value={completionPercentage} className="h-2 mb-2" />
+                      {!isComplete && (
+                        <p className="text-sm text-muted-foreground">
+                          Sie können Aufträge erst annehmen, wenn Ihr Profil vollständig ausgefüllt ist.
+                        </p>
+                      )}
+                    </div>
+                  )}
                   {/* Client-only Profile Section */}
                   {!isPhotographer && (
                     <section id="profile" className="scroll-mt-8">
