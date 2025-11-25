@@ -25,9 +25,13 @@ export class ProfileCompletenessService {
     { field: 'strasse', label: 'Straße', section: 'Standort & Radius' },
     { field: 'plz', label: 'PLZ', section: 'Standort & Radius' },
     { field: 'stadt', label: 'Stadt', section: 'Standort & Radius' },
+    { field: 'location_lat', label: 'Standort Koordinaten', section: 'Standort & Radius' },
+    { field: 'location_lng', label: 'Standort Koordinaten', section: 'Standort & Radius' },
+    { field: 'service_radius_km', label: 'Serviceradius', section: 'Standort & Radius' },
     { field: 'tax_status', label: 'Steuerstatus', section: 'Geschäftsdaten & Steuern' },
     { field: 'iban', label: 'IBAN', section: 'Bankverbindung' },
     { field: 'kontoinhaber', label: 'Kontoinhaber', section: 'Bankverbindung' },
+    { field: 'berufshaftpflicht_bis', label: 'Berufshaftpflichtversicherung', section: 'Qualifikation' },
   ];
 
   /**
@@ -66,6 +70,16 @@ export class ProfileCompletenessService {
       missingFields.push(this.REQUIRED_FIELDS[5]);
     }
 
+    // Check location coordinates
+    if (!profile.location_lat || !profile.location_lng) {
+      missingFields.push(this.REQUIRED_FIELDS[6]);
+    }
+
+    // Check service radius
+    if (!profile.service_radius_km || profile.service_radius_km <= 0) {
+      missingFields.push(this.REQUIRED_FIELDS[8]);
+    }
+
     // Check tax status: Kleinunternehmer OR (VAT liable with tax number)
     const taxStatusValid = 
       profile.kleinunternehmer === true ||
@@ -78,15 +92,20 @@ export class ProfileCompletenessService {
       );
     
     if (!taxStatusValid) {
-      missingFields.push(this.REQUIRED_FIELDS[6]);
+      missingFields.push(this.REQUIRED_FIELDS[9]);
     }
 
     // Check banking
     if (!profile.iban || profile.iban.trim() === '') {
-      missingFields.push(this.REQUIRED_FIELDS[7]);
+      missingFields.push(this.REQUIRED_FIELDS[10]);
     }
     if (!profile.kontoinhaber || profile.kontoinhaber.trim() === '') {
-      missingFields.push(this.REQUIRED_FIELDS[8]);
+      missingFields.push(this.REQUIRED_FIELDS[11]);
+    }
+
+    // Check professional liability insurance
+    if (!profile.berufshaftpflicht_bis) {
+      missingFields.push(this.REQUIRED_FIELDS[12]);
     }
 
     const completionPercentage = Math.round(
