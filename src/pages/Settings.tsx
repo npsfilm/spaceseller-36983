@@ -504,14 +504,14 @@ function SettingsContent() {
 
   return (
     <LayoutWrapper>
-      <div className="min-h-screen pt-32 pb-16">
-        <div className="container mx-auto px-4">
-          <div className="mb-8">
+      <div className="h-screen overflow-hidden pt-32 pb-16">
+        <div className="container mx-auto px-4 h-full flex flex-col">
+          <div className="mb-8 flex-shrink-0">
             <h1 className="text-4xl font-bold mb-4">Einstellungen</h1>
             <p className="text-muted-foreground">Verwalten Sie Ihr Konto und Ihre Einstellungen</p>
           </div>
 
-          <div className="flex gap-8">
+          <div className="flex gap-8 flex-1 min-h-0">
             {/* Fixed Sidebar */}
             <aside className="hidden lg:block w-64 flex-shrink-0">
               <div className="sticky top-32">
@@ -540,9 +540,9 @@ function SettingsContent() {
             </aside>
 
             {/* Main Content */}
-            <div className="flex-1 min-w-0">
-              <ScrollArea id="settings-scroll-area" className="h-[calc(100vh-240px)]">
-                <div className="space-y-12 pr-4">
+            <div className="flex-1 min-w-0 h-full">
+              <ScrollArea id="settings-scroll-area" className="h-full">
+                <div className="space-y-12 pr-4 pb-8">
                   {/* Photographer Profile Completion Indicator */}
                   {isPhotographer && (
                     <div className="bg-card border border-border rounded-xl p-6">
