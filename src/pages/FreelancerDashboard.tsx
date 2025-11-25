@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Layout } from '@/components/Layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { AlertCircle } from 'lucide-react';
 import { DeclineReasonDialog } from '@/components/freelancer/DeclineReasonDialog';
 import { AssignmentStatsCards } from '@/components/freelancer/AssignmentStatsCards';
 import { AssignmentsList } from '@/components/freelancer/AssignmentsList';
@@ -11,6 +13,7 @@ import {
   useAssignmentGroups,
   useAssignmentActions 
 } from '@/lib/hooks/useAssignments';
+import { calculateAssignmentDeadline, isUrgentDeadline } from '@/lib/assignmentDeadline';
 
 export default function FreelancerDashboard() {
   const { data: assignments = [], isLoading } = usePhotographerAssignments();
@@ -20,6 +23,18 @@ export default function FreelancerDashboard() {
   
   const [declineDialogOpen, setDeclineDialogOpen] = useState(false);
   const [assignmentToDecline, setAssignmentToDecline] = useState<string | null>(null);
+
+  // Filter urgent assignments (< 2 hours remaining)
+  const urgentAssignments = useMemo(() => {
+    return groups.pending.filter(assignment => {
+      if (!assignment.assigned_at) return false;
+      const deadline = calculateAssignmentDeadline(
+        assignment.assigned_at,
+        assignment.scheduled_date
+      );
+      return isUrgentDeadline(deadline);
+    });
+  }, [groups.pending]);
 
   const handleAccept = (assignmentId: string) => {
     const assignment = assignments.find(a => a.id === assignmentId);
@@ -73,6 +88,18 @@ export default function FreelancerDashboard() {
         {/* Assignments Tabs */}
         <Tabs defaultValue="pending" className="space-y-4">
           <TabsList>
+            <TabsTrigger value="urgent" className="relative">
+              <AlertCircle className="h-4 w-4 mr-2" />
+              Dringend
+              {urgentAssignments.length > 0 && (
+                <Badge 
+                  variant="destructive" 
+                  className="ml-2 h-5 min-w-5 px-1.5 flex items-center justify-center"
+                >
+                  {urgentAssignments.length}
+                </Badge>
+              )}
+            </TabsTrigger>
             <TabsTrigger value="pending">
               Ausstehend ({stats.pending})
             </TabsTrigger>
@@ -83,6 +110,23 @@ export default function FreelancerDashboard() {
               Abgeschlossen ({stats.completed})
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="urgent" className="space-y-4">
+            {urgentAssignments.length > 0 && (
+              <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+                <p className="text-sm text-destructive font-medium flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4" />
+                  Diese Aufträge erfordern dringend Ihre Antwort (weniger als 2 Stunden verbleibend)
+                </p>
+              </div>
+            )}
+            <AssignmentsList
+              assignments={urgentAssignments}
+              emptyMessage="Keine dringenden Aufträge"
+              onAccept={handleAccept}
+              onDecline={onDeclineClick}
+            />
+          </TabsContent>
 
           <TabsContent value="pending" className="space-y-4">
             <AssignmentsList

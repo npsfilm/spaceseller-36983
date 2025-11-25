@@ -13,6 +13,7 @@ export interface Assignment {
   travel_cost: number | null;
   responded_at: string | null;
   created_at: string | null;
+  assigned_at: string | null;
   orders: {
     order_number: string;
     special_instructions: string | null;

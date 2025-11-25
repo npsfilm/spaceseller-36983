@@ -6,6 +6,7 @@ import { Calendar, MapPin, Package, Clock, Euro, User, FileText } from 'lucide-r
 import { useState } from 'react';
 import { format, isWithinInterval, subHours } from 'date-fns';
 import { de } from 'date-fns/locale';
+import { DeadlineCountdown } from './DeadlineCountdown';
 
 interface AssignmentCardProps {
   assignment: {
@@ -17,6 +18,7 @@ interface AssignmentCardProps {
     payment_amount: number | null;
     travel_cost: number | null;
     created_at: string | null;
+    assigned_at: string | null;
     orders: {
       order_number: string;
       special_instructions: string | null;
@@ -109,6 +111,17 @@ export const AssignmentCard = ({
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Deadline Countdown for Pending Assignments */}
+        {assignment.status === 'pending' && assignment.assigned_at && (
+          <div className="p-3 bg-muted/50 rounded-lg border border-border">
+            <DeadlineCountdown 
+              assignedAt={assignment.assigned_at}
+              scheduledDate={assignment.scheduled_date}
+              status={assignment.status}
+            />
+          </div>
+        )}
+
         {/* Payment Amount */}
         {assignment.payment_amount !== null && assignment.payment_amount > 0 && (
           <div className="space-y-2 p-3 bg-green-50 dark:bg-green-950/20 rounded-lg">
