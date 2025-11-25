@@ -27,7 +27,6 @@ import SecurityMonitor from "./pages/admin/SecurityMonitor";
 import FreelancerDashboard from "./pages/FreelancerDashboard";
 import Dashboard from "./pages/Dashboard";
 import ResetPassword from "./pages/ResetPassword";
-import PhotographerSettings from "./pages/PhotographerSettings";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -58,7 +57,6 @@ const App = () => (
             <Route path="/admin-backend/users" element={<ProtectedRoute requireOnboarding requireAdmin><UserRoleManagement /></ProtectedRoute>} />
             <Route path="/admin-backend/security" element={<ProtectedRoute requireOnboarding requireAdmin><SecurityMonitor /></ProtectedRoute>} />
             <Route path="/freelancer-dashboard" element={<ProtectedRoute requireOnboarding requirePhotographer><FreelancerDashboard /></ProtectedRoute>} />
-            <Route path="/photographer-settings" element={<ProtectedRoute requireOnboarding requirePhotographer><PhotographerSettings /></ProtectedRoute>} />
             <Route path="/impressum" element={<Impressum />} />
             <Route path="/datenschutz" element={<Datenschutz />} />
             <Route path="/agb" element={<AGB />} />

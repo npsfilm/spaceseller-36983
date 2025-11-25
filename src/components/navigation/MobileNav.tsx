@@ -97,12 +97,12 @@ export const MobileNav = ({ isOpen, onOpenChange }: MobileNavProps) => {
                     Freelancer Dashboard
                   </Link>
                   <Link
-                    to="/photographer-settings"
+                    to="/settings"
                     onClick={handleNavClick}
                     className="flex items-center gap-3 rounded-md p-3 text-sm font-medium hover:bg-accent transition-colors"
                   >
                     <SettingsIcon className="w-4 h-4" />
-                    Fotografen-Einstellungen
+                    Einstellungen
                   </Link>
                 </>
               )}
