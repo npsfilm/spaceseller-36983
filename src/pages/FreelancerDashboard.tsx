@@ -8,6 +8,10 @@ import { DeclineReasonDialog } from '@/components/freelancer/DeclineReasonDialog
 import { AssignmentStatsCards } from '@/components/freelancer/AssignmentStatsCards';
 import { AssignmentsList } from '@/components/freelancer/AssignmentsList';
 import { ProfileCompletionBanner } from '@/components/freelancer/ProfileCompletionBanner';
+import { WelcomeGreeting } from '@/components/freelancer/WelcomeGreeting';
+import { UpcomingShootings } from '@/components/freelancer/UpcomingShootings';
+import { PerformanceMetrics } from '@/components/freelancer/PerformanceMetrics';
+import { NewPhotographerWelcome } from '@/components/freelancer/NewPhotographerWelcome';
 import { 
   usePhotographerAssignments, 
   useAssignmentStats, 
@@ -81,10 +85,11 @@ export default function FreelancerDashboard() {
       </Helmet>
 
       <div className="container mx-auto px-4 py-12">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Freelancer Dashboard</h1>
-          <p className="text-muted-foreground">Verwalten Sie Ihre Shooting-Aufträge</p>
-        </div>
+        {/* Welcome Greeting */}
+        <WelcomeGreeting 
+          pendingCount={stats.pending}
+          nextShootingDate={groups.accepted.find(a => a.scheduled_date)?.scheduled_date}
+        />
 
         {/* Profile Completion Banner */}
         {!profileLoading && !isComplete && (
@@ -93,6 +98,22 @@ export default function FreelancerDashboard() {
             completionPercentage={completionPercentage}
           />
         )}
+
+        {/* Empty State for New Photographers */}
+        {assignments.length === 0 && !isComplete && (
+          <NewPhotographerWelcome 
+            missingFields={missingFields.map(f => f.field)}
+            completionPercentage={completionPercentage}
+          />
+        )}
+
+        {/* Performance Metrics */}
+        {assignments.length > 0 && (
+          <PerformanceMetrics assignments={assignments} />
+        )}
+
+        {/* Upcoming Shootings */}
+        <UpcomingShootings assignments={assignments} />
 
         <AssignmentStatsCards stats={stats} />
 
