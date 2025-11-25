@@ -58,8 +58,16 @@ export const AssignmentCard = ({
   onAccept, 
   onDecline 
 }: AssignmentCardProps) => {
-  const address = assignment.orders.addresses[0];
+  // Handle missing orders data gracefully
+  if (!assignment.orders) {
+    console.warn('[AssignmentCard] Assignment has no orders data:', assignment.id);
+    return null;
+  }
+
+  const address = assignment.orders.addresses?.[0];
   const statusInfo = statusConfig[assignment.status as keyof typeof statusConfig];
+  const profiles = assignment.orders.profiles;
+  const orderItems = assignment.orders.order_items || [];
 
   return (
     <Card>
@@ -68,7 +76,7 @@ export const AssignmentCard = ({
           <div>
             <CardTitle className="text-lg">Auftrag #{assignment.orders.order_number}</CardTitle>
             <p className="text-sm text-muted-foreground mt-1">
-              {assignment.orders.order_items.length} Service{assignment.orders.order_items.length !== 1 ? 's' : ''}
+              {orderItems.length} Service{orderItems.length !== 1 ? 's' : ''}
             </p>
           </div>
           <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
@@ -103,19 +111,21 @@ export const AssignmentCard = ({
         </div>
 
         {/* Client Information */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <User className="h-4 w-4 text-muted-foreground" />
-            <h4 className="font-semibold text-sm">Kunde:</h4>
+        {profiles && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <User className="h-4 w-4 text-muted-foreground" />
+              <h4 className="font-semibold text-sm">Kunde:</h4>
+            </div>
+            <div className="text-sm text-muted-foreground ml-6">
+              <p>{profiles.vorname} {profiles.nachname}</p>
+              <p>{profiles.email}</p>
+              {profiles.telefon && (
+                <p>Tel: {profiles.telefon}</p>
+              )}
+            </div>
           </div>
-          <div className="text-sm text-muted-foreground ml-6">
-            <p>{assignment.orders.profiles.vorname} {assignment.orders.profiles.nachname}</p>
-            <p>{assignment.orders.profiles.email}</p>
-            {assignment.orders.profiles.telefon && (
-              <p>Tel: {assignment.orders.profiles.telefon}</p>
-            )}
-          </div>
-        </div>
+        )}
 
         {/* Services Breakdown */}
         <div className="space-y-2">
@@ -123,14 +133,18 @@ export const AssignmentCard = ({
             <Package className="h-4 w-4 text-muted-foreground" />
             <h4 className="font-semibold text-sm">Services:</h4>
           </div>
-          <ul className="text-sm space-y-1 ml-6">
-            {assignment.orders.order_items.map((item, idx) => (
-              <li key={idx} className="flex justify-between">
-                <span>{item.quantity}x {item.services.name}</span>
-                <span className="font-medium">€{item.total_price.toFixed(2)}</span>
-              </li>
-            ))}
-          </ul>
+          {orderItems.length > 0 ? (
+            <ul className="text-sm space-y-1 ml-6">
+              {orderItems.map((item, idx) => (
+                <li key={idx} className="flex justify-between">
+                  <span>{item.quantity}x {item.services?.name || 'Service'}</span>
+                  <span className="font-medium">€{item.total_price.toFixed(2)}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-muted-foreground ml-6">Details werden geladen...</p>
+          )}
         </div>
 
         {/* Address */}
