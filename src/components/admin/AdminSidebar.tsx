@@ -4,7 +4,8 @@ import {
   MapPin, 
   Shield, 
   ShieldAlert,
-  Camera
+  Camera,
+  BarChart3
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -32,6 +33,11 @@ const menuItems = [
     title: "Fotografen", 
     url: "/admin-backend/photographers", 
     icon: Camera 
+  },
+  { 
+    title: "Zuverlässigkeitsbericht", 
+    url: "/admin-backend/reliability", 
+    icon: BarChart3 
   },
   { 
     title: "Standorte", 

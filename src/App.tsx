@@ -21,6 +21,7 @@ import Admin from "./pages/Admin";
 import OrderDetail from "./pages/admin/OrderDetail";
 import PhotographerManagement from "./pages/admin/PhotographerManagement";
 import PhotographerLocations from "./pages/admin/PhotographerLocations";
+import PhotographerReliability from "./pages/admin/PhotographerReliability";
 import UserRoleManagement from "./pages/admin/UserRoleManagement";
 import SecurityMonitor from "./pages/admin/SecurityMonitor";
 import FreelancerDashboard from "./pages/FreelancerDashboard";
@@ -52,6 +53,7 @@ const App = () => (
             <Route path="/admin-backend" element={<ProtectedRoute requireOnboarding requireAdmin><Admin /></ProtectedRoute>} />
             <Route path="/admin-backend/orders/:orderId" element={<ProtectedRoute requireOnboarding requireAdmin><OrderDetail /></ProtectedRoute>} />
             <Route path="/admin-backend/photographers" element={<ProtectedRoute requireOnboarding requireAdmin><PhotographerManagement /></ProtectedRoute>} />
+            <Route path="/admin-backend/reliability" element={<ProtectedRoute requireOnboarding requireAdmin><PhotographerReliability /></ProtectedRoute>} />
             <Route path="/admin-backend/locations" element={<ProtectedRoute requireOnboarding requireAdmin><PhotographerLocations /></ProtectedRoute>} />
             <Route path="/admin-backend/users" element={<ProtectedRoute requireOnboarding requireAdmin><UserRoleManagement /></ProtectedRoute>} />
             <Route path="/admin-backend/security" element={<ProtectedRoute requireOnboarding requireAdmin><SecurityMonitor /></ProtectedRoute>} />
