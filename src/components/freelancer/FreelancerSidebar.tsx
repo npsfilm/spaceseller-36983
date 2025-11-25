@@ -69,7 +69,10 @@ export const FreelancerSidebar = () => {
   ];
 
   return (
-    <aside className="w-64 border-r border-border bg-card flex flex-col h-screen sticky top-0">
+    <aside 
+      className="w-64 border-r border-border bg-card flex flex-col h-screen sticky top-0"
+      onWheel={(e) => e.stopPropagation()}
+    >
       <div className="p-6 border-b border-border">
         <h2 className="text-lg font-bold">Fotograf Portal</h2>
         <p className="text-sm text-muted-foreground">Ihre Aufträge</p>
