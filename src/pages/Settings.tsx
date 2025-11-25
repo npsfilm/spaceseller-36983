@@ -449,6 +449,54 @@ function SettingsContent() {
     }
   };
 
+  const handleRecalculateCoordinates = async () => {
+    if (!strasse || !plz || !stadt) {
+      sonnerToast.error("Bitte zuerst eine vollständige Adresse angeben");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Call geocode edge function
+      const { data: geocodeData, error: geocodeError } = await supabase.functions.invoke('geocode-address', {
+        body: {
+          address: strasse,
+          city: stadt,
+          postal_code: plz,
+          country: 'Germany'
+        }
+      });
+
+      if (geocodeError) throw geocodeError;
+      if (!geocodeData?.latitude || !geocodeData?.longitude) {
+        throw new Error('Koordinaten konnten nicht ermittelt werden');
+      }
+
+      // Update profile with coordinates
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          location_lat: geocodeData.latitude,
+          location_lng: geocodeData.longitude,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", user?.id);
+
+      if (error) throw error;
+      
+      // Reload profile to show updated coordinates
+      await loadProfile();
+      await refreshProfile();
+      
+      sonnerToast.success("Koordinaten erfolgreich berechnet");
+    } catch (error) {
+      console.error("Error geocoding address:", error);
+      sonnerToast.error("Fehler beim Berechnen der Koordinaten");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSaveProfessional = async () => {
     if (portfolioUrl && !/^https?:\/\/.+/.test(portfolioUrl)) {
       sonnerToast.error("Ungültige URL (muss mit http:// oder https:// beginnen)");
@@ -794,10 +842,33 @@ function SettingsContent() {
                             </p>
                           </div>
 
-                          <Button onClick={handleSaveLocation} disabled={loading}>
-                            <Save className="mr-2 h-4 w-4" />
-                            Speichern
-                          </Button>
+                          {/* Show recalculate button if address exists but coordinates are missing */}
+                          {strasse && plz && stadt && (!profile.location_lat || !profile.location_lng) && (
+                            <Alert>
+                              <AlertCircle className="h-4 w-4" />
+                              <AlertDescription>
+                                Standort-Koordinaten fehlen. Bitte berechnen Sie die Koordinaten neu.
+                              </AlertDescription>
+                            </Alert>
+                          )}
+
+                          <div className="flex gap-3">
+                            <Button onClick={handleSaveLocation} disabled={loading}>
+                              <Save className="mr-2 h-4 w-4" />
+                              Speichern
+                            </Button>
+                            
+                            {strasse && plz && stadt && (!profile.location_lat || !profile.location_lng) && (
+                              <Button 
+                                onClick={handleRecalculateCoordinates} 
+                                disabled={loading}
+                                variant="outline"
+                              >
+                                <MapPin className="mr-2 h-4 w-4" />
+                                Koordinaten neu berechnen
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       </section>
 
