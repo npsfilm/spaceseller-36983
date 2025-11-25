@@ -579,111 +579,113 @@ function SettingsContent() {
             <div className="flex-1 min-w-0">
               <ScrollArea id="settings-scroll-area" className="h-[calc(100vh-240px)]">
                 <div className="space-y-12 pr-4">
-                  {/* Profile Section */}
-                  <section id="profile" className="scroll-mt-8">
-                    <div className="bg-card border border-border rounded-xl p-6 space-y-6">
-                      <div>
-                        <h2 className="text-2xl font-bold mb-2">Profil</h2>
-                        <p className="text-sm text-muted-foreground">Ihre persönlichen und geschäftlichen Informationen</p>
-                      </div>
+                  {/* Client-only Profile Section */}
+                  {!isPhotographer && (
+                    <section id="profile" className="scroll-mt-8">
+                      <div className="bg-card border border-border rounded-xl p-6 space-y-6">
+                        <div>
+                          <h2 className="text-2xl font-bold mb-2">Profil</h2>
+                          <p className="text-sm text-muted-foreground">Ihre persönlichen und geschäftlichen Informationen</p>
+                        </div>
 
-                      <div>
-                        <h3 className="text-lg font-semibold mb-4">Persönliche Informationen</h3>
-                        <div className="grid md:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label>E-Mail-Adresse</Label>
-                            <Input value={profile.email} disabled className="bg-muted" />
-                            <p className="text-xs text-muted-foreground">E-Mail kann nicht geändert werden</p>
-                          </div>
+                        <div>
+                          <h3 className="text-lg font-semibold mb-4">Persönliche Informationen</h3>
+                          <div className="grid md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label>E-Mail-Adresse</Label>
+                              <Input value={profile.email} disabled className="bg-muted" />
+                              <p className="text-xs text-muted-foreground">E-Mail kann nicht geändert werden</p>
+                            </div>
 
-                          <div className="space-y-2">
-                            <Label>Telefon</Label>
-                            <div className="flex gap-2">
-                              <Select 
-                                value={profile.countryCode || '+49'} 
-                                onValueChange={(value) => setProfile({ ...profile, countryCode: value })}
-                              >
-                                <SelectTrigger className="w-32">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="+49">🇩🇪 +49</SelectItem>
-                                  <SelectItem value="+43">🇦🇹 +43</SelectItem>
-                                  <SelectItem value="+41">🇨🇭 +41</SelectItem>
-                                </SelectContent>
-                              </Select>
+                            <div className="space-y-2">
+                              <Label>Telefon</Label>
+                              <div className="flex gap-2">
+                                <Select 
+                                  value={profile.countryCode || '+49'} 
+                                  onValueChange={(value) => setProfile({ ...profile, countryCode: value })}
+                                >
+                                  <SelectTrigger className="w-32">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="+49">🇩🇪 +49</SelectItem>
+                                    <SelectItem value="+43">🇦🇹 +43</SelectItem>
+                                    <SelectItem value="+41">🇨🇭 +41</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <Input
+                                  value={profile.telefon || ''}
+                                  onChange={(e) => setProfile({ ...profile, telefon: e.target.value })}
+                                  placeholder="123 456789"
+                                  className="flex-1"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label>Vorname</Label>
                               <Input
-                                value={profile.telefon || ''}
-                                onChange={(e) => setProfile({ ...profile, telefon: e.target.value })}
-                                placeholder="123 456789"
-                                className="flex-1"
+                                value={profile.vorname || ''}
+                                onChange={(e) => setProfile({ ...profile, vorname: e.target.value })}
+                              />
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label>Nachname</Label>
+                              <Input
+                                value={profile.nachname || ''}
+                                onChange={(e) => setProfile({ ...profile, nachname: e.target.value })}
                               />
                             </div>
                           </div>
+                        </div>
 
-                          <div className="space-y-2">
-                            <Label>Vorname</Label>
-                            <Input
-                              value={profile.vorname || ''}
-                              onChange={(e) => setProfile({ ...profile, vorname: e.target.value })}
-                            />
-                          </div>
+                        <div>
+                          <h3 className="text-lg font-semibold mb-4">Unternehmensinformationen</h3>
+                          <div className="grid md:grid-cols-2 gap-4">
+                            <div className="space-y-2 md:col-span-2">
+                              <Label>Firma</Label>
+                              <Input
+                                value={profile.firma || ''}
+                                onChange={(e) => setProfile({ ...profile, firma: e.target.value })}
+                              />
+                            </div>
 
-                          <div className="space-y-2">
-                            <Label>Nachname</Label>
-                            <Input
-                              value={profile.nachname || ''}
-                              onChange={(e) => setProfile({ ...profile, nachname: e.target.value })}
-                            />
+                            <div className="space-y-2 md:col-span-2">
+                              <Label>Straße</Label>
+                              <Input
+                                value={profile.strasse || ''}
+                                onChange={(e) => setProfile({ ...profile, strasse: e.target.value })}
+                              />
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label>PLZ</Label>
+                              <Input
+                                value={profile.plz || ''}
+                                onChange={(e) => setProfile({ ...profile, plz: e.target.value })}
+                              />
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label>Stadt</Label>
+                              <Input
+                                value={profile.stadt || ''}
+                                onChange={(e) => setProfile({ ...profile, stadt: e.target.value })}
+                              />
+                            </div>
                           </div>
                         </div>
+
+                        <Button onClick={handleProfileUpdate} disabled={loading}>
+                          <Save className="h-4 w-4 mr-2" />
+                          {loading ? 'Wird gespeichert...' : 'Änderungen speichern'}
+                        </Button>
                       </div>
+                    </section>
+                  )}
 
-                      <div>
-                        <h3 className="text-lg font-semibold mb-4">Unternehmensinformationen</h3>
-                        <div className="grid md:grid-cols-2 gap-4">
-                          <div className="space-y-2 md:col-span-2">
-                            <Label>Firma</Label>
-                            <Input
-                              value={profile.firma || ''}
-                              onChange={(e) => setProfile({ ...profile, firma: e.target.value })}
-                            />
-                          </div>
-
-                          <div className="space-y-2 md:col-span-2">
-                            <Label>Straße</Label>
-                            <Input
-                              value={profile.strasse || ''}
-                              onChange={(e) => setProfile({ ...profile, strasse: e.target.value })}
-                            />
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label>PLZ</Label>
-                            <Input
-                              value={profile.plz || ''}
-                              onChange={(e) => setProfile({ ...profile, plz: e.target.value })}
-                            />
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label>Stadt</Label>
-                            <Input
-                              value={profile.stadt || ''}
-                              onChange={(e) => setProfile({ ...profile, stadt: e.target.value })}
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      <Button onClick={handleProfileUpdate} disabled={loading}>
-                        <Save className="h-4 w-4 mr-2" />
-                        {loading ? 'Wird gespeichert...' : 'Änderungen speichern'}
-                      </Button>
-                    </div>
-                  </section>
-
-                  {/* Security Section */}
+                  {/* Shared Security Section */}
                   <section id="security" className="scroll-mt-8">
                     <div className="bg-card border border-border rounded-xl p-6 space-y-6">
                       <div>
@@ -723,7 +725,7 @@ function SettingsContent() {
                     </div>
                   </section>
 
-                  {/* Privacy Section */}
+                  {/* Shared Privacy Section */}
                   <section id="privacy" className="scroll-mt-8">
                     <div className="bg-card border border-border rounded-xl p-6 space-y-6">
                       <div>
