@@ -513,7 +513,10 @@ function SettingsContent() {
 
           <div className="flex gap-8 flex-1 min-h-0">
             {/* Fixed Sidebar */}
-            <aside className="hidden lg:block w-64 flex-shrink-0">
+            <aside 
+              className="hidden lg:block w-64 flex-shrink-0"
+              onWheel={(e) => e.stopPropagation()}
+            >
               <div className="sticky top-32">
                 <nav className="space-y-1">
                   {visibleNavItems.map((item) => {
