@@ -77,9 +77,9 @@ export const Header = () => {
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link to="/photographer-settings" className="cursor-pointer">
+                          <Link to="/settings" className="cursor-pointer">
                             <SettingsIcon className="mr-2 h-4 w-4" />
-                            Fotografen-Einstellungen
+                            Einstellungen
                           </Link>
                         </DropdownMenuItem>
                       </>
@@ -112,9 +112,9 @@ export const Header = () => {
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link to="/photographer-settings" className="cursor-pointer">
+                          <Link to="/settings" className="cursor-pointer">
                             <SettingsIcon className="mr-2 h-4 w-4" />
-                            Fotografen-Einstellungen
+                            Einstellungen
                           </Link>
                         </DropdownMenuItem>
                       </>
