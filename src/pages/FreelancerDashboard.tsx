@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Layout } from '@/components/Layout';
+import { FreelancerLayout } from '@/components/freelancer/FreelancerLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle } from 'lucide-react';
@@ -64,16 +64,16 @@ export default function FreelancerDashboard() {
 
   if (isLoading) {
     return (
-      <Layout>
+      <FreelancerLayout>
         <div className="container mx-auto px-4 py-12 flex items-center justify-center min-h-screen">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
         </div>
-      </Layout>
+      </FreelancerLayout>
     );
   }
 
   return (
-    <Layout>
+    <FreelancerLayout>
       <Helmet>
         <meta name="robots" content="noindex, nofollow" />
         <meta name="googlebot" content="noindex, nofollow" />
@@ -176,6 +176,6 @@ export default function FreelancerDashboard() {
           handleDecline(notes || reason);
         }}
       />
-    </Layout>
+    </FreelancerLayout>
   );
 }
