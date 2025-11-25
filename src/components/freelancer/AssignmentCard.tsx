@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Calendar, MapPin, Package, Clock, Euro, User, FileText } from 'lucide-react';
 import { useState } from 'react';
-import { format } from 'date-fns';
+import { format, isWithinInterval, subHours } from 'date-fns';
 import { de } from 'date-fns/locale';
 
 interface AssignmentCardProps {
@@ -16,6 +16,7 @@ interface AssignmentCardProps {
     admin_notes: string | null;
     payment_amount: number | null;
     travel_cost: number | null;
+    created_at: string | null;
     orders: {
       order_number: string;
       special_instructions: string | null;
@@ -73,6 +74,13 @@ export const AssignmentCard = ({
   const profiles = assignment.orders.profiles;
   const orderItems = assignment.orders.order_items || [];
 
+  // Check if assignment is new (created within last 24 hours)
+  const isNew = assignment.status === 'pending' && 
+    isWithinInterval(new Date(assignment.created_at), {
+      start: subHours(new Date(), 24),
+      end: new Date()
+    });
+
   const formatAmount = (value: number) =>
     Number.isInteger(value) ? value.toString() : value.toFixed(2);
 
@@ -90,7 +98,14 @@ export const AssignmentCard = ({
               {orderItems.length} Service{orderItems.length !== 1 ? 's' : ''}
             </p>
           </div>
-          <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
+          <div className="flex items-center gap-2">
+            {isNew && (
+              <Badge variant="default" className="bg-primary text-primary-foreground">
+                Neu
+              </Badge>
+            )}
+            <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
