@@ -2,11 +2,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { UserMinus, Pencil, Mail, AlertTriangle, CheckCircle2, XCircle } from 'lucide-react';
 import { type Photographer } from '@/lib/services/PhotographerService';
-import { format, parseISO, isBefore, addDays } from 'date-fns';
-import { de } from 'date-fns/locale';
 
 interface PhotographersTableProps {
   photographers: Photographer[];
@@ -22,32 +19,29 @@ const getAcceptanceRateBadge = (rate: number) => {
   return 'bg-red-500/10 text-red-500 border-red-500/20';
 };
 
-const getInsuranceStatus = (berufshaftpflicht_bis: string | null) => {
-  if (!berufshaftpflicht_bis) {
-    return { status: 'missing', message: 'Keine Versicherung hinterlegt', color: 'text-muted-foreground' };
-  }
-  
-  const expiryDate = parseISO(berufshaftpflicht_bis);
-  const today = new Date();
-  const warningDate = addDays(today, 30);
-  
-  if (isBefore(expiryDate, today)) {
-    return { status: 'expired', message: 'Abgelaufen', color: 'text-destructive' };
-  }
-  
-  if (isBefore(expiryDate, warningDate)) {
-    return { status: 'expiring', message: 'Läuft bald ab', color: 'text-yellow-600' };
-  }
-  
-  return { status: 'valid', message: format(expiryDate, 'dd.MM.yyyy', { locale: de }), color: 'text-green-600' };
-};
-
 const maskIBAN = (iban: string | null) => {
   if (!iban) return '-';
-  // Show only last 4 digits: DE** **** **** **** **1234
   const cleaned = iban.replace(/\s/g, '');
   if (cleaned.length < 4) return iban;
   return `${cleaned.substring(0, 2)}** **** **** **** **${cleaned.substring(cleaned.length - 4)}`;
+};
+
+const formatInsuranceDate = (date: string | null) => {
+  if (!date) return { text: 'Nicht hinterlegt', className: 'text-muted-foreground', warning: false };
+  
+  const expiryDate = new Date(date);
+  const today = new Date();
+  const diffDays = Math.floor((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  
+  if (diffDays < 0) {
+    return { text: 'Abgelaufen', className: 'text-destructive', warning: true };
+  }
+  
+  if (diffDays <= 30) {
+    return { text: `${diffDays}d`, className: 'text-yellow-600', warning: true };
+  }
+  
+  return { text: expiryDate.toLocaleDateString('de-DE'), className: 'text-green-600', warning: false };
 };
 
 export const PhotographersTable = ({ photographers, loading, onEdit, onRemove, onResendPasswordReset }: PhotographersTableProps) => {
@@ -84,7 +78,7 @@ export const PhotographersTable = ({ photographers, loading, onEdit, onRemove, o
               </TableHeader>
               <TableBody>
                 {photographers.map((photographer) => {
-                  const insuranceStatus = getInsuranceStatus(photographer.berufshaftpflicht_bis);
+                  const insurance = formatInsuranceDate(photographer.berufshaftpflicht_bis);
                   
                   return (
                     <TableRow key={photographer.user_id}>
@@ -108,14 +102,11 @@ export const PhotographersTable = ({ photographers, loading, onEdit, onRemove, o
                       </TableCell>
                       <TableCell className="text-center">
                         <div className="flex items-center justify-center gap-2">
-                          {insuranceStatus.status === 'expired' && (
-                            <AlertTriangle className="h-4 w-4 text-destructive" />
+                          {insurance.warning && (
+                            <AlertTriangle className={`h-4 w-4 ${insurance.className}`} />
                           )}
-                          {insuranceStatus.status === 'expiring' && (
-                            <AlertTriangle className="h-4 w-4 text-yellow-600" />
-                          )}
-                          <span className={`text-sm ${insuranceStatus.color}`}>
-                            {insuranceStatus.message}
+                          <span className={`text-sm ${insurance.className}`}>
+                            {insurance.text}
                           </span>
                         </div>
                       </TableCell>
