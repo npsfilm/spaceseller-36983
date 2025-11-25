@@ -1,21 +1,30 @@
+import { useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { useNavigate } from 'react-router-dom';
 import { ProfileCompletenessService, MissingField } from '@/lib/services/ProfileCompletenessService';
+import { CompleteProfileDialog } from './CompleteProfileDialog';
 
 interface ProfileCompletionBannerProps {
   missingFields: MissingField[];
   completionPercentage: number;
+  onProfileUpdate?: () => void;
 }
 
 export const ProfileCompletionBanner = ({
   missingFields,
   completionPercentage,
+  onProfileUpdate,
 }: ProfileCompletionBannerProps) => {
-  const navigate = useNavigate();
+  const [dialogOpen, setDialogOpen] = useState(false);
   const groupedFields = ProfileCompletenessService.groupMissingFieldsBySection(missingFields);
+
+  const handleComplete = () => {
+    if (onProfileUpdate) {
+      onProfileUpdate();
+    }
+  };
 
   return (
     <Alert variant="destructive" className="mb-6">
@@ -52,14 +61,21 @@ export const ProfileCompletionBanner = ({
         </div>
 
         <Button
-          onClick={() => navigate('/settings')}
+          onClick={() => setDialogOpen(true)}
           variant="default"
           size="sm"
           className="mt-2"
         >
-          Zu den Einstellungen
+          Jetzt vervollständigen
         </Button>
       </AlertDescription>
+
+      <CompleteProfileDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        missingFields={missingFields}
+        onComplete={handleComplete}
+      />
     </Alert>
   );
 };
