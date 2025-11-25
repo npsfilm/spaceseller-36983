@@ -73,11 +73,13 @@ export const AssignmentCard = ({
   const profiles = assignment.orders.profiles;
   const orderItems = assignment.orders.order_items || [];
 
+  const formatAmount = (value: number) =>
+    Number.isInteger(value) ? value.toString() : value.toFixed(2);
+
   const handleDetailsClick = () => {
     setDetailsOpen(true);
     onViewDetails();
   };
-
   return (
     <Card>
       <CardHeader>
@@ -101,20 +103,20 @@ export const AssignmentCard = ({
                 <span className="font-semibold">Vergütung:</span>
               </div>
               <span className="text-xl font-bold text-green-600">
-                €{assignment.payment_amount.toFixed(2)}
+                €{formatAmount(assignment.payment_amount)}
               </span>
             </div>
             {assignment.travel_cost && assignment.travel_cost > 0 && (
               <div className="flex items-center justify-between text-sm pt-2 border-t border-green-200 dark:border-green-800">
                 <span className="text-muted-foreground">+ Reisekosten:</span>
-                <span className="font-medium">€{assignment.travel_cost.toFixed(2)}</span>
+                <span className="font-medium">€{formatAmount(assignment.travel_cost)}</span>
               </div>
             )}
             {assignment.travel_cost && assignment.travel_cost > 0 && (
               <div className="flex items-center justify-between text-sm font-semibold pt-1">
                 <span>Gesamtvergütung:</span>
                 <span className="text-green-600">
-                  €{(assignment.payment_amount + assignment.travel_cost).toFixed(2)}
+                  €{formatAmount(assignment.payment_amount + assignment.travel_cost)}
                 </span>
               </div>
             )}
@@ -226,17 +228,17 @@ export const AssignmentCard = ({
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between">
                     <span>Basisvergütung:</span>
-                    <span className="font-medium">€{assignment.payment_amount.toFixed(2)}</span>
+                    <span className="font-medium">€{formatAmount(assignment.payment_amount)}</span>
                   </div>
                   {assignment.travel_cost && assignment.travel_cost > 0 && (
                     <>
                       <div className="flex justify-between text-muted-foreground">
                         <span>Reisekosten:</span>
-                        <span>€{assignment.travel_cost.toFixed(2)}</span>
+                        <span>€{formatAmount(assignment.travel_cost)}</span>
                       </div>
                       <div className="flex justify-between font-semibold text-green-600 pt-1 border-t">
                         <span>Gesamtvergütung:</span>
-                        <span>€{(assignment.payment_amount + assignment.travel_cost).toFixed(2)}</span>
+                        <span>€{formatAmount(assignment.payment_amount + assignment.travel_cost)}</span>
                       </div>
                     </>
                   )}
