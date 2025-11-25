@@ -26,7 +26,7 @@ export default function FreelancerDashboard() {
   const stats = useAssignmentStats(assignments);
   const groups = useAssignmentGroups(assignments);
   const { acceptAssignment, declineAssignment } = useAssignmentActions();
-  const { isComplete, missingFields, completionPercentage, isLoading: profileLoading } = usePhotographerProfile();
+  const { isComplete, missingFields, completionPercentage, isLoading: profileLoading, refresh: refreshProfile } = usePhotographerProfile();
   
   const [declineDialogOpen, setDeclineDialogOpen] = useState(false);
   const [assignmentToDecline, setAssignmentToDecline] = useState<string | null>(null);
@@ -96,6 +96,7 @@ export default function FreelancerDashboard() {
           <ProfileCompletionBanner 
             missingFields={missingFields}
             completionPercentage={completionPercentage}
+            onProfileUpdate={refreshProfile}
           />
         )}
 
