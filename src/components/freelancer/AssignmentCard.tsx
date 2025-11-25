@@ -106,13 +106,13 @@ export const AssignmentCard = ({
                 €{formatAmount(assignment.payment_amount)}
               </span>
             </div>
-            {assignment.travel_cost && assignment.travel_cost > 0 && (
+            {assignment.travel_cost != null && assignment.travel_cost > 0 && (
               <div className="flex items-center justify-between text-sm pt-2 border-t border-green-200 dark:border-green-800">
                 <span className="text-muted-foreground">+ Reisekosten:</span>
                 <span className="font-medium">€{formatAmount(assignment.travel_cost)}</span>
               </div>
             )}
-            {assignment.travel_cost && assignment.travel_cost > 0 && (
+            {assignment.travel_cost != null && assignment.travel_cost > 0 && (
               <div className="flex items-center justify-between text-sm font-semibold pt-1">
                 <span>Gesamtvergütung:</span>
                 <span className="text-green-600">
@@ -230,7 +230,7 @@ export const AssignmentCard = ({
                     <span>Basisvergütung:</span>
                     <span className="font-medium">€{formatAmount(assignment.payment_amount)}</span>
                   </div>
-                  {assignment.travel_cost && assignment.travel_cost > 0 && (
+                  {assignment.travel_cost != null && assignment.travel_cost > 0 && (
                     <>
                       <div className="flex justify-between text-muted-foreground">
                         <span>Reisekosten:</span>
