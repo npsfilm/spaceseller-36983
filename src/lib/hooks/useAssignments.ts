@@ -54,8 +54,14 @@ export const usePhotographerAssignments = () => {
   return useQuery<Assignment[]>({
     queryKey: ['photographer-assignments', user?.id],
     queryFn: async () => {
-      if (!user) return [];
-      return assignmentDataService.fetchPhotographerAssignments(user.id);
+      if (!user?.id) {
+        console.error('[useAssignments] User not authenticated');
+        return [];
+      }
+      console.log('[useAssignments] Fetching assignments for user:', user.id);
+      const result = await assignmentDataService.fetchPhotographerAssignments(user.id);
+      console.log('[useAssignments] Query returned:', result.length, 'assignments');
+      return result;
     },
     enabled: !!user,
     staleTime: 30000, // 30 seconds

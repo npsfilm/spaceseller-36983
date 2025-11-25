@@ -53,11 +53,13 @@ export class AssignmentDataService {
    * Fetch all assignments for a photographer
    */
   async fetchPhotographerAssignments(photographerId: string): Promise<Assignment[]> {
+    console.log('[AssignmentDataService] Fetching assignments for photographer:', photographerId);
+    
     const { data, error } = await supabase
       .from('order_assignments')
       .select(`
         *,
-        orders!inner(
+        orders(
           order_number,
           special_instructions,
           user_id,
@@ -86,11 +88,22 @@ export class AssignmentDataService {
       .order('created_at', { ascending: false });
 
     if (error) {
+      console.error('[AssignmentDataService] Error fetching assignments:', error);
       throw new Error(`Failed to fetch assignments: ${error.message}`);
     }
 
+    console.log('[AssignmentDataService] Fetched assignments:', data?.length || 0, 'records');
+    
+    // Filter out assignments with null orders (shouldn't happen but defensive)
+    const validAssignments = (data || []).filter(assignment => assignment.orders);
+    
+    if (validAssignments.length < (data?.length || 0)) {
+      console.warn('[AssignmentDataService] Some assignments had null orders:', 
+        (data?.length || 0) - validAssignments.length);
+    }
+
     // Type assertion is safe here because the select query structure matches Assignment interface
-    return (data as unknown as Assignment[]) || [];
+    return validAssignments as unknown as Assignment[];
   }
 
   /**
@@ -196,16 +209,19 @@ export class AssignmentDataService {
    * Get customer name from assignment
    */
   getCustomerName(assignment: Assignment): string {
+    if (!assignment.orders?.profiles) {
+      return 'Kunde';
+    }
     const { vorname, nachname } = assignment.orders.profiles;
-    return `${vorname} ${nachname}`.trim();
+    return `${vorname || ''} ${nachname || ''}`.trim() || 'Kunde';
   }
 
   /**
    * Get formatted address from assignment
    */
   getFormattedAddress(assignment: Assignment): string {
-    if (!assignment.orders.addresses || assignment.orders.addresses.length === 0) {
-      return 'Keine Adresse';
+    if (!assignment.orders?.addresses || assignment.orders.addresses.length === 0) {
+      return 'Adresse wird geladen...';
     }
 
     const address = assignment.orders.addresses[0];
