@@ -445,6 +445,7 @@ export type Database = {
           is_available: boolean
           notes: string | null
           photographer_id: string
+          reason: string | null
           updated_at: string | null
         }
         Insert: {
@@ -454,6 +455,7 @@ export type Database = {
           is_available?: boolean
           notes?: string | null
           photographer_id: string
+          reason?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -463,6 +465,7 @@ export type Database = {
           is_available?: boolean
           notes?: string | null
           photographer_id?: string
+          reason?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -478,6 +481,7 @@ export type Database = {
       profiles: {
         Row: {
           aufmerksam_geworden_durch: string | null
+          available_weekdays: number[] | null
           berufshaftpflicht_bis: string | null
           bic: string | null
           branche: string | null
@@ -513,6 +517,7 @@ export type Database = {
         }
         Insert: {
           aufmerksam_geworden_durch?: string | null
+          available_weekdays?: number[] | null
           berufshaftpflicht_bis?: string | null
           bic?: string | null
           branche?: string | null
@@ -548,6 +553,7 @@ export type Database = {
         }
         Update: {
           aufmerksam_geworden_durch?: string | null
+          available_weekdays?: number[] | null
           berufshaftpflicht_bis?: string | null
           bic?: string | null
           branche?: string | null

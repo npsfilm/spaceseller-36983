@@ -9,7 +9,6 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
-import { Calendar } from '@/components/ui/calendar';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -35,6 +34,7 @@ import {
 } from 'lucide-react';
 import { z } from 'zod';
 import { GDPRSection } from '@/components/settings/GDPRSection';
+import { AvailabilitySection } from '@/components/settings/AvailabilitySection';
 import { format } from 'date-fns';
 
 const profileSchema = z.object({
@@ -113,15 +113,10 @@ function SettingsContent() {
   const [berufshaftpflichtBis, setBerufshaftpflichtBis] = useState("");
   const [equipment, setEquipment] = useState("");
   const [portfolioUrl, setPortfolioUrl] = useState("");
-  const [unavailableDates, setUnavailableDates] = useState<Date[]>([]);
-  const [availabilityNotes, setAvailabilityNotes] = useState("");
 
   useEffect(() => {
     if (user) {
       loadProfile();
-      if (isPhotographer) {
-        loadAvailability();
-      }
     }
   }, [user, isPhotographer]);
 
@@ -224,26 +219,6 @@ function SettingsContent() {
       console.error("Error loading profile:", error);
     } finally {
       setLoadingProfile(false);
-    }
-  };
-
-  const loadAvailability = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("photographer_availability")
-        .select("*")
-        .eq("photographer_id", user?.id);
-
-      if (error) throw error;
-
-      if (data) {
-        const unavailable = data
-          .filter((a: any) => !a.is_available)
-          .map((a: any) => new Date(a.date));
-        setUnavailableDates(unavailable);
-      }
-    } catch (error) {
-      console.error("Error loading availability:", error);
     }
   };
 
@@ -487,40 +462,6 @@ function SettingsContent() {
     } catch (error) {
       console.error("Error saving professional data:", error);
       sonnerToast.error("Fehler beim Speichern");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSaveAvailability = async () => {
-    setLoading(true);
-    try {
-      const today = new Date().toISOString().split('T')[0];
-      await supabase
-        .from("photographer_availability")
-        .delete()
-        .eq("photographer_id", user?.id)
-        .gte("date", today);
-
-      if (unavailableDates.length > 0) {
-        const availabilityData = unavailableDates.map(date => ({
-          photographer_id: user?.id,
-          date: format(date, "yyyy-MM-dd"),
-          is_available: false,
-          notes: availabilityNotes || null,
-        }));
-
-        const { error } = await supabase
-          .from("photographer_availability")
-          .insert(availabilityData);
-
-        if (error) throw error;
-      }
-
-      sonnerToast.success("Verfügbarkeit erfolgreich gespeichert");
-    } catch (error) {
-      console.error("Error saving availability:", error);
-      sonnerToast.error("Fehler beim Speichern der Verfügbarkeit");
     } finally {
       setLoading(false);
     }
@@ -991,35 +932,8 @@ function SettingsContent() {
 
                       {/* Availability Section */}
                       <section id="photographer-availability" className="scroll-mt-8">
-                        <div className="bg-card border border-border rounded-xl p-6 space-y-6">
-                          <div>
-                            <h2 className="text-2xl font-bold mb-2">Verfügbarkeit *</h2>
-                            <p className="text-sm text-muted-foreground">Tage, an denen Sie nicht verfügbar sind - Bitte halten Sie dies aktuell</p>
-                          </div>
-
-                          <div className="space-y-4">
-                            <Calendar
-                              mode="multiple"
-                              selected={unavailableDates}
-                              onSelect={(dates) => setUnavailableDates(dates || [])}
-                              className="rounded-md border"
-                            />
-
-                            <div className="space-y-2">
-                              <Label htmlFor="availability-notes">Notizen</Label>
-                              <Textarea
-                                id="availability-notes"
-                                value={availabilityNotes}
-                                onChange={(e) => setAvailabilityNotes(e.target.value)}
-                                placeholder="Zusätzliche Informationen zu Ihrer Verfügbarkeit..."
-                              />
-                            </div>
-                          </div>
-
-                          <Button onClick={handleSaveAvailability} disabled={loading}>
-                            <Save className="mr-2 h-4 w-4" />
-                            Speichern
-                          </Button>
+                        <div className="bg-card border border-border rounded-xl p-6">
+                          <AvailabilitySection photographerId={user?.id || ''} />
                         </div>
                       </section>
 
