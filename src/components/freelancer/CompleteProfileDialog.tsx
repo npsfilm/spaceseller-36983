@@ -188,13 +188,35 @@ export const CompleteProfileDialog = ({
       if (!user) throw new Error('Nicht angemeldet');
 
       // Collect all form data
-      const updates = {
+      const updates: any = {
         ...personalForm.getValues(),
         ...locationForm.getValues(),
         ...businessForm.getValues(),
         ...bankingForm.getValues(),
         ...qualificationForm.getValues(),
       };
+
+      // Geocode address to get coordinates if location data changed
+      if (updates.strasse && updates.plz && updates.stadt) {
+        try {
+          const { data: geocodeData, error: geocodeError } = await supabase.functions.invoke('geocode-address', {
+            body: {
+              address: updates.strasse,
+              city: updates.stadt,
+              postal_code: updates.plz,
+              country: 'Germany'
+            }
+          });
+
+          if (!geocodeError && geocodeData?.coordinates) {
+            updates.location_lat = geocodeData.coordinates[1];
+            updates.location_lng = geocodeData.coordinates[0];
+          }
+        } catch (geocodeError) {
+          console.error('Geocoding error:', geocodeError);
+          // Continue without coordinates - user can fix later
+        }
+      }
 
       const { error } = await supabase
         .from('profiles')
