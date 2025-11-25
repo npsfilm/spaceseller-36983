@@ -1,7 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, MapPin, Package, Clock, Euro, User } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Calendar, MapPin, Package, Clock, Euro, User, FileText } from 'lucide-react';
+import { useState } from 'react';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 
@@ -58,6 +60,8 @@ export const AssignmentCard = ({
   onAccept, 
   onDecline 
 }: AssignmentCardProps) => {
+  const [detailsOpen, setDetailsOpen] = useState(false);
+
   // Handle missing orders data gracefully
   if (!assignment.orders) {
     console.warn('[AssignmentCard] Assignment has no orders data:', assignment.id);
@@ -68,6 +72,11 @@ export const AssignmentCard = ({
   const statusInfo = statusConfig[assignment.status as keyof typeof statusConfig];
   const profiles = assignment.orders.profiles;
   const orderItems = assignment.orders.order_items || [];
+
+  const handleDetailsClick = () => {
+    setDetailsOpen(true);
+    onViewDetails();
+  };
 
   return (
     <Card>
@@ -84,31 +93,33 @@ export const AssignmentCard = ({
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Payment Amount */}
-        <div className="space-y-2 p-3 bg-green-50 dark:bg-green-950/20 rounded-lg">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Euro className="h-4 w-4 text-green-600" />
-              <span className="font-semibold">Vergütung:</span>
-            </div>
-            <span className="text-xl font-bold text-green-600">
-              €{(assignment.payment_amount || 0).toFixed(2)}
-            </span>
-          </div>
-          {assignment.travel_cost && assignment.travel_cost > 0 && (
-            <div className="flex items-center justify-between text-sm pt-2 border-t border-green-200 dark:border-green-800">
-              <span className="text-muted-foreground">+ Reisekosten:</span>
-              <span className="font-medium">€{assignment.travel_cost.toFixed(2)}</span>
-            </div>
-          )}
-          {assignment.travel_cost && assignment.travel_cost > 0 && (
-            <div className="flex items-center justify-between text-sm font-semibold pt-1">
-              <span>Gesamtvergütung:</span>
-              <span className="text-green-600">
-                €{((assignment.payment_amount || 0) + (assignment.travel_cost || 0)).toFixed(2)}
+        {assignment.payment_amount !== null && assignment.payment_amount > 0 && (
+          <div className="space-y-2 p-3 bg-green-50 dark:bg-green-950/20 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Euro className="h-4 w-4 text-green-600" />
+                <span className="font-semibold">Vergütung:</span>
+              </div>
+              <span className="text-xl font-bold text-green-600">
+                €{assignment.payment_amount.toFixed(2)}
               </span>
             </div>
-          )}
-        </div>
+            {assignment.travel_cost && assignment.travel_cost > 0 && (
+              <div className="flex items-center justify-between text-sm pt-2 border-t border-green-200 dark:border-green-800">
+                <span className="text-muted-foreground">+ Reisekosten:</span>
+                <span className="font-medium">€{assignment.travel_cost.toFixed(2)}</span>
+              </div>
+            )}
+            {assignment.travel_cost && assignment.travel_cost > 0 && (
+              <div className="flex items-center justify-between text-sm font-semibold pt-1">
+                <span>Gesamtvergütung:</span>
+                <span className="text-green-600">
+                  €{(assignment.payment_amount + assignment.travel_cost).toFixed(2)}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Client Information */}
         {profiles && (
@@ -127,18 +138,18 @@ export const AssignmentCard = ({
           </div>
         )}
 
-        {/* Services Breakdown */}
+        {/* Required Services */}
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <Package className="h-4 w-4 text-muted-foreground" />
-            <h4 className="font-semibold text-sm">Services:</h4>
+            <h4 className="font-semibold text-sm">Benötigte Leistungen:</h4>
           </div>
           {orderItems.length > 0 ? (
             <ul className="text-sm space-y-1 ml-6">
               {orderItems.map((item, idx) => (
-                <li key={idx} className="flex justify-between">
+                <li key={idx} className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
                   <span>{item.quantity}x {item.services?.name || 'Service'}</span>
-                  <span className="font-medium">€{item.total_price.toFixed(2)}</span>
                 </li>
               ))}
             </ul>
@@ -181,7 +192,7 @@ export const AssignmentCard = ({
 
         {/* Action Buttons */}
         <div className="flex gap-2 pt-2">
-          <Button onClick={onViewDetails} variant="outline" className="flex-1">
+          <Button onClick={handleDetailsClick} variant="outline" className="flex-1">
             Details ansehen
           </Button>
           {assignment.status === 'pending' && onAccept && onDecline && (
@@ -196,6 +207,141 @@ export const AssignmentCard = ({
           )}
         </div>
       </CardContent>
+
+      {/* Details Dialog */}
+      <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Auftragsdetails #{assignment.orders.order_number}</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* Payment Details */}
+            {assignment.payment_amount !== null && assignment.payment_amount > 0 && (
+              <div className="p-4 bg-green-50 dark:bg-green-950/20 rounded-lg space-y-2">
+                <h3 className="font-semibold flex items-center gap-2">
+                  <Euro className="h-4 w-4 text-green-600" />
+                  Vergütung
+                </h3>
+                <div className="space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <span>Basisvergütung:</span>
+                    <span className="font-medium">€{assignment.payment_amount.toFixed(2)}</span>
+                  </div>
+                  {assignment.travel_cost && assignment.travel_cost > 0 && (
+                    <>
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>Reisekosten:</span>
+                        <span>€{assignment.travel_cost.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between font-semibold text-green-600 pt-1 border-t">
+                        <span>Gesamtvergütung:</span>
+                        <span>€{(assignment.payment_amount + assignment.travel_cost).toFixed(2)}</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Client Information */}
+            {profiles && (
+              <div className="space-y-2">
+                <h3 className="font-semibold flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  Kundeninformationen
+                </h3>
+                <div className="text-sm space-y-1 ml-6">
+                  <p><span className="font-medium">Name:</span> {profiles.vorname} {profiles.nachname}</p>
+                  <p><span className="font-medium">E-Mail:</span> {profiles.email}</p>
+                  {profiles.telefon && (
+                    <p><span className="font-medium">Telefon:</span> {profiles.telefon}</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Location */}
+            {address && (
+              <div className="space-y-2">
+                <h3 className="font-semibold flex items-center gap-2">
+                  <MapPin className="h-4 w-4" />
+                  Aufnahmeort
+                </h3>
+                <p className="text-sm ml-6">
+                  {address.strasse} {address.hausnummer}<br />
+                  {address.plz} {address.stadt}<br />
+                  {address.land}
+                </p>
+              </div>
+            )}
+
+            {/* Schedule */}
+            {assignment.scheduled_date && (
+              <div className="space-y-2">
+                <h3 className="font-semibold flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  Termin
+                </h3>
+                <p className="text-sm ml-6">
+                  {format(new Date(assignment.scheduled_date), 'EEEE, dd. MMMM yyyy', { locale: de })}
+                  {assignment.scheduled_time && (
+                    <span className="block mt-1">
+                      Uhrzeit: {assignment.scheduled_time.slice(0, 5)} Uhr
+                    </span>
+                  )}
+                </p>
+              </div>
+            )}
+
+            {/* Required Services */}
+            <div className="space-y-2">
+              <h3 className="font-semibold flex items-center gap-2">
+                <Package className="h-4 w-4" />
+                Benötigte Leistungen
+              </h3>
+              {orderItems.length > 0 ? (
+                <ul className="text-sm space-y-2 ml-6">
+                  {orderItems.map((item, idx) => (
+                    <li key={idx} className="flex items-start gap-2">
+                      <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-1.5" />
+                      <span>{item.quantity}x {item.services?.name || 'Service'}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-muted-foreground ml-6">Keine Services definiert</p>
+              )}
+            </div>
+
+            {/* Special Instructions */}
+            {assignment.orders.special_instructions && (
+              <div className="space-y-2">
+                <h3 className="font-semibold flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Besondere Wünsche des Kunden
+                </h3>
+                <p className="text-sm ml-6 text-muted-foreground whitespace-pre-wrap">
+                  {assignment.orders.special_instructions}
+                </p>
+              </div>
+            )}
+
+            {/* Admin Notes */}
+            {assignment.admin_notes && (
+              <div className="space-y-2 p-3 bg-muted rounded-lg">
+                <h3 className="font-semibold flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  Anweisungen vom Admin
+                </h3>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                  {assignment.admin_notes}
+                </p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
