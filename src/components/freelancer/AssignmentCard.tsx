@@ -15,6 +15,7 @@ interface AssignmentCardProps {
     scheduled_date: string | null;
     scheduled_time: string | null;
     admin_notes: string | null;
+    photographer_notes: string | null;
     payment_amount: number | null;
     travel_cost: number | null;
     created_at: string | null;
@@ -83,6 +84,10 @@ export const AssignmentCard = ({
       end: new Date()
     });
 
+  // Check if deadline has expired
+  const isExpired = assignment.status === 'declined' && 
+    assignment.photographer_notes === 'Nicht rechtzeitig beantwortet';
+
   const formatAmount = (value: number) =>
     Number.isInteger(value) ? value.toString() : value.toFixed(2);
 
@@ -91,17 +96,24 @@ export const AssignmentCard = ({
     onViewDetails();
   };
   return (
-    <Card>
+    <Card className={isExpired ? 'opacity-50 bg-muted/30' : ''}>
       <CardHeader>
         <div className="flex items-start justify-between">
           <div>
-            <CardTitle className="text-lg">Auftrag #{assignment.orders.order_number}</CardTitle>
+            <CardTitle className="text-lg flex items-center gap-2">
+              Auftrag #{assignment.orders.order_number}
+              {isExpired && (
+                <Badge variant="outline" className="text-xs">
+                  Abgelaufen
+                </Badge>
+              )}
+            </CardTitle>
             <p className="text-sm text-muted-foreground mt-1">
               {orderItems.length} Service{orderItems.length !== 1 ? 's' : ''}
             </p>
           </div>
           <div className="flex items-center gap-2">
-            {isNew && (
+            {isNew && !isExpired && (
               <Badge variant="default" className="bg-primary text-primary-foreground">
                 Neu
               </Badge>
@@ -111,8 +123,17 @@ export const AssignmentCard = ({
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Expired Message */}
+        {isExpired && (
+          <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+            <p className="text-sm text-destructive font-medium">
+              Sie haben nicht rechtzeitig auf diesen Auftrag geantwortet. Der Auftrag wurde automatisch abgelehnt und kann vom Admin neu zugewiesen werden.
+            </p>
+          </div>
+        )}
+
         {/* Deadline Countdown for Pending Assignments */}
-        {assignment.status === 'pending' && assignment.assigned_at && (
+        {assignment.status === 'pending' && assignment.assigned_at && !isExpired && (
           <div className="p-3 bg-muted/50 rounded-lg border border-border">
             <DeadlineCountdown 
               assignedAt={assignment.assigned_at}
@@ -222,10 +243,10 @@ export const AssignmentCard = ({
 
         {/* Action Buttons */}
         <div className="flex gap-2 pt-2">
-          <Button onClick={handleDetailsClick} variant="outline" className="flex-1">
+          <Button onClick={handleDetailsClick} variant="outline" className="flex-1" disabled={isExpired}>
             Details ansehen
           </Button>
-          {assignment.status === 'pending' && onAccept && onDecline && (
+          {assignment.status === 'pending' && onAccept && onDecline && !isExpired && (
             <>
               <Button onClick={onAccept} className="flex-1">
                 Annehmen

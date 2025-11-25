@@ -168,24 +168,36 @@ export default function OrderDetail() {
         </div>
       </div>
 
-      {/* Content */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-7xl mx-auto space-y-8">
-          {/* Client Request Summary Card */}
-          <Card className="p-6 border-2">
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <User className="h-5 w-5 text-primary mt-1" />
-                <div className="flex-1">
-                  <h2 className="text-lg font-semibold mb-1">Kundenanfrage</h2>
-                  <p className="text-sm text-muted-foreground">
-                    {order.profiles?.vorname} {order.profiles?.nachname} ({order.profiles?.email})
-                    {order.profiles?.firma && ` • ${order.profiles.firma}`}
-                  </p>
-                </div>
-              </div>
+          {/* Content */}
+          <div className="container mx-auto px-4 py-8">
+            <div className="max-w-7xl mx-auto space-y-8">
+              {/* Client Request Summary Card */}
+              <Card className="p-6 border-2">
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <User className="h-5 w-5 text-primary mt-1" />
+                    <div className="flex-1">
+                      <h2 className="text-lg font-semibold mb-1">Kundenanfrage</h2>
+                      <p className="text-sm text-muted-foreground">
+                        {order.profiles?.vorname} {order.profiles?.nachname} ({order.profiles?.email})
+                        {order.profiles?.firma && ` • ${order.profiles.firma}`}
+                      </p>
+                    </div>
+                  </div>
 
-              <Separator />
+                  {/* Unanswered Assignment Warning */}
+                  {(order as any).unanswered_assignment_count > 0 && (
+                    <div className="p-3 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-lg">
+                      <p className="text-sm font-medium text-orange-800 dark:text-orange-400">
+                        ⚠️ Dieser Auftrag wurde bereits {(order as any).unanswered_assignment_count}x nicht rechtzeitig von Fotografen beantwortet
+                      </p>
+                      <p className="text-xs text-orange-700 dark:text-orange-500 mt-1">
+                        Bitte prüfen Sie die Auftragsdetails und weisen Sie ggf. einen anderen Fotografen zu
+                      </p>
+                    </div>
+                  )}
+
+                  <Separator />
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="flex items-start gap-3">
