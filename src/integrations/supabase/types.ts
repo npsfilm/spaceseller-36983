@@ -718,6 +718,11 @@ export type Database = {
     }
     Functions: {
       anonymize_user_data: { Args: { _user_id: string }; Returns: undefined }
+      auto_decline_expired_assignments: { Args: never; Returns: undefined }
+      calculate_assignment_deadline: {
+        Args: { assigned_at_param: string; scheduled_date_param: string }
+        Returns: string
+      }
       check_rate_limit: {
         Args: {
           _endpoint: string

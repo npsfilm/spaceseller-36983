@@ -38,6 +38,7 @@ describe('AssignmentDataService', () => {
     admin_notes: null,
     photographer_notes: null,
     responded_at: null,
+    created_at: '2025-11-25T10:00:00Z',
     orders: {
       order_number: 'SS-2025-0001',
       special_instructions: null,
