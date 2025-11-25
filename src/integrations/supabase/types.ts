@@ -364,6 +364,7 @@ export type Database = {
           special_instructions: string | null
           status: Database["public"]["Enums"]["order_status"]
           total_amount: number
+          unanswered_assignment_count: number
           updated_at: string | null
           user_id: string
         }
@@ -379,6 +380,7 @@ export type Database = {
           special_instructions?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           total_amount?: number
+          unanswered_assignment_count?: number
           updated_at?: string | null
           user_id: string
         }
@@ -394,6 +396,7 @@ export type Database = {
           special_instructions?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           total_amount?: number
+          unanswered_assignment_count?: number
           updated_at?: string | null
           user_id?: string
         }

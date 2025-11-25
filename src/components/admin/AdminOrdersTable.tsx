@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Eye } from 'lucide-react';
+import { Eye, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { Order } from '@/lib/services/AdminOrderService';
 
@@ -55,35 +55,48 @@ export const AdminOrdersTable = ({ orders }: AdminOrdersTableProps) => {
                 </TableCell>
               </TableRow>
             ) : (
-              orders.map((order) => (
-                <TableRow key={order.id}>
-                  <TableCell className="font-medium">{order.order_number}</TableCell>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">
-                        {order.profiles?.vorname} {order.profiles?.nachname}
+              orders.map((order) => {
+                const hasUnanswered = (order as any).unanswered_assignment_count > 0;
+                return (
+                  <TableRow key={order.id} className={hasUnanswered ? 'bg-orange-50/50 dark:bg-orange-950/10' : ''}>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        {order.order_number}
+                        {hasUnanswered && (
+                          <Badge variant="outline" className="bg-orange-100 dark:bg-orange-950/40 text-orange-800 dark:text-orange-400 border-orange-300 dark:border-orange-700">
+                            <AlertCircle className="h-3 w-3 mr-1" />
+                            {(order as any).unanswered_assignment_count}x unbeantwortet
+                          </Badge>
+                        )}
                       </div>
-                      <div className="text-sm text-muted-foreground">{order.profiles?.email}</div>
-                    </div>
-                  </TableCell>
-                  <TableCell>{order.profiles?.firma || '-'}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className={statusColors[order.status]}>
-                      {statusLabels[order.status]}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{new Date(order.created_at).toLocaleDateString('de-DE')}</TableCell>
-                  <TableCell className="text-right">{order.total_amount.toFixed(2)} €</TableCell>
-                  <TableCell className="text-right">
-                    <Link to={`/admin-backend/orders/${order.id}`}>
-                      <Button variant="ghost" size="sm">
-                        <Eye className="h-4 w-4 mr-2" />
-                        Details
-                      </Button>
-                    </Link>
-                  </TableCell>
-                </TableRow>
-              ))
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">
+                          {order.profiles?.vorname} {order.profiles?.nachname}
+                        </div>
+                        <div className="text-sm text-muted-foreground">{order.profiles?.email}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>{order.profiles?.firma || '-'}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={statusColors[order.status]}>
+                        {statusLabels[order.status]}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{new Date(order.created_at).toLocaleDateString('de-DE')}</TableCell>
+                    <TableCell className="text-right">{order.total_amount.toFixed(2)} €</TableCell>
+                    <TableCell className="text-right">
+                      <Link to={`/admin-backend/orders/${order.id}`}>
+                        <Button variant="ghost" size="sm">
+                          <Eye className="h-4 w-4 mr-2" />
+                          Details
+                        </Button>
+                      </Link>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>
