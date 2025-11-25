@@ -35,6 +35,7 @@ import {
 import { z } from 'zod';
 import { GDPRSection } from '@/components/settings/GDPRSection';
 import { AvailabilitySection } from '@/components/settings/AvailabilitySection';
+import { EquipmentSection } from '@/components/settings/EquipmentSection';
 import { format } from 'date-fns';
 
 const profileSchema = z.object({
@@ -111,7 +112,8 @@ function SettingsContent() {
   const [bic, setBic] = useState("");
   const [kontoinhaber, setKontoinhaber] = useState("");
   const [berufshaftpflichtBis, setBerufshaftpflichtBis] = useState("");
-  const [equipment, setEquipment] = useState("");
+  const [keineHaftpflicht, setKeineHaftpflicht] = useState(false);
+  const [equipment, setEquipment] = useState<Array<{ category: string; item: string }>>([]);
   const [portfolioUrl, setPortfolioUrl] = useState("");
 
   useEffect(() => {
@@ -211,7 +213,15 @@ function SettingsContent() {
           setBic(data.bic || "");
           setKontoinhaber(data.kontoinhaber || "");
           setBerufshaftpflichtBis(data.berufshaftpflicht_bis || "");
-          setEquipment(data.equipment || "");
+          setKeineHaftpflicht(data.keine_berufshaftpflicht || false);
+          
+          // Parse equipment JSONB
+          if (Array.isArray(data.equipment)) {
+            setEquipment(data.equipment as Array<{ category: string; item: string }>);
+          } else {
+            setEquipment([]);
+          }
+          
           setPortfolioUrl(data.portfolio_url || "");
         }
       }
@@ -450,8 +460,9 @@ function SettingsContent() {
       const { error } = await supabase
         .from("profiles")
         .update({
-          berufshaftpflicht_bis: berufshaftpflichtBis || null,
-          equipment: equipment || null,
+          berufshaftpflicht_bis: keineHaftpflicht ? null : (berufshaftpflichtBis || null),
+          keine_berufshaftpflicht: keineHaftpflicht,
+          equipment: equipment.length > 0 ? equipment : [],
           portfolio_url: portfolioUrl || null,
           updated_at: new Date().toISOString(),
         })
@@ -459,6 +470,7 @@ function SettingsContent() {
 
       if (error) throw error;
       sonnerToast.success("Qualifikationsdaten erfolgreich gespeichert");
+      await refreshProfile();
     } catch (error) {
       console.error("Error saving professional data:", error);
       sonnerToast.error("Fehler beim Speichern");
@@ -954,26 +966,36 @@ function SettingsContent() {
                             </Alert>
                           )}
 
-                          <div className="space-y-2">
-                            <Label htmlFor="berufshaftpflicht">Berufshaftpflicht gültig bis *</Label>
-                            <Input
-                              id="berufshaftpflicht"
-                              type="date"
-                              value={berufshaftpflichtBis}
-                              onChange={(e) => setBerufshaftpflichtBis(e.target.value)}
+                          <div className="flex items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5">
+                              <Label htmlFor="keine-haftpflicht">Keine Berufshaftpflicht</Label>
+                              <p className="text-sm text-muted-foreground">
+                                Ich habe derzeit keine Berufshaftpflichtversicherung
+                              </p>
+                            </div>
+                            <Switch
+                              id="keine-haftpflicht"
+                              checked={keineHaftpflicht}
+                              onCheckedChange={setKeineHaftpflicht}
                             />
                           </div>
 
-                          <div className="space-y-2">
-                            <Label htmlFor="equipment">Ausrüstung</Label>
-                            <Textarea
-                              id="equipment"
-                              value={equipment}
-                              onChange={(e) => setEquipment(e.target.value)}
-                              placeholder="Kamera, Objektive, Drohne, etc..."
-                              rows={4}
-                            />
-                          </div>
+                          {!keineHaftpflicht && (
+                            <div className="space-y-2">
+                              <Label htmlFor="berufshaftpflicht">Berufshaftpflicht gültig bis *</Label>
+                              <Input
+                                id="berufshaftpflicht"
+                                type="date"
+                                value={berufshaftpflichtBis}
+                                onChange={(e) => setBerufshaftpflichtBis(e.target.value)}
+                              />
+                            </div>
+                          )}
+
+                          <EquipmentSection
+                            equipment={equipment}
+                            onChange={setEquipment}
+                          />
 
                           <div className="space-y-2">
                             <Label htmlFor="portfolio">Portfolio-URL</Label>

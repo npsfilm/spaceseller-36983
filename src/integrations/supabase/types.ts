@@ -488,11 +488,12 @@ export type Database = {
           city: string | null
           created_at: string | null
           email: string
-          equipment: string | null
+          equipment: Json | null
           firma: string | null
           handelsregister_nr: string | null
           iban: string | null
           id: string
+          keine_berufshaftpflicht: boolean | null
           kleinunternehmer: boolean | null
           kontoinhaber: string | null
           land: string | null
@@ -524,11 +525,12 @@ export type Database = {
           city?: string | null
           created_at?: string | null
           email: string
-          equipment?: string | null
+          equipment?: Json | null
           firma?: string | null
           handelsregister_nr?: string | null
           iban?: string | null
           id: string
+          keine_berufshaftpflicht?: boolean | null
           kleinunternehmer?: boolean | null
           kontoinhaber?: string | null
           land?: string | null
@@ -560,11 +562,12 @@ export type Database = {
           city?: string | null
           created_at?: string | null
           email?: string
-          equipment?: string | null
+          equipment?: Json | null
           firma?: string | null
           handelsregister_nr?: string | null
           iban?: string | null
           id?: string
+          keine_berufshaftpflicht?: boolean | null
           kleinunternehmer?: boolean | null
           kontoinhaber?: string | null
           land?: string | null
