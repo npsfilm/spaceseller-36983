@@ -685,57 +685,6 @@ function SettingsContent() {
                     </section>
                   )}
 
-                  {/* Shared Security Section */}
-                  <section id="security" className="scroll-mt-8">
-                    <div className="bg-card border border-border rounded-xl p-6 space-y-6">
-                      <div>
-                        <h2 className="text-2xl font-bold mb-2">Sicherheit</h2>
-                        <p className="text-sm text-muted-foreground">Passwort und Zugangsdaten verwalten</p>
-                      </div>
-
-                      <div>
-                        <h3 className="text-lg font-semibold mb-4">Passwort ändern</h3>
-                        <div className="space-y-4 max-w-md">
-                          <div className="space-y-2">
-                            <Label>Neues Passwort</Label>
-                            <Input
-                              type="password"
-                              value={passwordData.newPassword}
-                              onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                              placeholder="Mindestens 6 Zeichen"
-                            />
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label>Passwort bestätigen</Label>
-                            <Input
-                              type="password"
-                              value={passwordData.confirmPassword}
-                              onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                              placeholder="Passwort wiederholen"
-                            />
-                          </div>
-
-                          <Button onClick={handlePasswordChange} disabled={loading}>
-                            <Lock className="h-4 w-4 mr-2" />
-                            {loading ? 'Wird geändert...' : 'Passwort ändern'}
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </section>
-
-                  {/* Shared Privacy Section */}
-                  <section id="privacy" className="scroll-mt-8">
-                    <div className="bg-card border border-border rounded-xl p-6 space-y-6">
-                      <div>
-                        <h2 className="text-2xl font-bold mb-2">Datenschutz</h2>
-                        <p className="text-sm text-muted-foreground">Verwalten Sie Ihre Daten und Einwilligungen</p>
-                      </div>
-                      <GDPRSection />
-                    </div>
-                  </section>
-
                   {/* Photographer-only sections */}
                   {isPhotographer && (
                     <>
@@ -1095,6 +1044,57 @@ function SettingsContent() {
                       </section>
                     </>
                   )}
+
+                  {/* Shared Security Section */}
+                  <section id="security" className="scroll-mt-8">
+                    <div className="bg-card border border-border rounded-xl p-6 space-y-6">
+                      <div>
+                        <h2 className="text-2xl font-bold mb-2">Sicherheit</h2>
+                        <p className="text-sm text-muted-foreground">Passwort und Zugangsdaten verwalten</p>
+                      </div>
+
+                      <div>
+                        <h3 className="text-lg font-semibold mb-4">Passwort ändern</h3>
+                        <div className="space-y-4 max-w-md">
+                          <div className="space-y-2">
+                            <Label>Neues Passwort</Label>
+                            <Input
+                              type="password"
+                              value={passwordData.newPassword}
+                              onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                              placeholder="Mindestens 6 Zeichen"
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label>Passwort bestätigen</Label>
+                            <Input
+                              type="password"
+                              value={passwordData.confirmPassword}
+                              onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                              placeholder="Passwort wiederholen"
+                            />
+                          </div>
+
+                          <Button onClick={handlePasswordChange} disabled={loading}>
+                            <Lock className="h-4 w-4 mr-2" />
+                            {loading ? 'Wird geändert...' : 'Passwort ändern'}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+
+                  {/* Shared Privacy Section */}
+                  <section id="privacy" className="scroll-mt-8">
+                    <div className="bg-card border border-border rounded-xl p-6 space-y-6">
+                      <div>
+                        <h2 className="text-2xl font-bold mb-2">Datenschutz</h2>
+                        <p className="text-sm text-muted-foreground">Verwalten Sie Ihre Daten und Einwilligungen</p>
+                      </div>
+                      <GDPRSection />
+                    </div>
+                  </section>
                 </div>
               </ScrollArea>
             </div>
