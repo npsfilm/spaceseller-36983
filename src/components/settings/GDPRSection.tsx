@@ -3,23 +3,10 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Download, Trash2, AlertTriangle } from 'lucide-react';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { Input } from '@/components/ui/input';
+import { Download, Mail, AlertTriangle } from 'lucide-react';
 
 export const GDPRSection = () => {
   const [loading, setLoading] = useState(false);
-  const [deleteConfirmation, setDeleteConfirmation] = useState('');
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -60,36 +47,16 @@ export const GDPRSection = () => {
     }
   };
 
-  const handleDeleteAccount = async () => {
-    if (!user || deleteConfirmation !== 'DELETE') return;
-
-    setLoading(true);
-    try {
-      const { error } = await supabase.functions.invoke('delete-account', {
-        body: { 
-          userId: user.id,
-          confirmation: 'DELETE'
-        }
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: 'Konto gelöscht',
-        description: 'Ihr Konto wurde unwiderruflich gelöscht'
-      });
-
-      // Sign out and redirect
-      await supabase.auth.signOut();
-    } catch (error) {
-      toast({
-        title: 'Fehler',
-        description: 'Konto konnte nicht gelöscht werden',
-        variant: 'destructive'
-      });
-    } finally {
-      setLoading(false);
-    }
+  const handleRequestAccountDeletion = () => {
+    const subject = encodeURIComponent('Kündigung der Zusammenarbeit');
+    const body = encodeURIComponent(
+      `Sehr geehrtes SpaceSeller Team,\n\n` +
+      `hiermit möchte ich meine Zusammenarbeit mit SpaceSeller beenden und bitte um die Löschung meines Kontos.\n\n` +
+      `Meine E-Mail-Adresse: ${user?.email || ''}\n\n` +
+      `Mit freundlichen Grüßen`
+    );
+    
+    window.location.href = `mailto:partner@spaceseller.de?subject=${subject}&body=${body}`;
   };
 
   return (
@@ -118,49 +85,16 @@ export const GDPRSection = () => {
           Gefahrenzone
         </h3>
         <div className="space-y-3">
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive" disabled={loading}>
-                <Trash2 className="h-4 w-4 mr-2" />
-                Konto dauerhaft löschen
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Sind Sie absolut sicher?</AlertDialogTitle>
-                <AlertDialogDescription className="space-y-4">
-                  <p>
-                    Diese Aktion kann nicht rückgängig gemacht werden. Dies wird Ihr Konto 
-                    dauerhaft löschen und alle Ihre Daten von unseren Servern entfernen.
-                  </p>
-                  <p className="font-medium">
-                    Bitte geben Sie <span className="text-destructive font-bold">DELETE</span> ein, um zu bestätigen:
-                  </p>
-                  <Input
-                    placeholder="DELETE"
-                    value={deleteConfirmation}
-                    onChange={(e) => setDeleteConfirmation(e.target.value)}
-                    className="font-mono"
-                  />
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel onClick={() => setDeleteConfirmation('')}>
-                  Abbrechen
-                </AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleDeleteAccount}
-                  disabled={deleteConfirmation !== 'DELETE' || loading}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                >
-                  Konto unwiderruflich löschen
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          <Button 
+            variant="destructive" 
+            onClick={handleRequestAccountDeletion}
+            disabled={loading}
+          >
+            <Mail className="h-4 w-4 mr-2" />
+            Zusammenarbeit beenden
+          </Button>
           <p className="text-sm text-muted-foreground">
-            Nach der Löschung werden Ihre persönlichen Daten anonymisiert, 
-            aber Bestellhistorien bleiben für rechtliche Zwecke (7 Jahre) erhalten.
+            Sie werden zu Ihrem E-Mail-Client weitergeleitet, um eine Kündigungsanfrage an partner@spaceseller.de zu senden.
           </p>
         </div>
       </div>
