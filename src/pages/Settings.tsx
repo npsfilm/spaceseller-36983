@@ -55,18 +55,24 @@ interface NavItem {
   label: string;
   icon: any;
   photographerOnly?: boolean;
+  clientOnly?: boolean;
 }
 
 const navItems: NavItem[] = [
-  { id: 'profile', label: 'Profil', icon: User },
-  { id: 'security', label: 'Sicherheit', icon: Lock },
-  { id: 'privacy', label: 'Datenschutz', icon: Shield },
+  // Client sections (hidden for photographers)
+  { id: 'profile', label: 'Profil', icon: User, clientOnly: true },
+  
+  // Photographer sections
   { id: 'photographer-personal', label: 'Persönliche Daten', icon: User, photographerOnly: true },
+  { id: 'photographer-location', label: 'Standort & Radius', icon: MapPin, photographerOnly: true },
   { id: 'photographer-business', label: 'Geschäft & Steuern', icon: Building2, photographerOnly: true },
   { id: 'photographer-banking', label: 'Bankverbindung', icon: CreditCard, photographerOnly: true },
-  { id: 'photographer-location', label: 'Standort & Radius', icon: MapPin, photographerOnly: true },
   { id: 'photographer-availability', label: 'Verfügbarkeit', icon: CalendarIcon, photographerOnly: true },
   { id: 'photographer-professional', label: 'Qualifikation', icon: Award, photographerOnly: true },
+  
+  // Shared sections (always visible)
+  { id: 'security', label: 'Sicherheit', icon: Lock },
+  { id: 'privacy', label: 'Datenschutz', icon: Shield },
 ];
 
 function SettingsContent() {
@@ -116,7 +122,11 @@ function SettingsContent() {
   useEffect(() => {
     const handleScroll = () => {
       const sections = navItems
-        .filter(item => !item.photographerOnly || isPhotographer)
+        .filter(item => {
+          if (item.clientOnly && isPhotographer) return false;
+          if (item.photographerOnly && !isPhotographer) return false;
+          return true;
+        })
         .map(item => item.id);
       
       for (const sectionId of sections) {
@@ -421,6 +431,7 @@ function SettingsContent() {
 
     setLoading(true);
     try {
+      // Also save basic address to Land field
       const { error } = await supabase
         .from("profiles")
         .update({
@@ -429,6 +440,7 @@ function SettingsContent() {
           stadt,
           postal_code: plz,
           city: stadt,
+          land: 'Deutschland',
           service_radius_km: serviceRadius[0],
           updated_at: new Date().toISOString(),
         })
@@ -508,7 +520,11 @@ function SettingsContent() {
 
   const isInsuranceExpired = berufshaftpflichtBis && new Date(berufshaftpflichtBis) < new Date();
 
-  const visibleNavItems = navItems.filter(item => !item.photographerOnly || isPhotographer);
+  const visibleNavItems = navItems.filter(item => {
+    if (item.clientOnly && isPhotographer) return false;
+    if (item.photographerOnly && !isPhotographer) return false;
+    return true;
+  });
 
   if (loadingProfile) {
     return (
@@ -780,6 +796,68 @@ function SettingsContent() {
                         </div>
                       </section>
 
+                      {/* Location Section - moved up for logical flow */}
+                      <section id="photographer-location" className="scroll-mt-8">
+                        <div className="bg-card border border-border rounded-xl p-6 space-y-6">
+                          <div>
+                            <h2 className="text-2xl font-bold mb-2">Standort & Serviceradius</h2>
+                            <p className="text-sm text-muted-foreground">Ihr Arbeitsbereich für Aufträge</p>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2 md:col-span-2">
+                              <Label htmlFor="strasse">Straße</Label>
+                              <Input
+                                id="strasse"
+                                value={strasse}
+                                onChange={(e) => setStrasse(e.target.value)}
+                                placeholder="Musterstraße 123"
+                              />
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label htmlFor="plz">PLZ</Label>
+                              <Input
+                                id="plz"
+                                value={plz}
+                                onChange={(e) => setPlz(e.target.value)}
+                                placeholder="12345"
+                              />
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label htmlFor="stadt">Stadt</Label>
+                              <Input
+                                id="stadt"
+                                value={stadt}
+                                onChange={(e) => setStadt(e.target.value)}
+                                placeholder="München"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label>Serviceradius: {serviceRadius[0]} km</Label>
+                            <Slider
+                              value={serviceRadius}
+                              onValueChange={setServiceRadius}
+                              min={10}
+                              max={150}
+                              step={5}
+                              className="mt-2"
+                            />
+                            <p className="text-xs text-muted-foreground">
+                              Maximale Entfernung für Aufträge von Ihrem Standort
+                            </p>
+                          </div>
+
+                          <Button onClick={handleSaveLocation} disabled={loading}>
+                            <Save className="mr-2 h-4 w-4" />
+                            Speichern
+                          </Button>
+                        </div>
+                      </section>
+
                       {/* Business & Tax Section */}
                       <section id="photographer-business" className="scroll-mt-8">
                         <div className="bg-card border border-border rounded-xl p-6 space-y-6">
@@ -918,68 +996,6 @@ function SettingsContent() {
                           </div>
 
                           <Button onClick={handleSaveBanking} disabled={loading}>
-                            <Save className="mr-2 h-4 w-4" />
-                            Speichern
-                          </Button>
-                        </div>
-                      </section>
-
-                      {/* Location Section */}
-                      <section id="photographer-location" className="scroll-mt-8">
-                        <div className="bg-card border border-border rounded-xl p-6 space-y-6">
-                          <div>
-                            <h2 className="text-2xl font-bold mb-2">Standort & Serviceradius</h2>
-                            <p className="text-sm text-muted-foreground">Ihr Arbeitsbereich für Aufträge</p>
-                          </div>
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2 md:col-span-2">
-                              <Label htmlFor="strasse">Straße</Label>
-                              <Input
-                                id="strasse"
-                                value={strasse}
-                                onChange={(e) => setStrasse(e.target.value)}
-                                placeholder="Musterstraße 123"
-                              />
-                            </div>
-
-                            <div className="space-y-2">
-                              <Label htmlFor="plz">PLZ</Label>
-                              <Input
-                                id="plz"
-                                value={plz}
-                                onChange={(e) => setPlz(e.target.value)}
-                                placeholder="12345"
-                              />
-                            </div>
-
-                            <div className="space-y-2">
-                              <Label htmlFor="stadt">Stadt</Label>
-                              <Input
-                                id="stadt"
-                                value={stadt}
-                                onChange={(e) => setStadt(e.target.value)}
-                                placeholder="München"
-                              />
-                            </div>
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label>Serviceradius: {serviceRadius[0]} km</Label>
-                            <Slider
-                              value={serviceRadius}
-                              onValueChange={setServiceRadius}
-                              min={10}
-                              max={150}
-                              step={5}
-                              className="mt-2"
-                            />
-                            <p className="text-xs text-muted-foreground">
-                              Maximale Entfernung für Aufträge von Ihrem Standort
-                            </p>
-                          </div>
-
-                          <Button onClick={handleSaveLocation} disabled={loading}>
                             <Save className="mr-2 h-4 w-4" />
                             Speichern
                           </Button>
