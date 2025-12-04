@@ -410,6 +410,45 @@ export type Database = {
           },
         ]
       }
+      page_tracking: {
+        Row: {
+          created_at: string | null
+          id: string
+          notes: string | null
+          page_created: boolean | null
+          pictures_finalized: boolean | null
+          text_finalized: boolean | null
+          title: string
+          updated_at: string | null
+          url_handle: string
+          user_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          page_created?: boolean | null
+          pictures_finalized?: boolean | null
+          text_finalized?: boolean | null
+          title: string
+          updated_at?: string | null
+          url_handle: string
+          user_type: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          page_created?: boolean | null
+          pictures_finalized?: boolean | null
+          text_finalized?: boolean | null
+          title?: string
+          updated_at?: string | null
+          url_handle?: string
+          user_type?: string
+        }
+        Relationships: []
+      }
       password_reset_tokens: {
         Row: {
           created_at: string

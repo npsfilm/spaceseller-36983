@@ -5,7 +5,8 @@ import {
   Shield, 
   ShieldAlert,
   Camera,
-  BarChart3
+  BarChart3,
+  LayoutList
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -53,6 +54,11 @@ const menuItems = [
     title: "Sicherheit", 
     url: "/admin-backend/security", 
     icon: ShieldAlert 
+  },
+  { 
+    title: "Seitenübersicht", 
+    url: "/admin-backend/uebersicht", 
+    icon: LayoutList 
   },
 ];
 
