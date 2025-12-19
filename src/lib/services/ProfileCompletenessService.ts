@@ -103,7 +103,11 @@ export class ProfileCompletenessService {
     }
 
     // Check professional liability insurance
-    if (!profile.berufshaftpflicht_bis) {
+    // Valid if: has insurance date OR explicitly stated they don't have insurance
+    const hasInsurance = !!profile.berufshaftpflicht_bis;
+    const noInsuranceConfirmed = profile.keine_berufshaftpflicht === true;
+
+    if (!hasInsurance && !noInsuranceConfirmed) {
       missingFields.push(this.REQUIRED_FIELDS[11]);
     }
 
