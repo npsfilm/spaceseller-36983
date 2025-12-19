@@ -19,6 +19,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { MissingField } from '@/lib/services/ProfileCompletenessService';
 import { Loader2 } from 'lucide-react';
+import { validateIBAN, formatIBAN } from '@/lib/ibanValidation';
 
 interface CompleteProfileDialogProps {
   open: boolean;
@@ -51,7 +52,12 @@ const businessSchema = z.object({
 });
 
 const bankingSchema = z.object({
-  iban: z.string().min(1, 'IBAN ist erforderlich'),
+  iban: z.string()
+    .min(1, 'IBAN ist erforderlich')
+    .refine(
+      (val) => validateIBAN(val).isValid,
+      (val) => ({ message: validateIBAN(val).error || 'Ungültige IBAN' })
+    ),
   bic: z.string().optional(),
   kontoinhaber: z.string().min(1, 'Kontoinhaber ist erforderlich'),
 });
@@ -203,6 +209,11 @@ export const CompleteProfileDialog = ({
           updates[key] = null;
         }
       });
+
+      // Format IBAN (remove spaces, uppercase) before saving
+      if (updates.iban) {
+        updates.iban = formatIBAN(updates.iban);
+      }
 
       // Geocode address to get coordinates if location data changed
       if (updates.strasse && updates.plz && updates.stadt) {
