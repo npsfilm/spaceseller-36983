@@ -410,6 +410,60 @@ export type Database = {
           },
         ]
       }
+      page_seo: {
+        Row: {
+          canonical_url: string | null
+          change_frequency: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          keywords: string[] | null
+          no_follow: boolean | null
+          no_index: boolean | null
+          og_image: string | null
+          page_name: string
+          page_path: string
+          priority: number | null
+          structured_data: Json | null
+          title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          canonical_url?: string | null
+          change_frequency?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          keywords?: string[] | null
+          no_follow?: boolean | null
+          no_index?: boolean | null
+          og_image?: string | null
+          page_name: string
+          page_path: string
+          priority?: number | null
+          structured_data?: Json | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          canonical_url?: string | null
+          change_frequency?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          keywords?: string[] | null
+          no_follow?: boolean | null
+          no_index?: boolean | null
+          og_image?: string | null
+          page_name?: string
+          page_path?: string
+          priority?: number | null
+          structured_data?: Json | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       page_tracking: {
         Row: {
           created_at: string | null
@@ -658,6 +712,99 @@ export type Database = {
         }
         Relationships: []
       }
+      sea_settings: {
+        Row: {
+          conversion_events: Json | null
+          cookie_consent_required: boolean | null
+          created_at: string | null
+          enabled: boolean | null
+          facebook_pixel_id: string | null
+          google_ads_conversion_label: string | null
+          google_ads_id: string | null
+          google_analytics_id: string | null
+          google_tag_manager_id: string | null
+          hotjar_id: string | null
+          id: string
+          linkedin_insight_tag: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          conversion_events?: Json | null
+          cookie_consent_required?: boolean | null
+          created_at?: string | null
+          enabled?: boolean | null
+          facebook_pixel_id?: string | null
+          google_ads_conversion_label?: string | null
+          google_ads_id?: string | null
+          google_analytics_id?: string | null
+          google_tag_manager_id?: string | null
+          hotjar_id?: string | null
+          id?: string
+          linkedin_insight_tag?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          conversion_events?: Json | null
+          cookie_consent_required?: boolean | null
+          created_at?: string | null
+          enabled?: boolean | null
+          facebook_pixel_id?: string | null
+          google_ads_conversion_label?: string | null
+          google_ads_id?: string | null
+          google_analytics_id?: string | null
+          google_tag_manager_id?: string | null
+          hotjar_id?: string | null
+          id?: string
+          linkedin_insight_tag?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      seo_settings: {
+        Row: {
+          canonical_domain: string | null
+          created_at: string | null
+          default_description: string | null
+          default_keywords: string[] | null
+          default_title: string
+          id: string
+          open_graph: Json | null
+          robots_txt: string | null
+          structured_data: Json | null
+          title_suffix: string | null
+          twitter_card: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          canonical_domain?: string | null
+          created_at?: string | null
+          default_description?: string | null
+          default_keywords?: string[] | null
+          default_title?: string
+          id?: string
+          open_graph?: Json | null
+          robots_txt?: string | null
+          structured_data?: Json | null
+          title_suffix?: string | null
+          twitter_card?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          canonical_domain?: string | null
+          created_at?: string | null
+          default_description?: string | null
+          default_keywords?: string[] | null
+          default_title?: string
+          id?: string
+          open_graph?: Json | null
+          robots_txt?: string | null
+          structured_data?: Json | null
+          title_suffix?: string | null
+          twitter_card?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       services: {
         Row: {
           base_price: number
@@ -693,6 +840,54 @@ export type Database = {
           is_active?: boolean | null
           name?: string
           unit?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      site_settings: {
+        Row: {
+          address: Json | null
+          colors: Json
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string | null
+          favicon_url: string | null
+          id: string
+          logo_url: string | null
+          site_description: string | null
+          site_name: string
+          social_links: Json | null
+          typography: Json
+          updated_at: string | null
+        }
+        Insert: {
+          address?: Json | null
+          colors?: Json
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          favicon_url?: string | null
+          id?: string
+          logo_url?: string | null
+          site_description?: string | null
+          site_name?: string
+          social_links?: Json | null
+          typography?: Json
+          updated_at?: string | null
+        }
+        Update: {
+          address?: Json | null
+          colors?: Json
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          favicon_url?: string | null
+          id?: string
+          logo_url?: string | null
+          site_description?: string | null
+          site_name?: string
+          social_links?: Json | null
+          typography?: Json
           updated_at?: string | null
         }
         Relationships: []
