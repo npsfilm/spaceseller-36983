@@ -196,6 +196,14 @@ export const CompleteProfileDialog = ({
         ...qualificationForm.getValues(),
       };
 
+      // Convert empty strings to null for optional database fields
+      // PostgreSQL doesn't accept empty strings for date fields
+      Object.keys(updates).forEach(key => {
+        if (updates[key] === '') {
+          updates[key] = null;
+        }
+      });
+
       // Geocode address to get coordinates if location data changed
       if (updates.strasse && updates.plz && updates.stadt) {
         try {
