@@ -141,9 +141,23 @@ export function useSiteSettingsAdmin() {
   const createPageSeo = async (data: Omit<PageSeo, 'id' | 'created_at' | 'updated_at'>) => {
     try {
       setSaving(true);
+      const insertPayload = {
+        page_path: data.page_path,
+        page_name: data.page_name,
+        title: data.title,
+        description: data.description,
+        keywords: data.keywords,
+        og_image: data.og_image,
+        canonical_url: data.canonical_url,
+        no_index: data.no_index,
+        no_follow: data.no_follow,
+        priority: data.priority,
+        change_frequency: data.change_frequency,
+        structured_data: data.structured_data ? JSON.parse(JSON.stringify(data.structured_data)) : null
+      };
       const { data: newPage, error } = await supabase
         .from('page_seo')
-        .insert([data as Record<string, unknown>])
+        .insert(insertPayload)
         .select()
         .single();
 
