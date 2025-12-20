@@ -5,6 +5,9 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Save, Palette, Type, RefreshCw } from 'lucide-react';
 import type { SiteSettings, ColorSettings, TypographySettings } from '@/types/siteSettings';
+import { adminSettingsContent } from '@/config/content/adminSettingsContent';
+
+const content = adminSettingsContent.design;
 
 interface DesignSettingsTabProps {
   settings: SiteSettings | null;
@@ -20,16 +23,6 @@ const DEFAULT_COLORS: ColorSettings = {
   foreground: "0 0% 10%",
   muted: "40 10% 90%",
   destructive: "0 84% 60%"
-};
-
-const COLOR_LABELS: Record<string, string> = {
-  primary: "Primärfarbe",
-  secondary: "Sekundärfarbe",
-  accent: "Akzentfarbe",
-  background: "Hintergrund",
-  foreground: "Vordergrund/Text",
-  muted: "Gedämpft",
-  destructive: "Fehler/Warnung"
 };
 
 export function DesignSettingsTab({ settings, saving, onUpdate }: DesignSettingsTabProps) {
@@ -96,15 +89,15 @@ export function DesignSettingsTab({ settings, saving, onUpdate }: DesignSettings
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Palette className="h-5 w-5" />
-                Farbschema
+                {content.sections.colors.title}
               </CardTitle>
               <CardDescription>
-                Passen Sie die Farben Ihrer Website an (HSL-Format: H S% L%)
+                {content.sections.colors.description}
               </CardDescription>
             </div>
             <Button variant="outline" size="sm" onClick={handleResetColors}>
               <RefreshCw className="h-4 w-4 mr-2" />
-              Zurücksetzen
+              {content.actions.reset}
             </Button>
           </div>
         </CardHeader>
@@ -117,7 +110,7 @@ export function DesignSettingsTab({ settings, saving, onUpdate }: DesignSettings
                     className="w-4 h-4 rounded border"
                     style={{ backgroundColor: hslToPreviewColor(value) }}
                   />
-                  {COLOR_LABELS[key] || key}
+                  {content.colorLabels[key as keyof typeof content.colorLabels] || key}
                 </Label>
                 <Input
                   id={`color-${key}`}
@@ -132,16 +125,16 @@ export function DesignSettingsTab({ settings, saving, onUpdate }: DesignSettings
 
           {/* Live Preview */}
           <div className="mt-6 p-4 rounded-lg border bg-background">
-            <h4 className="font-medium mb-4">Live-Vorschau</h4>
+            <h4 className="font-medium mb-4">{content.preview.livePreview}</h4>
             <div className="flex flex-wrap gap-4">
-              <Button>Primary Button</Button>
-              <Button variant="secondary">Secondary</Button>
-              <Button variant="outline">Outline</Button>
-              <Button variant="destructive">Destructive</Button>
+              <Button>{content.buttons.primary}</Button>
+              <Button variant="secondary">{content.buttons.secondary}</Button>
+              <Button variant="outline">{content.buttons.outline}</Button>
+              <Button variant="destructive">{content.buttons.destructive}</Button>
             </div>
             <div className="mt-4 p-3 bg-muted rounded-md">
               <p className="text-muted-foreground text-sm">
-                Dies ist gedämpfter Text auf gedämpftem Hintergrund.
+                {content.preview.mutedText}
               </p>
             </div>
           </div>
@@ -153,55 +146,55 @@ export function DesignSettingsTab({ settings, saving, onUpdate }: DesignSettings
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Type className="h-5 w-5" />
-            Typografie
+            {content.sections.typography.title}
           </CardTitle>
           <CardDescription>
-            Schriftart und Texteinstellungen
+            {content.sections.typography.description}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-3">
             <div className="space-y-2">
-              <Label htmlFor="font_family">Schriftfamilie</Label>
+              <Label htmlFor="font_family">{content.fields.fontFamily.label}</Label>
               <Input
                 id="font_family"
                 value={typography.font_family}
                 onChange={(e) => setTypography(prev => ({ ...prev, font_family: e.target.value }))}
-                placeholder="Gilroy"
+                placeholder={content.fields.fontFamily.placeholder}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="font_size_base">Basisschriftgröße</Label>
+              <Label htmlFor="font_size_base">{content.fields.fontSize.label}</Label>
               <Input
                 id="font_size_base"
                 value={typography.font_size_base}
                 onChange={(e) => setTypography(prev => ({ ...prev, font_size_base: e.target.value }))}
-                placeholder="16px"
+                placeholder={content.fields.fontSize.placeholder}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="line_height">Zeilenhöhe</Label>
+              <Label htmlFor="line_height">{content.fields.lineHeight.label}</Label>
               <Input
                 id="line_height"
                 value={typography.line_height}
                 onChange={(e) => setTypography(prev => ({ ...prev, line_height: e.target.value }))}
-                placeholder="1.5"
+                placeholder={content.fields.lineHeight.placeholder}
               />
             </div>
           </div>
 
           {/* Typography Preview */}
           <div className="mt-6 p-4 rounded-lg border">
-            <h4 className="font-medium mb-3">Typografie-Vorschau</h4>
+            <h4 className="font-medium mb-3">{content.preview.typographyPreview}</h4>
             <div className="space-y-2" style={{ fontFamily: typography.font_family }}>
-              <h1 className="text-3xl font-bold">Überschrift 1</h1>
-              <h2 className="text-2xl font-semibold">Überschrift 2</h2>
-              <h3 className="text-xl font-medium">Überschrift 3</h3>
+              <h1 className="text-3xl font-bold">{content.preview.heading1}</h1>
+              <h2 className="text-2xl font-semibold">{content.preview.heading2}</h2>
+              <h3 className="text-xl font-medium">{content.preview.heading3}</h3>
               <p className="text-base">
-                Dies ist normaler Fließtext mit der konfigurierten Schriftart.
+                {content.preview.bodyText}
               </p>
               <p className="text-sm text-muted-foreground">
-                Kleinerer Text für Beschreibungen und Hinweise.
+                {content.preview.smallText}
               </p>
             </div>
           </div>
@@ -212,7 +205,7 @@ export function DesignSettingsTab({ settings, saving, onUpdate }: DesignSettings
       <div className="flex justify-end">
         <Button onClick={handleSave} disabled={saving}>
           <Save className="h-4 w-4 mr-2" />
-          {saving ? 'Speichern...' : 'Änderungen speichern'}
+          {saving ? content.actions.saving : content.actions.save}
         </Button>
       </div>
     </div>

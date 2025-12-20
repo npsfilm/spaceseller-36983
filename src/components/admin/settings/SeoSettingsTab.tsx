@@ -7,6 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Save, Search, Share2, Globe, FileText, X } from 'lucide-react';
 import type { SeoSettings, OpenGraphSettings, TwitterCardSettings } from '@/types/siteSettings';
+import { adminSettingsContent } from '@/config/content/adminSettingsContent';
+
+const content = adminSettingsContent.seo;
 
 interface SeoSettingsTabProps {
   settings: SeoSettings | null;
@@ -79,7 +82,7 @@ export function SeoSettingsTab({ settings, saving, onUpdate }: SeoSettingsTabPro
         structuredData = JSON.parse(formData.structured_data);
       }
     } catch {
-      alert('Ungültiges JSON in Strukturierten Daten');
+      alert(content.errors.invalidJson);
       return;
     }
 
@@ -113,77 +116,77 @@ export function SeoSettingsTab({ settings, saving, onUpdate }: SeoSettingsTabPro
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Search className="h-5 w-5" />
-            Standard SEO-Einstellungen
+            {content.sections.basic.title}
           </CardTitle>
           <CardDescription>
-            Standard Meta-Tags für alle Seiten ohne individuelle Einstellungen
+            {content.sections.basic.description}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="default_title">
-              Standard Title 
+              {content.fields.title.label}
               <span className={`ml-2 text-xs ${titleLength > 60 ? 'text-destructive' : 'text-muted-foreground'}`}>
-                ({titleLength}/60 Zeichen)
+                ({titleLength}/60 {content.fields.title.charCount})
               </span>
             </Label>
             <Input
               id="default_title"
               value={formData.default_title}
               onChange={(e) => setFormData(prev => ({ ...prev, default_title: e.target.value }))}
-              placeholder="SpaceSeller - Immobilienfotografie & Visualisierung"
+              placeholder={content.fields.title.placeholder}
             />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="default_description">
-              Standard Meta Description
+              {content.fields.description.label}
               <span className={`ml-2 text-xs ${descriptionLength > 160 ? 'text-destructive' : 'text-muted-foreground'}`}>
-                ({descriptionLength}/160 Zeichen)
+                ({descriptionLength}/160 {content.fields.description.charCount})
               </span>
             </Label>
             <Textarea
               id="default_description"
               value={formData.default_description}
               onChange={(e) => setFormData(prev => ({ ...prev, default_description: e.target.value }))}
-              placeholder="Professionelle Immobilienfotografie..."
+              placeholder={content.fields.description.placeholder}
               rows={3}
             />
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="title_suffix">Title Suffix</Label>
+              <Label htmlFor="title_suffix">{content.fields.titleSuffix.label}</Label>
               <Input
                 id="title_suffix"
                 value={formData.title_suffix}
                 onChange={(e) => setFormData(prev => ({ ...prev, title_suffix: e.target.value }))}
-                placeholder=" | SpaceSeller"
+                placeholder={content.fields.titleSuffix.placeholder}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="canonical_domain">Kanonische Domain</Label>
+              <Label htmlFor="canonical_domain">{content.fields.canonicalDomain.label}</Label>
               <Input
                 id="canonical_domain"
                 value={formData.canonical_domain}
                 onChange={(e) => setFormData(prev => ({ ...prev, canonical_domain: e.target.value }))}
-                placeholder="https://spaceseller.de"
+                placeholder={content.fields.canonicalDomain.placeholder}
               />
             </div>
           </div>
 
           {/* Keywords */}
           <div className="space-y-2">
-            <Label>Standard Keywords</Label>
+            <Label>{content.fields.keywords.label}</Label>
             <div className="flex gap-2">
               <Input
                 value={newKeyword}
                 onChange={(e) => setNewKeyword(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddKeyword())}
-                placeholder="Keyword hinzufügen..."
+                placeholder={content.fields.keywords.placeholder}
               />
               <Button type="button" variant="outline" onClick={handleAddKeyword}>
-                Hinzufügen
+                {content.fields.keywords.addButton}
               </Button>
             </div>
             <div className="flex flex-wrap gap-2 mt-2">
@@ -200,16 +203,16 @@ export function SeoSettingsTab({ settings, saving, onUpdate }: SeoSettingsTabPro
 
           {/* Google Preview */}
           <div className="mt-4 p-4 bg-muted rounded-lg">
-            <h4 className="font-medium text-sm mb-2">Google Suchergebnis-Vorschau</h4>
+            <h4 className="font-medium text-sm mb-2">{content.preview.title}</h4>
             <div className="bg-background p-3 rounded border">
               <p className="text-primary text-lg leading-tight">
-                {formData.default_title || 'Seitentitel'}
+                {formData.default_title || content.preview.titleFallback}
               </p>
               <p className="text-green-700 text-sm">
-                {formData.canonical_domain || 'https://example.com'}
+                {formData.canonical_domain || content.preview.domainFallback}
               </p>
               <p className="text-sm text-muted-foreground line-clamp-2">
-                {formData.default_description || 'Meta-Beschreibung der Seite...'}
+                {formData.default_description || content.preview.descriptionFallback}
               </p>
             </div>
           </div>
@@ -221,40 +224,40 @@ export function SeoSettingsTab({ settings, saving, onUpdate }: SeoSettingsTabPro
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Share2 className="h-5 w-5" />
-            Open Graph (Social Media)
+            {content.sections.openGraph.title}
           </CardTitle>
           <CardDescription>
-            Wie Ihre Seite auf Facebook, LinkedIn etc. angezeigt wird
+            {content.sections.openGraph.description}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="og_type">OG Type</Label>
+              <Label htmlFor="og_type">{content.fields.ogType.label}</Label>
               <Input
                 id="og_type"
                 value={formData.og_type}
                 onChange={(e) => setFormData(prev => ({ ...prev, og_type: e.target.value }))}
-                placeholder="website"
+                placeholder={content.fields.ogType.placeholder}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="og_locale">OG Locale</Label>
+              <Label htmlFor="og_locale">{content.fields.ogLocale.label}</Label>
               <Input
                 id="og_locale"
                 value={formData.og_locale}
                 onChange={(e) => setFormData(prev => ({ ...prev, og_locale: e.target.value }))}
-                placeholder="de_DE"
+                placeholder={content.fields.ogLocale.placeholder}
               />
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="og_image">Standard OG Image URL</Label>
+            <Label htmlFor="og_image">{content.fields.ogImage.label}</Label>
             <Input
               id="og_image"
               value={formData.og_image}
               onChange={(e) => setFormData(prev => ({ ...prev, og_image: e.target.value }))}
-              placeholder="https://spaceseller.de/og-image.jpg"
+              placeholder={content.fields.ogImage.placeholder}
             />
           </div>
         </CardContent>
@@ -265,10 +268,10 @@ export function SeoSettingsTab({ settings, saving, onUpdate }: SeoSettingsTabPro
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            robots.txt
+            {content.sections.robots.title}
           </CardTitle>
           <CardDescription>
-            Anweisungen für Suchmaschinen-Crawler
+            {content.sections.robots.description}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -277,9 +280,7 @@ export function SeoSettingsTab({ settings, saving, onUpdate }: SeoSettingsTabPro
             onChange={(e) => setFormData(prev => ({ ...prev, robots_txt: e.target.value }))}
             rows={10}
             className="font-mono text-sm"
-            placeholder="User-agent: *
-Disallow: /admin-backend/
-Allow: /"
+            placeholder={content.fields.robotsTxt.placeholder}
           />
         </CardContent>
       </Card>
@@ -289,10 +290,10 @@ Allow: /"
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Globe className="h-5 w-5" />
-            Strukturierte Daten (JSON-LD)
+            {content.sections.structuredData.title}
           </CardTitle>
           <CardDescription>
-            Schema.org Markup für erweiterte Suchergebnisse
+            {content.sections.structuredData.description}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -301,11 +302,7 @@ Allow: /"
             onChange={(e) => setFormData(prev => ({ ...prev, structured_data: e.target.value }))}
             rows={10}
             className="font-mono text-sm"
-            placeholder='{
-  "@context": "https://schema.org",
-  "@type": "LocalBusiness",
-  "name": "SpaceSeller"
-}'
+            placeholder={content.fields.structuredData.placeholder}
           />
         </CardContent>
       </Card>
@@ -314,7 +311,7 @@ Allow: /"
       <div className="flex justify-end">
         <Button onClick={handleSave} disabled={saving}>
           <Save className="h-4 w-4 mr-2" />
-          {saving ? 'Speichern...' : 'Änderungen speichern'}
+          {saving ? content.actions.saving : content.actions.save}
         </Button>
       </div>
     </div>
