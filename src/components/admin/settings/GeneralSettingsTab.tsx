@@ -6,6 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Globe, Mail, Phone, MapPin, Share2, Loader2 } from 'lucide-react';
 import type { SiteSettings, AddressInfo, SocialLinks } from '@/types/siteSettings';
 import { AssetUploadZone } from './AssetUploadZone';
+import { adminSettingsContent } from '@/config/content/adminSettingsContent';
+
+const content = adminSettingsContent.general;
 
 interface GeneralSettingsTabProps {
   settings: SiteSettings | null;
@@ -92,56 +95,56 @@ export const GeneralSettingsTab = ({ settings, saving, onUpdate }: GeneralSettin
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Globe className="h-5 w-5" />
-            Grundeinstellungen
+            {content.sections.basic.title}
           </CardTitle>
           <CardDescription>
-            Name, Beschreibung und Branding Ihrer Website
+            {content.sections.basic.description}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="site_name">Website-Name</Label>
+              <Label htmlFor="site_name">{content.fields.siteName.label}</Label>
               <Input
                 id="site_name"
                 value={formData.site_name}
                 onChange={(e) => setFormData(prev => ({ ...prev, site_name: e.target.value }))}
-                placeholder="SpaceSeller"
+                placeholder={content.fields.siteName.placeholder}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="site_description">Kurzbeschreibung</Label>
+              <Label htmlFor="site_description">{content.fields.siteDescription.label}</Label>
               <Input
                 id="site_description"
                 value={formData.site_description}
                 onChange={(e) => setFormData(prev => ({ ...prev, site_description: e.target.value }))}
-                placeholder="Professionelle Immobilienfotografie"
+                placeholder={content.fields.siteDescription.placeholder}
               />
             </div>
           </div>
 
           <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-2">
-              <Label>Logo</Label>
+              <Label>{content.fields.logo.label}</Label>
               <AssetUploadZone
-                label="Logo hochladen"
+                label={content.fields.logo.uploadLabel}
                 currentUrl={formData.logo_url}
                 folder="branding"
                 maxSizeMB={2}
                 accept={{ 'image/*': ['.png', '.jpg', '.jpeg', '.svg', '.webp'] }}
-                hint="PNG, JPG, SVG oder WebP bis 2MB"
+                hint={content.fields.logo.hint}
                 onUploadComplete={(url) => setFormData(prev => ({ ...prev, logo_url: url }))}
               />
             </div>
             <div className="space-y-2">
-              <Label>Favicon</Label>
+              <Label>{content.fields.favicon.label}</Label>
               <AssetUploadZone
-                label="Favicon hochladen"
+                label={content.fields.favicon.uploadLabel}
                 currentUrl={formData.favicon_url}
                 folder="branding"
                 maxSizeMB={1}
                 accept={{ 'image/*': ['.png', '.ico', '.svg'] }}
-                hint="PNG, ICO oder SVG bis 1MB (empfohlen: 32x32px)"
+                hint={content.fields.favicon.hint}
                 onUploadComplete={(url) => setFormData(prev => ({ ...prev, favicon_url: url }))}
               />
             </div>
@@ -154,10 +157,10 @@ export const GeneralSettingsTab = ({ settings, saving, onUpdate }: GeneralSettin
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Mail className="h-5 w-5" />
-            Kontaktdaten
+            {content.sections.contact.title}
           </CardTitle>
           <CardDescription>
-            E-Mail, Telefon und Adresse
+            {content.sections.contact.description}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -165,26 +168,26 @@ export const GeneralSettingsTab = ({ settings, saving, onUpdate }: GeneralSettin
             <div className="space-y-2">
               <Label htmlFor="contact_email" className="flex items-center gap-2">
                 <Mail className="h-4 w-4" />
-                E-Mail
+                {content.fields.email.label}
               </Label>
               <Input
                 id="contact_email"
                 type="email"
                 value={formData.contact_email}
                 onChange={(e) => setFormData(prev => ({ ...prev, contact_email: e.target.value }))}
-                placeholder="kontakt@spaceseller.de"
+                placeholder={content.fields.email.placeholder}
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="contact_phone" className="flex items-center gap-2">
                 <Phone className="h-4 w-4" />
-                Telefon
+                {content.fields.phone.label}
               </Label>
               <Input
                 id="contact_phone"
                 value={formData.contact_phone}
                 onChange={(e) => setFormData(prev => ({ ...prev, contact_phone: e.target.value }))}
-                placeholder="+49 123 456789"
+                placeholder={content.fields.phone.placeholder}
               />
             </div>
           </div>
@@ -192,28 +195,28 @@ export const GeneralSettingsTab = ({ settings, saving, onUpdate }: GeneralSettin
           <div className="space-y-2">
             <Label className="flex items-center gap-2">
               <MapPin className="h-4 w-4" />
-              Adresse
+              {content.fields.address.label}
             </Label>
             <div className="grid gap-4 md:grid-cols-2">
               <Input
                 value={formData.address_street}
                 onChange={(e) => setFormData(prev => ({ ...prev, address_street: e.target.value }))}
-                placeholder="Straße und Hausnummer"
+                placeholder={content.fields.address.streetPlaceholder}
               />
               <Input
                 value={formData.address_postal_code}
                 onChange={(e) => setFormData(prev => ({ ...prev, address_postal_code: e.target.value }))}
-                placeholder="PLZ"
+                placeholder={content.fields.address.postalCodePlaceholder}
               />
               <Input
                 value={formData.address_city}
                 onChange={(e) => setFormData(prev => ({ ...prev, address_city: e.target.value }))}
-                placeholder="Stadt"
+                placeholder={content.fields.address.cityPlaceholder}
               />
               <Input
                 value={formData.address_country}
                 onChange={(e) => setFormData(prev => ({ ...prev, address_country: e.target.value }))}
-                placeholder="Land"
+                placeholder={content.fields.address.countryPlaceholder}
               />
             </div>
           </div>
@@ -225,48 +228,48 @@ export const GeneralSettingsTab = ({ settings, saving, onUpdate }: GeneralSettin
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Share2 className="h-5 w-5" />
-            Social Media
+            {content.sections.social.title}
           </CardTitle>
           <CardDescription>
-            Links zu Ihren Social-Media-Profilen
+            {content.sections.social.description}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="social_facebook">Facebook</Label>
+              <Label htmlFor="social_facebook">{content.fields.facebook.label}</Label>
               <Input
                 id="social_facebook"
                 value={formData.social_facebook}
                 onChange={(e) => setFormData(prev => ({ ...prev, social_facebook: e.target.value }))}
-                placeholder="https://facebook.com/..."
+                placeholder={content.fields.facebook.placeholder}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="social_instagram">Instagram</Label>
+              <Label htmlFor="social_instagram">{content.fields.instagram.label}</Label>
               <Input
                 id="social_instagram"
                 value={formData.social_instagram}
                 onChange={(e) => setFormData(prev => ({ ...prev, social_instagram: e.target.value }))}
-                placeholder="https://instagram.com/..."
+                placeholder={content.fields.instagram.placeholder}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="social_linkedin">LinkedIn</Label>
+              <Label htmlFor="social_linkedin">{content.fields.linkedin.label}</Label>
               <Input
                 id="social_linkedin"
                 value={formData.social_linkedin}
                 onChange={(e) => setFormData(prev => ({ ...prev, social_linkedin: e.target.value }))}
-                placeholder="https://linkedin.com/..."
+                placeholder={content.fields.linkedin.placeholder}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="social_youtube">YouTube</Label>
+              <Label htmlFor="social_youtube">{content.fields.youtube.label}</Label>
               <Input
                 id="social_youtube"
                 value={formData.social_youtube}
                 onChange={(e) => setFormData(prev => ({ ...prev, social_youtube: e.target.value }))}
-                placeholder="https://youtube.com/..."
+                placeholder={content.fields.youtube.placeholder}
               />
             </div>
           </div>
@@ -277,7 +280,7 @@ export const GeneralSettingsTab = ({ settings, saving, onUpdate }: GeneralSettin
       <div className="flex justify-end">
         <Button onClick={handleSave} disabled={saving}>
           {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Einstellungen speichern
+          {content.actions.save}
         </Button>
       </div>
     </div>

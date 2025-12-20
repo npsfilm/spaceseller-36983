@@ -8,6 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { Save, BarChart, AlertTriangle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import type { SeaSettings, ConversionEvents } from '@/types/siteSettings';
+import { adminSettingsContent } from '@/config/content/adminSettingsContent';
+
+const content = adminSettingsContent.tracking;
 
 interface TrackingSettingsTabProps {
   settings: SeaSettings | null;
@@ -87,18 +90,18 @@ export function TrackingSettingsTab({ settings, saving, onUpdate }: TrackingSett
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <BarChart className="h-5 w-5" />
-            Tracking aktivieren
+            {content.sections.master.title}
           </CardTitle>
           <CardDescription>
-            Tracking-Scripte auf Ihrer Website ein- oder ausschalten
+            {content.sections.master.description}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <Label className="text-base">Tracking aktiviert</Label>
+              <Label className="text-base">{content.toggles.enabled.label}</Label>
               <p className="text-sm text-muted-foreground">
-                Alle konfigurierten Tracking-Dienste werden {formData.enabled ? 'geladen' : 'nicht geladen'}
+                {formData.enabled ? content.toggles.enabled.descriptionOn : content.toggles.enabled.descriptionOff}
               </p>
             </div>
             <Switch
@@ -109,9 +112,9 @@ export function TrackingSettingsTab({ settings, saving, onUpdate }: TrackingSett
           
           <div className="flex items-center justify-between">
             <div>
-              <Label className="text-base">Cookie-Einwilligung erforderlich</Label>
+              <Label className="text-base">{content.toggles.cookieConsent.label}</Label>
               <p className="text-sm text-muted-foreground">
-                Tracking erst nach Cookie-Zustimmung laden (DSGVO)
+                {content.toggles.cookieConsent.description}
               </p>
             </div>
             <Switch
@@ -124,16 +127,16 @@ export function TrackingSettingsTab({ settings, saving, onUpdate }: TrackingSett
             <Alert variant="destructive">
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
-                Achtung: Tracking ohne Cookie-Einwilligung kann gegen DSGVO verstoßen!
+                {content.alerts.gdprWarning}
               </AlertDescription>
             </Alert>
           )}
 
           <div className="flex gap-2 flex-wrap">
             {formData.enabled ? (
-              <Badge className="bg-green-100 text-green-800">Tracking aktiv</Badge>
+              <Badge className="bg-green-100 text-green-800">{content.badges.active}</Badge>
             ) : (
-              <Badge variant="secondary">Tracking deaktiviert</Badge>
+              <Badge variant="secondary">{content.badges.inactive}</Badge>
             )}
             {hasAnyTracking && (
               <Badge variant="outline">{
@@ -154,19 +157,19 @@ export function TrackingSettingsTab({ settings, saving, onUpdate }: TrackingSett
       {/* Google Analytics */}
       <Card>
         <CardHeader>
-          <CardTitle>Google Analytics 4</CardTitle>
+          <CardTitle>{content.sections.googleAnalytics.title}</CardTitle>
           <CardDescription>
-            Website-Analyse und Besucherstatistiken
+            {content.sections.googleAnalytics.description}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="google_analytics_id">Mess-ID (GA4)</Label>
+            <Label htmlFor="google_analytics_id">{content.fields.googleAnalyticsId.label}</Label>
             <Input
               id="google_analytics_id"
               value={formData.google_analytics_id}
               onChange={(e) => setFormData(prev => ({ ...prev, google_analytics_id: e.target.value }))}
-              placeholder="G-XXXXXXXXXX"
+              placeholder={content.fields.googleAnalyticsId.placeholder}
             />
           </div>
         </CardContent>
@@ -175,19 +178,19 @@ export function TrackingSettingsTab({ settings, saving, onUpdate }: TrackingSett
       {/* Google Tag Manager */}
       <Card>
         <CardHeader>
-          <CardTitle>Google Tag Manager</CardTitle>
+          <CardTitle>{content.sections.tagManager.title}</CardTitle>
           <CardDescription>
-            Zentrales Tag-Management für alle Marketing-Tags
+            {content.sections.tagManager.description}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="google_tag_manager_id">Container-ID</Label>
+            <Label htmlFor="google_tag_manager_id">{content.fields.tagManagerId.label}</Label>
             <Input
               id="google_tag_manager_id"
               value={formData.google_tag_manager_id}
               onChange={(e) => setFormData(prev => ({ ...prev, google_tag_manager_id: e.target.value }))}
-              placeholder="GTM-XXXXXXX"
+              placeholder={content.fields.tagManagerId.placeholder}
             />
           </div>
         </CardContent>
@@ -196,29 +199,29 @@ export function TrackingSettingsTab({ settings, saving, onUpdate }: TrackingSett
       {/* Google Ads */}
       <Card>
         <CardHeader>
-          <CardTitle>Google Ads Conversion Tracking</CardTitle>
+          <CardTitle>{content.sections.googleAds.title}</CardTitle>
           <CardDescription>
-            Conversion-Tracking für Google Ads Kampagnen
+            {content.sections.googleAds.description}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="google_ads_id">Conversion-ID</Label>
+              <Label htmlFor="google_ads_id">{content.fields.googleAdsId.label}</Label>
               <Input
                 id="google_ads_id"
                 value={formData.google_ads_id}
                 onChange={(e) => setFormData(prev => ({ ...prev, google_ads_id: e.target.value }))}
-                placeholder="AW-XXXXXXXXXX"
+                placeholder={content.fields.googleAdsId.placeholder}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="google_ads_conversion_label">Conversion-Label</Label>
+              <Label htmlFor="google_ads_conversion_label">{content.fields.googleAdsLabel.label}</Label>
               <Input
                 id="google_ads_conversion_label"
                 value={formData.google_ads_conversion_label}
                 onChange={(e) => setFormData(prev => ({ ...prev, google_ads_conversion_label: e.target.value }))}
-                placeholder="xxxxxxxxx"
+                placeholder={content.fields.googleAdsLabel.placeholder}
               />
             </div>
           </div>
@@ -228,19 +231,19 @@ export function TrackingSettingsTab({ settings, saving, onUpdate }: TrackingSett
       {/* Facebook Pixel */}
       <Card>
         <CardHeader>
-          <CardTitle>Facebook/Meta Pixel</CardTitle>
+          <CardTitle>{content.sections.facebookPixel.title}</CardTitle>
           <CardDescription>
-            Tracking für Facebook und Instagram Ads
+            {content.sections.facebookPixel.description}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <Label htmlFor="facebook_pixel_id">Pixel-ID</Label>
+            <Label htmlFor="facebook_pixel_id">{content.fields.facebookPixelId.label}</Label>
             <Input
               id="facebook_pixel_id"
               value={formData.facebook_pixel_id}
               onChange={(e) => setFormData(prev => ({ ...prev, facebook_pixel_id: e.target.value }))}
-              placeholder="XXXXXXXXXXXXXXXX"
+              placeholder={content.fields.facebookPixelId.placeholder}
             />
           </div>
         </CardContent>
@@ -249,29 +252,29 @@ export function TrackingSettingsTab({ settings, saving, onUpdate }: TrackingSett
       {/* LinkedIn & Hotjar */}
       <Card>
         <CardHeader>
-          <CardTitle>Weitere Tracking-Dienste</CardTitle>
+          <CardTitle>{content.sections.otherServices.title}</CardTitle>
           <CardDescription>
-            LinkedIn Insight Tag und Hotjar
+            {content.sections.otherServices.description}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="linkedin_insight_tag">LinkedIn Insight Tag</Label>
+              <Label htmlFor="linkedin_insight_tag">{content.fields.linkedinInsightTag.label}</Label>
               <Input
                 id="linkedin_insight_tag"
                 value={formData.linkedin_insight_tag}
                 onChange={(e) => setFormData(prev => ({ ...prev, linkedin_insight_tag: e.target.value }))}
-                placeholder="Partner-ID"
+                placeholder={content.fields.linkedinInsightTag.placeholder}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="hotjar_id">Hotjar ID</Label>
+              <Label htmlFor="hotjar_id">{content.fields.hotjarId.label}</Label>
               <Input
                 id="hotjar_id"
                 value={formData.hotjar_id}
                 onChange={(e) => setFormData(prev => ({ ...prev, hotjar_id: e.target.value }))}
-                placeholder="XXXXXXX"
+                placeholder={content.fields.hotjarId.placeholder}
               />
             </div>
           </div>
@@ -281,28 +284,28 @@ export function TrackingSettingsTab({ settings, saving, onUpdate }: TrackingSett
       {/* Conversion Events */}
       <Card>
         <CardHeader>
-          <CardTitle>Conversion Events</CardTitle>
+          <CardTitle>{content.sections.conversionEvents.title}</CardTitle>
           <CardDescription>
-            Welche Events sollen als Conversions getrackt werden?
+            {content.sections.conversionEvents.description}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
-            <Label>Bestellung abgeschlossen</Label>
+            <Label>{content.events.orderCompleted}</Label>
             <Switch
               checked={formData.conversion_order}
               onCheckedChange={(checked) => setFormData(prev => ({ ...prev, conversion_order: checked }))}
             />
           </div>
           <div className="flex items-center justify-between">
-            <Label>Registrierung abgeschlossen</Label>
+            <Label>{content.events.signupCompleted}</Label>
             <Switch
               checked={formData.conversion_signup}
               onCheckedChange={(checked) => setFormData(prev => ({ ...prev, conversion_signup: checked }))}
             />
           </div>
           <div className="flex items-center justify-between">
-            <Label>Kontaktformular gesendet</Label>
+            <Label>{content.events.contactFormSubmitted}</Label>
             <Switch
               checked={formData.conversion_contact}
               onCheckedChange={(checked) => setFormData(prev => ({ ...prev, conversion_contact: checked }))}
@@ -315,7 +318,7 @@ export function TrackingSettingsTab({ settings, saving, onUpdate }: TrackingSett
       <div className="flex justify-end">
         <Button onClick={handleSave} disabled={saving}>
           <Save className="h-4 w-4 mr-2" />
-          {saving ? 'Speichern...' : 'Änderungen speichern'}
+          {saving ? content.actions.saving : content.actions.save}
         </Button>
       </div>
     </div>

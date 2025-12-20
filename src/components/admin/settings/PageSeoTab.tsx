@@ -25,6 +25,9 @@ import {
 } from '@/components/ui/table';
 import { FileText, Plus, Edit, Trash2, Save, X } from 'lucide-react';
 import type { PageSeo } from '@/types/siteSettings';
+import { adminSettingsContent } from '@/config/content/adminSettingsContent';
+
+const content = adminSettingsContent.pages;
 
 interface PageSeoTabProps {
   pages: PageSeo[];
@@ -134,59 +137,59 @@ export function PageSeoTab({ pages, saving, onUpdate, onCreate, onDelete }: Page
             <div>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5" />
-                Seiten-spezifische SEO
+                {content.sections.main.title}
               </CardTitle>
               <CardDescription>
-                Individuelle SEO-Einstellungen für jede Seite
+                {content.sections.main.description}
               </CardDescription>
             </div>
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogTrigger asChild>
                 <Button>
                   <Plus className="h-4 w-4 mr-2" />
-                  Neue Seite
+                  {content.actions.newPage}
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl">
                 <DialogHeader>
-                  <DialogTitle>Neue Seite hinzufügen</DialogTitle>
+                  <DialogTitle>{content.dialogs.create.title}</DialogTitle>
                   <DialogDescription>
-                    SEO-Einstellungen für eine neue Seite konfigurieren
+                    {content.dialogs.create.description}
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
-                      <Label>Pfad</Label>
+                      <Label>{content.fields.path.label}</Label>
                       <Input
                         value={newPage.page_path}
                         onChange={(e) => setNewPage(prev => ({ ...prev, page_path: e.target.value }))}
-                        placeholder="/neue-seite"
+                        placeholder={content.fields.path.placeholder}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Seitenname</Label>
+                      <Label>{content.fields.pageName.label}</Label>
                       <Input
                         value={newPage.page_name}
                         onChange={(e) => setNewPage(prev => ({ ...prev, page_name: e.target.value }))}
-                        placeholder="Neue Seite"
+                        placeholder={content.fields.pageName.placeholder}
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label>Title</Label>
+                    <Label>{content.fields.title.label}</Label>
                     <Input
                       value={newPage.title}
                       onChange={(e) => setNewPage(prev => ({ ...prev, title: e.target.value }))}
-                      placeholder="Seitentitel | SpaceSeller"
+                      placeholder={content.fields.title.placeholder}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Description</Label>
+                    <Label>{content.fields.description.label}</Label>
                     <Textarea
                       value={newPage.description}
                       onChange={(e) => setNewPage(prev => ({ ...prev, description: e.target.value }))}
-                      placeholder="Meta-Beschreibung..."
+                      placeholder={content.fields.description.placeholder}
                       rows={2}
                     />
                   </div>
@@ -196,23 +199,23 @@ export function PageSeoTab({ pages, saving, onUpdate, onCreate, onDelete }: Page
                         checked={newPage.no_index}
                         onCheckedChange={(checked) => setNewPage(prev => ({ ...prev, no_index: checked }))}
                       />
-                      <Label>No Index</Label>
+                      <Label>{content.fields.noIndex.label}</Label>
                     </div>
                     <div className="flex items-center gap-2">
                       <Switch
                         checked={newPage.no_follow}
                         onCheckedChange={(checked) => setNewPage(prev => ({ ...prev, no_follow: checked }))}
                       />
-                      <Label>No Follow</Label>
+                      <Label>{content.fields.noFollow.label}</Label>
                     </div>
                   </div>
                 </div>
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                    Abbrechen
+                    {content.actions.cancel}
                   </Button>
                   <Button onClick={handleCreate} disabled={saving || !newPage.page_path || !newPage.page_name}>
-                    Erstellen
+                    {content.actions.create}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -223,11 +226,11 @@ export function PageSeoTab({ pages, saving, onUpdate, onCreate, onDelete }: Page
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Seite</TableHead>
-                <TableHead>Pfad</TableHead>
-                <TableHead>Title</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Aktionen</TableHead>
+                <TableHead>{content.table.headers.page}</TableHead>
+                <TableHead>{content.table.headers.path}</TableHead>
+                <TableHead>{content.table.headers.title}</TableHead>
+                <TableHead>{content.table.headers.status}</TableHead>
+                <TableHead className="text-right">{content.table.headers.actions}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -236,14 +239,14 @@ export function PageSeoTab({ pages, saving, onUpdate, onCreate, onDelete }: Page
                   <TableCell className="font-medium">{page.page_name}</TableCell>
                   <TableCell className="font-mono text-sm">{page.page_path}</TableCell>
                   <TableCell className="max-w-[200px] truncate">
-                    {page.title || <span className="text-muted-foreground">Standard</span>}
+                    {page.title || <span className="text-muted-foreground">{content.table.status.default}</span>}
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1">
-                      {page.no_index && <Badge variant="outline">noindex</Badge>}
-                      {page.no_follow && <Badge variant="outline">nofollow</Badge>}
+                      {page.no_index && <Badge variant="outline">{content.table.status.noindex}</Badge>}
+                      {page.no_follow && <Badge variant="outline">{content.table.status.nofollow}</Badge>}
                       {!page.no_index && !page.no_follow && (
-                        <Badge variant="secondary">indexiert</Badge>
+                        <Badge variant="secondary">{content.table.status.indexed}</Badge>
                       )}
                     </div>
                   </TableCell>
@@ -273,7 +276,7 @@ export function PageSeoTab({ pages, saving, onUpdate, onCreate, onDelete }: Page
       <Dialog open={!!editingPage} onOpenChange={(open) => !open && setEditingPage(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Seite bearbeiten: {editingPage?.page_name}</DialogTitle>
+            <DialogTitle>{content.dialogs.edit.titlePrefix} {editingPage?.page_name}</DialogTitle>
             <DialogDescription>
               {editingPage?.page_path}
             </DialogDescription>
@@ -282,39 +285,39 @@ export function PageSeoTab({ pages, saving, onUpdate, onCreate, onDelete }: Page
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label>
-                  Title
+                  {content.fields.title.label}
                   <span className="ml-2 text-xs text-muted-foreground">
-                    ({(editingPage.title?.length || 0)}/60 Zeichen)
+                    ({(editingPage.title?.length || 0)}/60 {content.fields.title.charCount})
                   </span>
                 </Label>
                 <Input
                   value={editingPage.title || ''}
                   onChange={(e) => setEditingPage({ ...editingPage, title: e.target.value })}
-                  placeholder="Seitentitel"
+                  placeholder={content.fields.title.placeholder}
                 />
               </div>
               <div className="space-y-2">
                 <Label>
-                  Description
+                  {content.fields.description.label}
                   <span className="ml-2 text-xs text-muted-foreground">
-                    ({(editingPage.description?.length || 0)}/160 Zeichen)
+                    ({(editingPage.description?.length || 0)}/160 {content.fields.description.charCount})
                   </span>
                 </Label>
                 <Textarea
                   value={editingPage.description || ''}
                   onChange={(e) => setEditingPage({ ...editingPage, description: e.target.value })}
-                  placeholder="Meta-Beschreibung..."
+                  placeholder={content.fields.description.placeholder}
                   rows={3}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Keywords</Label>
+                <Label>{content.fields.keywords.label}</Label>
                 <div className="flex gap-2">
                   <Input
                     value={keywordInput}
                     onChange={(e) => setKeywordInput(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddKeyword(true))}
-                    placeholder="Keyword hinzufügen..."
+                    placeholder={content.fields.keywords.placeholder}
                   />
                   <Button type="button" variant="outline" onClick={() => handleAddKeyword(true)}>
                     +
@@ -340,19 +343,19 @@ export function PageSeoTab({ pages, saving, onUpdate, onCreate, onDelete }: Page
                     checked={editingPage.no_index}
                     onCheckedChange={(checked) => setEditingPage({ ...editingPage, no_index: checked })}
                   />
-                  <Label>No Index</Label>
+                  <Label>{content.fields.noIndex.label}</Label>
                 </div>
                 <div className="flex items-center gap-2">
                   <Switch
                     checked={editingPage.no_follow}
                     onCheckedChange={(checked) => setEditingPage({ ...editingPage, no_follow: checked })}
                   />
-                  <Label>No Follow</Label>
+                  <Label>{content.fields.noFollow.label}</Label>
                 </div>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label>Priorität (0.0 - 1.0)</Label>
+                  <Label>{content.fields.priority.label}</Label>
                   <Input
                     type="number"
                     min="0"
@@ -363,11 +366,11 @@ export function PageSeoTab({ pages, saving, onUpdate, onCreate, onDelete }: Page
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Änderungsfrequenz</Label>
+                  <Label>{content.fields.changeFrequency.label}</Label>
                   <Input
                     value={editingPage.change_frequency}
                     onChange={(e) => setEditingPage({ ...editingPage, change_frequency: e.target.value })}
-                    placeholder="monthly"
+                    placeholder={content.fields.changeFrequency.placeholder}
                   />
                 </div>
               </div>
@@ -375,11 +378,11 @@ export function PageSeoTab({ pages, saving, onUpdate, onCreate, onDelete }: Page
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditingPage(null)}>
-              Abbrechen
+              {content.actions.cancel}
             </Button>
             <Button onClick={handleSaveEdit} disabled={saving}>
               <Save className="h-4 w-4 mr-2" />
-              Speichern
+              {content.actions.save}
             </Button>
           </DialogFooter>
         </DialogContent>

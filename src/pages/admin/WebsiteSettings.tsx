@@ -8,6 +8,9 @@ import { SeoSettingsTab } from '@/components/admin/settings/SeoSettingsTab';
 import { PageSeoTab } from '@/components/admin/settings/PageSeoTab';
 import { TrackingSettingsTab } from '@/components/admin/settings/TrackingSettingsTab';
 import { Settings, Palette, Search, FileText, BarChart } from 'lucide-react';
+import { adminSettingsContent } from '@/config/content/adminSettingsContent';
+
+const content = adminSettingsContent;
 
 export default function WebsiteSettings() {
   const {
@@ -40,14 +43,14 @@ export default function WebsiteSettings() {
     <AdminLayout>
       <Helmet>
         <meta name="robots" content="noindex, nofollow" />
-        <title>Website-Einstellungen - Admin</title>
+        <title>{content.page.title}</title>
       </Helmet>
 
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Website-Einstellungen</h1>
+          <h1 className="text-2xl font-bold text-foreground">{content.page.heading}</h1>
           <p className="text-muted-foreground mt-1">
-            Verwalten Sie Design, SEO, Tracking und allgemeine Website-Einstellungen
+            {content.page.description}
           </p>
         </div>
 
@@ -55,23 +58,23 @@ export default function WebsiteSettings() {
           <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-grid">
             <TabsTrigger value="general" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
-              <span className="hidden sm:inline">Allgemein</span>
+              <span className="hidden sm:inline">{content.tabs.general}</span>
             </TabsTrigger>
             <TabsTrigger value="design" className="flex items-center gap-2">
               <Palette className="h-4 w-4" />
-              <span className="hidden sm:inline">Design</span>
+              <span className="hidden sm:inline">{content.tabs.design}</span>
             </TabsTrigger>
             <TabsTrigger value="seo" className="flex items-center gap-2">
               <Search className="h-4 w-4" />
-              <span className="hidden sm:inline">SEO</span>
+              <span className="hidden sm:inline">{content.tabs.seo}</span>
             </TabsTrigger>
             <TabsTrigger value="pages" className="flex items-center gap-2">
               <FileText className="h-4 w-4" />
-              <span className="hidden sm:inline">Seiten</span>
+              <span className="hidden sm:inline">{content.tabs.pages}</span>
             </TabsTrigger>
             <TabsTrigger value="tracking" className="flex items-center gap-2">
               <BarChart className="h-4 w-4" />
-              <span className="hidden sm:inline">Tracking</span>
+              <span className="hidden sm:inline">{content.tabs.tracking}</span>
             </TabsTrigger>
           </TabsList>
 
