@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { SiteSettingsProvider } from "./contexts/SiteSettingsContext";
+import { DynamicSeoHead } from "./components/seo/DynamicSeoHead";
 import Home from "./pages/Home";
 import Impressum from "./pages/Impressum";
 import Datenschutz from "./pages/Datenschutz";
@@ -40,6 +41,7 @@ const App = () => (
       <AuthProvider>
         <SiteSettingsProvider>
           <TooltipProvider>
+            <DynamicSeoHead />
             <Toaster />
             <Sonner />
             <Routes>
@@ -66,7 +68,6 @@ const App = () => (
               <Route path="/impressum" element={<Impressum />} />
               <Route path="/datenschutz" element={<Datenschutz />} />
               <Route path="/agb" element={<AGB />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </TooltipProvider>

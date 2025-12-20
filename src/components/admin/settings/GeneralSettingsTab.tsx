@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Save, Globe, Mail, Phone, MapPin, Share2 } from 'lucide-react';
-import type { SiteSettings, SocialLinks, AddressInfo } from '@/types/siteSettings';
+import { Globe, Mail, Phone, MapPin, Share2, Loader2 } from 'lucide-react';
+import type { SiteSettings, AddressInfo, SocialLinks } from '@/types/siteSettings';
+import { AssetUploadZone } from './AssetUploadZone';
 
 interface GeneralSettingsTabProps {
   settings: SiteSettings | null;
@@ -13,7 +13,7 @@ interface GeneralSettingsTabProps {
   onUpdate: (updates: Partial<SiteSettings>) => Promise<boolean>;
 }
 
-export function GeneralSettingsTab({ settings, saving, onUpdate }: GeneralSettingsTabProps) {
+export const GeneralSettingsTab = ({ settings, saving, onUpdate }: GeneralSettingsTabProps) => {
   const [formData, setFormData] = useState({
     site_name: '',
     site_description: '',
@@ -87,7 +87,7 @@ export function GeneralSettingsTab({ settings, saving, onUpdate }: GeneralSettin
 
   return (
     <div className="space-y-6">
-      {/* Basic Info */}
+      {/* Grundeinstellungen */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -120,40 +120,36 @@ export function GeneralSettingsTab({ settings, saving, onUpdate }: GeneralSettin
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="logo_url">Logo URL</Label>
-              <Input
-                id="logo_url"
-                value={formData.logo_url}
-                onChange={(e) => setFormData(prev => ({ ...prev, logo_url: e.target.value }))}
-                placeholder="/spaceseller-logo.png"
+              <Label>Logo</Label>
+              <AssetUploadZone
+                label="Logo hochladen"
+                currentUrl={formData.logo_url}
+                folder="branding"
+                maxSizeMB={2}
+                accept={{ 'image/*': ['.png', '.jpg', '.jpeg', '.svg', '.webp'] }}
+                hint="PNG, JPG, SVG oder WebP bis 2MB"
+                onUploadComplete={(url) => setFormData(prev => ({ ...prev, logo_url: url }))}
               />
-              {formData.logo_url && (
-                <div className="mt-2 p-2 bg-muted rounded-md">
-                  <img 
-                    src={formData.logo_url} 
-                    alt="Logo Preview" 
-                    className="max-h-12 object-contain"
-                    onError={(e) => e.currentTarget.style.display = 'none'}
-                  />
-                </div>
-              )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="favicon_url">Favicon URL</Label>
-              <Input
-                id="favicon_url"
-                value={formData.favicon_url}
-                onChange={(e) => setFormData(prev => ({ ...prev, favicon_url: e.target.value }))}
-                placeholder="/favicon.ico"
+              <Label>Favicon</Label>
+              <AssetUploadZone
+                label="Favicon hochladen"
+                currentUrl={formData.favicon_url}
+                folder="branding"
+                maxSizeMB={1}
+                accept={{ 'image/*': ['.png', '.ico', '.svg'] }}
+                hint="PNG, ICO oder SVG bis 1MB (empfohlen: 32x32px)"
+                onUploadComplete={(url) => setFormData(prev => ({ ...prev, favicon_url: url }))}
               />
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Contact Info */}
+      {/* Kontaktdaten */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -161,23 +157,29 @@ export function GeneralSettingsTab({ settings, saving, onUpdate }: GeneralSettin
             Kontaktdaten
           </CardTitle>
           <CardDescription>
-            E-Mail, Telefon und Adresse für Impressum und Kontaktseite
+            E-Mail, Telefon und Adresse
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="contact_email">E-Mail</Label>
+              <Label htmlFor="contact_email" className="flex items-center gap-2">
+                <Mail className="h-4 w-4" />
+                E-Mail
+              </Label>
               <Input
                 id="contact_email"
                 type="email"
                 value={formData.contact_email}
                 onChange={(e) => setFormData(prev => ({ ...prev, contact_email: e.target.value }))}
-                placeholder="info@spaceseller.de"
+                placeholder="kontakt@spaceseller.de"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="contact_phone">Telefon</Label>
+              <Label htmlFor="contact_phone" className="flex items-center gap-2">
+                <Phone className="h-4 w-4" />
+                Telefon
+              </Label>
               <Input
                 id="contact_phone"
                 value={formData.contact_phone}
@@ -188,31 +190,37 @@ export function GeneralSettingsTab({ settings, saving, onUpdate }: GeneralSettin
           </div>
 
           <div className="space-y-2">
-            <Label>Adresse</Label>
+            <Label className="flex items-center gap-2">
+              <MapPin className="h-4 w-4" />
+              Adresse
+            </Label>
             <div className="grid gap-4 md:grid-cols-2">
               <Input
                 value={formData.address_street}
                 onChange={(e) => setFormData(prev => ({ ...prev, address_street: e.target.value }))}
                 placeholder="Straße und Hausnummer"
               />
-              <div className="grid grid-cols-2 gap-2">
-                <Input
-                  value={formData.address_postal_code}
-                  onChange={(e) => setFormData(prev => ({ ...prev, address_postal_code: e.target.value }))}
-                  placeholder="PLZ"
-                />
-                <Input
-                  value={formData.address_city}
-                  onChange={(e) => setFormData(prev => ({ ...prev, address_city: e.target.value }))}
-                  placeholder="Stadt"
-                />
-              </div>
+              <Input
+                value={formData.address_postal_code}
+                onChange={(e) => setFormData(prev => ({ ...prev, address_postal_code: e.target.value }))}
+                placeholder="PLZ"
+              />
+              <Input
+                value={formData.address_city}
+                onChange={(e) => setFormData(prev => ({ ...prev, address_city: e.target.value }))}
+                placeholder="Stadt"
+              />
+              <Input
+                value={formData.address_country}
+                onChange={(e) => setFormData(prev => ({ ...prev, address_country: e.target.value }))}
+                placeholder="Land"
+              />
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Social Links */}
+      {/* Social Media */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -223,7 +231,7 @@ export function GeneralSettingsTab({ settings, saving, onUpdate }: GeneralSettin
             Links zu Ihren Social-Media-Profilen
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent>
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="social_facebook">Facebook</Label>
@@ -231,7 +239,7 @@ export function GeneralSettingsTab({ settings, saving, onUpdate }: GeneralSettin
                 id="social_facebook"
                 value={formData.social_facebook}
                 onChange={(e) => setFormData(prev => ({ ...prev, social_facebook: e.target.value }))}
-                placeholder="https://facebook.com/spaceseller"
+                placeholder="https://facebook.com/..."
               />
             </div>
             <div className="space-y-2">
@@ -240,7 +248,7 @@ export function GeneralSettingsTab({ settings, saving, onUpdate }: GeneralSettin
                 id="social_instagram"
                 value={formData.social_instagram}
                 onChange={(e) => setFormData(prev => ({ ...prev, social_instagram: e.target.value }))}
-                placeholder="https://instagram.com/spaceseller"
+                placeholder="https://instagram.com/..."
               />
             </div>
             <div className="space-y-2">
@@ -249,7 +257,7 @@ export function GeneralSettingsTab({ settings, saving, onUpdate }: GeneralSettin
                 id="social_linkedin"
                 value={formData.social_linkedin}
                 onChange={(e) => setFormData(prev => ({ ...prev, social_linkedin: e.target.value }))}
-                placeholder="https://linkedin.com/company/spaceseller"
+                placeholder="https://linkedin.com/..."
               />
             </div>
             <div className="space-y-2">
@@ -258,20 +266,20 @@ export function GeneralSettingsTab({ settings, saving, onUpdate }: GeneralSettin
                 id="social_youtube"
                 value={formData.social_youtube}
                 onChange={(e) => setFormData(prev => ({ ...prev, social_youtube: e.target.value }))}
-                placeholder="https://youtube.com/@spaceseller"
+                placeholder="https://youtube.com/..."
               />
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Save Button */}
+      {/* Speichern Button */}
       <div className="flex justify-end">
         <Button onClick={handleSave} disabled={saving}>
-          <Save className="h-4 w-4 mr-2" />
-          {saving ? 'Speichern...' : 'Änderungen speichern'}
+          {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Einstellungen speichern
         </Button>
       </div>
     </div>
   );
-}
+};
