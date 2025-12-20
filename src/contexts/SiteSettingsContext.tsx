@@ -22,12 +22,12 @@ interface SiteSettingsContextType {
 const SiteSettingsContext = createContext<SiteSettingsContextType | undefined>(undefined);
 
 const DEFAULT_COLORS: ColorSettings = {
-  primary: "202 100% 50%",
-  secondary: "160 84% 39%",
-  accent: "38 92% 50%",
-  background: "0 0% 100%",
-  foreground: "222 47% 11%",
-  muted: "210 40% 96%",
+  primary: "140 30% 30%",
+  secondary: "40 20% 94%",
+  accent: "150 29% 19%",
+  background: "40 30% 98%",
+  foreground: "0 0% 10%",
+  muted: "40 10% 90%",
   destructive: "0 84% 60%"
 };
 
