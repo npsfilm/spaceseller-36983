@@ -1,5 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Clock, CheckCircle, Calendar, XCircle } from 'lucide-react';
+import { StatsGrid } from '@/components/shared';
+import type { StatCardProps } from '@/components/shared';
 import { AssignmentStats } from '@/lib/services/AssignmentDataService';
 
 export interface AssignmentStatsCardsProps {
@@ -7,51 +8,40 @@ export interface AssignmentStatsCardsProps {
 }
 
 export const AssignmentStatsCards = ({ stats }: AssignmentStatsCardsProps) => {
+  const statItems: StatCardProps[] = [
+    {
+      title: "Ausstehend",
+      value: stats.pending,
+      icon: Clock,
+      subtitle: "Warten auf Ihre Antwort"
+    },
+    {
+      title: "Angenommen",
+      value: stats.accepted,
+      icon: CheckCircle,
+      subtitle: "Aktive Aufträge"
+    },
+    {
+      title: "Abgeschlossen",
+      value: stats.completed,
+      icon: Calendar,
+      subtitle: "Diesen Monat"
+    },
+    {
+      title: "Abgelehnt",
+      value: stats.declined,
+      icon: XCircle,
+      subtitle: "Gesamt"
+    }
+  ];
+
   return (
-    <div className="grid gap-4 md:grid-cols-4 mb-8">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Ausstehend</CardTitle>
-          <Clock className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{stats.pending}</div>
-          <p className="text-xs text-muted-foreground">Warten auf Ihre Antwort</p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Angenommen</CardTitle>
-          <CheckCircle className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{stats.accepted}</div>
-          <p className="text-xs text-muted-foreground">Aktive Aufträge</p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Abgeschlossen</CardTitle>
-          <Calendar className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{stats.completed}</div>
-          <p className="text-xs text-muted-foreground">Diesen Monat</p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Abgelehnt</CardTitle>
-          <XCircle className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{stats.declined}</div>
-          <p className="text-xs text-muted-foreground">Gesamt</p>
-        </CardContent>
-      </Card>
-    </div>
+    <StatsGrid 
+      stats={statItems} 
+      variant="static"
+      columns={{ default: 2, md: 4 }}
+      gap={4}
+      className="mb-8"
+    />
   );
 };

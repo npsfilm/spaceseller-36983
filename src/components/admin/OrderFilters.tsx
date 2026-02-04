@@ -1,6 +1,4 @@
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { CombinedFilters, StatusOption } from '@/components/shared';
 
 interface OrderFiltersProps {
   searchQuery: string;
@@ -9,6 +7,15 @@ interface OrderFiltersProps {
   onStatusChange: (status: string) => void;
 }
 
+const statusOptions: StatusOption[] = [
+  { value: "all", label: "Alle Status" },
+  { value: "submitted", label: "Eingereicht" },
+  { value: "in_progress", label: "In Bearbeitung" },
+  { value: "completed", label: "Abgeschlossen" },
+  { value: "delivered", label: "Geliefert" },
+  { value: "cancelled", label: "Storniert" }
+];
+
 export const OrderFilters = ({
   searchQuery,
   onSearchChange,
@@ -16,31 +23,19 @@ export const OrderFilters = ({
   onStatusChange,
 }: OrderFiltersProps) => {
   return (
-    <Card className="mb-6">
-      <CardContent className="pt-6">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1">
-            <Input
-              placeholder="Suche nach Bestellnummer, Email oder Firma..."
-              value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
-            />
-          </div>
-          <Select value={statusFilter} onValueChange={onStatusChange}>
-            <SelectTrigger className="w-full md:w-[200px]">
-              <SelectValue placeholder="Status filtern" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Alle Status</SelectItem>
-              <SelectItem value="submitted">Eingereicht</SelectItem>
-              <SelectItem value="in_progress">In Bearbeitung</SelectItem>
-              <SelectItem value="completed">Abgeschlossen</SelectItem>
-              <SelectItem value="delivered">Geliefert</SelectItem>
-              <SelectItem value="cancelled">Storniert</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </CardContent>
-    </Card>
+    <CombinedFilters
+      search={{
+        value: searchQuery,
+        onChange: onSearchChange,
+        placeholder: "Suche nach Bestellnummer, Email oder Firma..."
+      }}
+      status={{
+        value: statusFilter,
+        onChange: onStatusChange,
+        options: statusOptions,
+        variant: 'select',
+        placeholder: "Status filtern"
+      }}
+    />
   );
 };
