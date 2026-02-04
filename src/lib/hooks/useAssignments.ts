@@ -4,6 +4,7 @@ import { assignmentDataService, Assignment, AssignmentStats } from '@/lib/servic
 import { useMemo, useEffect } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { QUERY_KEYS, STALE_TIMES, GC_TIMES } from '@/lib/queryConfig';
 
 export const usePhotographerAssignments = () => {
   const { user } = useAuth();
@@ -25,7 +26,7 @@ export const usePhotographerAssignments = () => {
         },
         (payload) => {
           console.log('New assignment received:', payload);
-          queryClient.invalidateQueries({ queryKey: ['photographer-assignments', user.id] });
+          queryClient.invalidateQueries({ queryKey: QUERY_KEYS.photographerAssignments(user.id) });
           toast.info('Neuer Auftrag verfügbar!', {
             description: 'Sie haben einen neuen Shooting-Auftrag erhalten.'
           });
@@ -41,7 +42,7 @@ export const usePhotographerAssignments = () => {
         },
         (payload) => {
           console.log('Assignment updated:', payload);
-          queryClient.invalidateQueries({ queryKey: ['photographer-assignments', user.id] });
+          queryClient.invalidateQueries({ queryKey: QUERY_KEYS.photographerAssignments(user.id) });
         }
       )
       .subscribe();
@@ -52,7 +53,7 @@ export const usePhotographerAssignments = () => {
   }, [user?.id, queryClient]);
 
   return useQuery<Assignment[]>({
-    queryKey: ['photographer-assignments', user?.id],
+    queryKey: QUERY_KEYS.photographerAssignments(user?.id ?? ''),
     queryFn: async () => {
       if (!user?.id) {
         console.error('[useAssignments] User not authenticated');
@@ -64,8 +65,8 @@ export const usePhotographerAssignments = () => {
       return result;
     },
     enabled: !!user,
-    staleTime: 30000, // 30 seconds
-    gcTime: 300000, // 5 minutes
+    staleTime: STALE_TIMES.assignments,
+    gcTime: GC_TIMES.default,
   });
 };
 
@@ -97,13 +98,50 @@ export const useAssignmentActions = () => {
         '/admin-backend'
       );
     },
-    onSuccess: () => {
-      toast.success('Auftrag angenommen');
-      queryClient.invalidateQueries({ queryKey: ['photographer-assignments', user?.id] });
+    // Optimistic update for immediate UI feedback
+    onMutate: async ({ assignmentId }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ 
+        queryKey: QUERY_KEYS.photographerAssignments(user!.id) 
+      });
+
+      // Snapshot the previous value
+      const previousAssignments = queryClient.getQueryData<Assignment[]>(
+        QUERY_KEYS.photographerAssignments(user!.id)
+      );
+
+      // Optimistically update to the new value
+      queryClient.setQueryData<Assignment[]>(
+        QUERY_KEYS.photographerAssignments(user!.id),
+        (old) => old?.map(a => 
+          a.id === assignmentId 
+            ? { ...a, status: 'accepted', responded_at: new Date().toISOString() }
+            : a
+        )
+      );
+
+      // Return context with the previous value
+      return { previousAssignments };
     },
-    onError: (error: Error) => {
+    onError: (error: Error, variables, context) => {
+      // Rollback on error
+      if (context?.previousAssignments) {
+        queryClient.setQueryData(
+          QUERY_KEYS.photographerAssignments(user!.id),
+          context.previousAssignments
+        );
+      }
       console.error('Error accepting assignment:', error);
       toast.error('Fehler beim Annehmen des Auftrags');
+    },
+    onSuccess: () => {
+      toast.success('Auftrag angenommen');
+    },
+    onSettled: () => {
+      // Always refetch after mutation settles
+      queryClient.invalidateQueries({ 
+        queryKey: QUERY_KEYS.photographerAssignments(user!.id) 
+      });
     }
   });
 
@@ -119,13 +157,50 @@ export const useAssignmentActions = () => {
         '/admin-backend'
       );
     },
-    onSuccess: () => {
-      toast.success('Auftrag abgelehnt');
-      queryClient.invalidateQueries({ queryKey: ['photographer-assignments', user?.id] });
+    // Optimistic update for immediate UI feedback
+    onMutate: async ({ assignmentId, reason }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ 
+        queryKey: QUERY_KEYS.photographerAssignments(user!.id) 
+      });
+
+      // Snapshot the previous value
+      const previousAssignments = queryClient.getQueryData<Assignment[]>(
+        QUERY_KEYS.photographerAssignments(user!.id)
+      );
+
+      // Optimistically update to the new value
+      queryClient.setQueryData<Assignment[]>(
+        QUERY_KEYS.photographerAssignments(user!.id),
+        (old) => old?.map(a => 
+          a.id === assignmentId 
+            ? { ...a, status: 'declined', photographer_notes: reason, responded_at: new Date().toISOString() }
+            : a
+        )
+      );
+
+      // Return context with the previous value
+      return { previousAssignments };
     },
-    onError: (error: Error) => {
+    onError: (error: Error, variables, context) => {
+      // Rollback on error
+      if (context?.previousAssignments) {
+        queryClient.setQueryData(
+          QUERY_KEYS.photographerAssignments(user!.id),
+          context.previousAssignments
+        );
+      }
       console.error('Error declining assignment:', error);
       toast.error('Fehler beim Ablehnen des Auftrags');
+    },
+    onSuccess: () => {
+      toast.success('Auftrag abgelehnt');
+    },
+    onSettled: () => {
+      // Always refetch after mutation settles
+      queryClient.invalidateQueries({ 
+        queryKey: QUERY_KEYS.photographerAssignments(user!.id) 
+      });
     }
   });
 

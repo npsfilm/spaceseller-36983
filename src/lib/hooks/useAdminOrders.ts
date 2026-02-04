@@ -1,55 +1,43 @@
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { adminOrderService, type Order, type DashboardStats } from '@/lib/services/AdminOrderService';
-import { useToast } from '@/hooks/use-toast';
+import { QUERY_KEYS, STALE_TIMES, GC_TIMES } from '@/lib/queryConfig';
+import { useState, useEffect } from 'react';
 
 /**
  * Custom hook for managing admin order data and operations
+ * Migrated to React Query for better caching and state management
  */
 export const useAdminOrders = () => {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
-  const [stats, setStats] = useState<DashboardStats>({
-    totalOrders: 0,
-    pendingOrders: 0,
-    inProgressOrders: 0,
-    completedToday: 0,
-  });
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const { toast } = useToast();
 
-  useEffect(() => {
-    fetchOrders();
-  }, []);
+  // Fetch orders using React Query
+  const { 
+    data: orders = [], 
+    isLoading: loading,
+    error 
+  } = useQuery({
+    queryKey: QUERY_KEYS.adminOrders(),
+    queryFn: () => adminOrderService.fetchAllOrders(),
+    staleTime: STALE_TIMES.orders,
+    gcTime: GC_TIMES.default,
+  });
 
-  useEffect(() => {
-    const filtered = adminOrderService.filterOrders(orders, searchQuery, statusFilter);
-    setFilteredOrders(filtered);
+  // Calculate stats from orders (memoized)
+  const stats = useMemo<DashboardStats>(() => {
+    return adminOrderService.calculateStats(orders);
+  }, [orders]);
+
+  // Filter orders based on search and status (memoized)
+  const filteredOrders = useMemo(() => {
+    return adminOrderService.filterOrders(orders, searchQuery, statusFilter);
   }, [orders, searchQuery, statusFilter]);
 
-  const fetchOrders = async () => {
-    try {
-      setLoading(true);
-      const data = await adminOrderService.fetchAllOrders();
-      setOrders(data);
-      
-      const calculatedStats = adminOrderService.calculateStats(data);
-      setStats(calculatedStats);
-    } catch (error) {
-      console.error('Error fetching orders:', error);
-      toast({
-        title: 'Fehler',
-        description: 'Bestellungen konnten nicht geladen werden',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Refresh function that invalidates the cache
   const refreshOrders = async () => {
-    await fetchOrders();
+    await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminOrders() });
   };
 
   return {
@@ -57,6 +45,7 @@ export const useAdminOrders = () => {
     filteredOrders,
     stats,
     loading,
+    error,
     searchQuery,
     setSearchQuery,
     statusFilter,
