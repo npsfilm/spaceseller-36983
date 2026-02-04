@@ -15,6 +15,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { authService } from '@/lib/services/AuthService';
 import { useToast } from '@/hooks/use-toast';
 import { toast as sonnerToast } from 'sonner';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -293,11 +294,11 @@ function SettingsContent() {
     try {
       passwordSchema.parse(passwordData);
 
-      const { error } = await supabase.auth.updateUser({
-        password: passwordData.newPassword
-      });
+      const result = await authService.updatePassword(passwordData.newPassword);
 
-      if (error) throw error;
+      if (!result.success) {
+        throw new Error(result.error?.message || 'Passwort konnte nicht geändert werden');
+      }
 
       toast({
         title: 'Passwort geändert',
@@ -313,9 +314,10 @@ function SettingsContent() {
           variant: 'destructive'
         });
       } else {
+        const errorMessage = error instanceof Error ? error.message : 'Passwort konnte nicht geändert werden';
         toast({
           title: 'Fehler',
-          description: 'Passwort konnte nicht geändert werden',
+          description: errorMessage,
           variant: 'destructive'
         });
       }

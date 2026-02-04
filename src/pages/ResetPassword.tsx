@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { FloatingLabelInput } from '@/components/auth/FloatingLabelInput';
 import { PasswordRequirements } from '@/components/auth/PasswordRequirements';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { authService } from '@/lib/services/AuthService';
 import { passwordSchema } from '@/lib/passwordValidation';
 
 const ResetPassword = () => {
@@ -82,18 +82,10 @@ const ResetPassword = () => {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('reset-password', {
-        body: { token, newPassword: password },
-      });
+      const result = await authService.resetPassword(token, password);
 
-      if (error) throw error;
-
-      if (data.error) {
-        // If there are detailed validation errors, show them
-        if (data.details && Array.isArray(data.details)) {
-          throw new Error(data.details.join('. '));
-        }
-        throw new Error(data.error);
+      if (!result.success) {
+        throw new Error(result.error);
       }
 
       setSuccess(true);
@@ -106,15 +98,17 @@ const ResetPassword = () => {
       setTimeout(() => {
         navigate('/auth');
       }, 3000);
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Log only safe information (no tokens, no sensitive data)
       console.error('Password reset failed:', {
-        message: error.message,
+        message: error instanceof Error ? error.message : 'Unknown error',
         timestamp: new Date().toISOString()
       });
+      
+      const errorMessage = error instanceof Error ? error.message : 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.';
       toast({
         title: "Fehler",
-        description: error.message || "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

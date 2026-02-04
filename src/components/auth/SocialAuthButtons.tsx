@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
+import { authService } from '@/lib/services/AuthService';
 import { useToast } from '@/hooks/use-toast';
 
 export function SocialAuthButtons() {
@@ -11,16 +11,7 @@ export function SocialAuthButtons() {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/order`,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          },
-        },
-      });
+      const { error } = await authService.signInWithOAuth('google');
 
       if (error) {
         toast({
