@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, X, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FloatingLabelInput } from './FloatingLabelInput';
-import { supabase } from '@/integrations/supabase/client';
+import { authService } from '@/lib/services/AuthService';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
 
@@ -36,14 +36,10 @@ export function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProp
 
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('request-password-reset', {
-        body: { email },
-      });
+      const result = await authService.requestPasswordReset(email);
 
-      if (error) throw error;
-
-      if (data.error) {
-        throw new Error(data.error);
+      if (!result.success) {
+        throw new Error(result.error);
       }
 
       setSuccess(true);
@@ -52,10 +48,11 @@ export function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProp
         setSuccess(false);
         setEmail('');
       }, 3000);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Ein Fehler ist aufgetreten.';
       toast({
         title: 'Fehler',
-        description: error.message || 'Ein Fehler ist aufgetreten.',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
