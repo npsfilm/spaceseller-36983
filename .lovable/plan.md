@@ -1,312 +1,238 @@
 
-# Phase 6 Nachbesserung: OrderWizard Vereinfachung
+# Optimierung des Frontend Error Trackings
 
-## Analyse
+## Analyse der aktuellen Implementierung
 
-Der OrderWizard hat aktuell **424 Zeilen** und enthält trotz der bereits extrahierten Step-Komponenten zu viel Render-Logik:
+Die bestehende `errorTracking.ts` nutzt bereits das Sentry SDK korrekt mit:
+- PII-Scrubbing via `beforeSend`
+- User Context über `setUser`/`clearUser`  
+- Custom Breadcrumbs
+
+Es fehlen jedoch wichtige Features für produktionsreifes Error Tracking.
 
 ```text
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                    AKTUELLE STRUKTUR (424 LOC)                           │
+│                    AKTUELLE LÜCKEN                                       │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                          │
-│  IMPORTS & TYPES (25 LOC)                                               │
-│  ├── 19 Imports                                                          │
-│  └── getStepsForCategory() Hilfsfunktion                                │
+│  1. KEINE SENTRY ERROR BOUNDARY                                         │
+│     └── React-Render-Fehler werden nicht automatisch erfasst            │
 │                                                                          │
-│  HOOKS & HANDLER (60 LOC)                                               │
-│  ├── useOrderState Destrukturierung                                     │
-│  ├── handleStepClick, handleLocationValidated                           │
-│  └── handleSubmitOrder                                                  │
+│  2. KEINE REACT ROUTER INTEGRATION                                       │
+│     └── Route-Wechsel fehlen in Breadcrumbs                             │
 │                                                                          │
-│  RENDER-LOGIK (339 LOC) ← HIER IST DAS PROBLEM                          │
-│  ├── Auto-Save Indicator Desktop (~25 LOC)                              │
-│  ├── Step Router mit verschachtelten Bedingungen (~100 LOC)             │
-│  ├── Auto-Save Indicator Mobile (~20 LOC) - DUPLIZIERT!                 │
-│  └── Navigation Buttons (~70 LOC) mit 7 verschiedenen Zuständen         │
+│  3. SOURCE MAPS NUR IN DEVELOPMENT                                       │
+│     └── Produktion zeigt minifizierten Code                             │
+│                                                                          │
+│  4. KEIN RELEASE TRACKING                                                │
+│     └── Fehler können nicht App-Versionen zugeordnet werden             │
+│                                                                          │
+│  5. GERINGE NUTZUNG                                                      │
+│     └── errorTracker.captureError nur in AuthContext verwendet          │
+│                                                                          │
+│  6. KEIN REPLAY INTEGRATION                                              │
+│     └── Keine Session-Aufzeichnung bei Fehlern                          │
 │                                                                          │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Plan: Extraktion von 3 Sub-Komponenten
+## Geplante Verbesserungen
 
-### 1. AutoSaveIndicator Component
+### 1. Erweiterte Sentry-Konfiguration
+
+Die `errorTracking.ts` wird um folgende Features erweitert:
+
+| Feature | Beschreibung | Nutzen |
+|---------|--------------|--------|
+| **React Router Integration** | Automatische Route-Breadcrumbs | Besseres Debugging |
+| **Browser Tracing** | Performance-Monitoring | LCP, FCP, TTFB Metriken |
+| **Session Replay** | Video-Aufzeichnung bei Errors | Fehler visuell nachvollziehen |
+| **Release Tracking** | Version aus package.json | Fehler pro Release zuordnen |
 
 ```typescript
-// src/pages/Order/components/AutoSaveIndicator.tsx (NEU - ~40 LOC)
-
-interface AutoSaveIndicatorProps {
-  isSaving: boolean;
-  lastSaved: Date | null;
-  onSaveNow: () => void;
-  variant?: 'desktop' | 'mobile';
-}
-
-export const AutoSaveIndicator = ({
-  isSaving,
-  lastSaved,
-  onSaveNow,
-  variant = 'desktop'
-}: AutoSaveIndicatorProps) => {
-  // Unified component that renders differently based on variant
-  // Eliminates ~20 lines of duplicated code
-};
+// Erweiterte Sentry.init() Konfiguration
+Sentry.init({
+  dsn: import.meta.env.VITE_SENTRY_DSN,
+  environment: isProduction ? 'production' : 'development',
+  release: `spaceseller@${APP_VERSION}`,
+  
+  integrations: [
+    // Bestehende Breadcrumbs
+    Sentry.breadcrumbsIntegration({ ... }),
+    
+    // NEU: React Router Integration
+    Sentry.reactRouterV6BrowserTracingIntegration({
+      useEffect: React.useEffect,
+      useLocation,
+      useNavigationType,
+      createRoutesFromChildren,
+      matchRoutes,
+    }),
+    
+    // NEU: Session Replay (nur bei Errors)
+    Sentry.replayIntegration({
+      maskAllText: true,
+      blockAllMedia: true,
+    }),
+  ],
+  
+  // NEU: Replay Sample Rates
+  replaysSessionSampleRate: 0, // Keine normalen Sessions
+  replaysOnErrorSampleRate: 1.0, // Alle Error-Sessions
+});
 ```
 
-### 2. OrderStepRouter Component
+### 2. Sentry Error Boundary in App.tsx
+
+React-Render-Fehler werden automatisch erfasst:
 
 ```typescript
-// src/pages/Order/components/OrderStepRouter.tsx (NEU - ~120 LOC)
+// App.tsx - Mit Sentry.ErrorBoundary
+import * as Sentry from '@sentry/react';
 
-interface OrderStepRouterProps {
-  orderState: OrderState;
-  services: Service[];
-  
-  // Step callbacks
-  onLocationValidated: (travelCost: number, distance: number, available: boolean) => void;
-  onBack: () => void;
-  
-  // Category callbacks
-  onSelectCategory: (categoryId: string) => void;
-  
-  // Configuration callbacks
-  onAreaRangeChange: (range: string) => void;
-  onProductToggle: (serviceId: string, qty: number, price: number) => void;
-  onPackageSelect: (packageId: string | null) => void;
-  onAddOnToggle: (addOnId: string) => void;
-  onSchedulingChange: (data: SchedulingData) => void;
-  onSpecialInstructionsChange: (text: string) => void;
-  onTermsChange: (agb: boolean, privacy: boolean) => void;
-}
-
-export const OrderStepRouter = ({ ... }: OrderStepRouterProps) => {
-  // Single switch/case for step rendering
-  // Replaces ~100 lines of nested conditionals
-};
+const App = () => (
+  <Sentry.ErrorBoundary 
+    fallback={<GlobalErrorFallback />}
+    showDialog={false}
+  >
+    <QueryClientProvider client={queryClient}>
+      {/* ... bestehender Code ... */}
+    </QueryClientProvider>
+  </Sentry.ErrorBoundary>
+);
 ```
 
-### 3. OrderNavigationBar Component
+### 3. Source Maps in Produktion
+
+Die `vite.config.ts` wird angepasst:
 
 ```typescript
-// src/pages/Order/components/OrderNavigationBar.tsx (NEU - ~80 LOC)
-
-interface OrderNavigationBarProps {
-  orderState: OrderState;
-  onPrevStep: () => void;
-  onNextStep: () => void;
-  onSubmit: () => void;
-  
-  // Auto-save props (for mobile indicator)
-  isSaving?: boolean;
-  lastSaved?: Date | null;
+build: {
+  // Source Maps auch in Produktion für Sentry
+  sourcemap: true, // War: mode === 'development'
 }
-
-export const OrderNavigationBar = ({ ... }: OrderNavigationBarProps) => {
-  // Unified navigation logic with validation checks
-  // Replaces ~70 lines of repetitive button conditions
-};
 ```
 
----
+**Hinweis**: Source Maps werden nur an Sentry gesendet und sind für Endnutzer nicht sichtbar.
 
-## Refaktorierter OrderWizard
+### 4. Neue GlobalErrorFallback Komponente
 
-Nach der Extraktion wird der Wizard auf **~150 LOC** reduziert:
+Eine benutzerfreundliche Fallback-UI für schwere Fehler:
 
 ```typescript
-// src/pages/Order/OrderWizard.tsx (NACH REFACTORING)
+// src/components/ui/GlobalErrorFallback.tsx
+const GlobalErrorFallback = () => (
+  <div className="min-h-screen flex items-center justify-center p-4">
+    <Card className="max-w-md">
+      <CardHeader>
+        <AlertTriangle className="h-12 w-12 text-destructive" />
+        <CardTitle>Ein Fehler ist aufgetreten</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p>Die Seite konnte nicht geladen werden.</p>
+        <Button onClick={() => window.location.reload()}>
+          Seite neu laden
+        </Button>
+      </CardContent>
+    </Card>
+  </div>
+);
+```
 
-export const OrderWizard = () => {
-  const { services, orderState, ...actions } = useOrderState();
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const navigate = useNavigate();
+### 5. Erweiterte Nutzung im Codebase
 
-  const { lastSaved, isSaving, saveNow } = useDraftAutoSave(orderState, {
-    enabled: true,
-    intervalMs: 30000
+Integration in kritische Bereiche:
+
+```typescript
+// Beispiel: Order Submission
+try {
+  await orderSubmissionService.submitOrder(orderState);
+} catch (error) {
+  errorTracker.captureError(error as Error, {
+    action: 'order_submission',
+    orderId: orderState.id,
+    route: '/order',
   });
+  throw error;
+}
 
-  const handleStepClick = (targetStep: number) => { ... };
-  const handleLocationValidated = (...) => { ... };
-  const handleSubmitOrder = async () => { ... };
-  const getCategoryLabel = () => { ... };
-
-  return (
-    <OrderLayout>
-      <div className="h-full flex flex-col">
-        {/* Progress Indicator with Auto-Save */}
-        <div className="relative">
-          <ProgressIndicator
-            steps={getStepsForCategory(orderState.selectedCategory)}
-            currentStep={orderState.step}
-            onStepClick={handleStepClick}
-          />
-          
-          {orderState.step > 1 && (
-            <AutoSaveIndicator
-              variant="desktop"
-              isSaving={isSaving}
-              lastSaved={lastSaved}
-              onSaveNow={saveNow}
-            />
-          )}
-        </div>
-
-        {/* Step Content */}
-        <div className="flex-1 overflow-y-auto">
-          <OrderStepRouter
-            orderState={orderState}
-            services={services}
-            onLocationValidated={handleLocationValidated}
-            onBack={() => navigate('/dashboard')}
-            onSelectCategory={actions.setCategory}
-            onAreaRangeChange={actions.setAreaRange}
-            onProductToggle={actions.toggleProduct}
-            onPackageSelect={actions.setPackage}
-            onAddOnToggle={actions.toggleAddOn}
-            onSchedulingChange={actions.setScheduling}
-            onSpecialInstructionsChange={actions.setSpecialInstructions}
-            onTermsChange={actions.setTermsAcceptance}
-          />
-        </div>
-
-        {/* Navigation */}
-        <OrderNavigationBar
-          orderState={orderState}
-          onPrevStep={actions.prevStep}
-          onNextStep={actions.nextStep}
-          onSubmit={handleSubmitOrder}
-          isSaving={isSaving}
-          lastSaved={lastSaved}
-        />
-      </div>
-    </OrderLayout>
-  );
-};
+// Beispiel: API-Fehler im React Query
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      onError: (error) => {
+        errorTracker.captureError(error as Error, { 
+          action: 'query_error' 
+        });
+      },
+    },
+  },
+});
 ```
 
 ---
 
-## Neue Dateistruktur
+## Dateiänderungen
+
+| Aktion | Datei | Beschreibung |
+|--------|-------|--------------|
+| **EDIT** | `src/lib/errorTracking.ts` | React Router + Replay Integration |
+| **EDIT** | `src/App.tsx` | Sentry.ErrorBoundary wrappen |
+| **EDIT** | `vite.config.ts` | Source Maps in Produktion aktivieren |
+| **NEU** | `src/components/ui/GlobalErrorFallback.tsx` | Error Fallback UI |
+
+---
+
+## Voraussetzungen
+
+### Secret konfigurieren
+
+Der `VITE_SENTRY_DSN` muss als Umgebungsvariable gesetzt werden:
+
+1. Sentry-Projekt auf sentry.io erstellen
+2. DSN kopieren (Format: `https://xxx@o123.ingest.sentry.io/456`)
+3. In Lovable Cloud als Secret speichern
+
+---
+
+## Architektur nach Implementierung
 
 ```text
-src/pages/Order/
-├── OrderWizard.tsx                    (424 → ~150 LOC)
-├── components/
-│   ├── AutoSaveIndicator.tsx          (NEU - ~40 LOC)
-│   ├── OrderStepRouter.tsx            (NEU - ~120 LOC)
-│   ├── OrderNavigationBar.tsx         (NEU - ~80 LOC)
-│   ├── ProgressIndicator.tsx          (unverändert)
-│   └── shared/                        (unverändert)
-│       ├── ConfigurationCard.tsx
-│       ├── ConfigurationHeader.tsx
-│       └── ...
-└── steps/                             (unverändert)
-    ├── LocationCheckStep.tsx
-    ├── CategorySelectionStep.tsx
-    ├── PhotographyPackageSelectionStep.tsx
-    └── ...
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    OPTIMIERTE ERROR TRACKING ARCHITEKTUR                 │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  BROWSER                                                                │
+│  ├── Sentry.ErrorBoundary (React Render-Fehler)                         │
+│  ├── window.onerror / unhandledrejection (Global)                       │
+│  ├── errorTracker.captureError() (Manuell)                              │
+│  └── React Router Breadcrumbs (Navigation)                              │
+│                                                                          │
+│  SENTRY SDK FEATURES:                                                   │
+│  ├── beforeSend → PII Scrubbing (Passwörter, IBANs, etc.)               │
+│  ├── breadcrumbsIntegration → Console, DOM, Fetch, History             │
+│  ├── reactRouterV6BrowserTracingIntegration → Route-Wechsel            │
+│  ├── replayIntegration → Session-Video bei Errors                       │
+│  └── release: spaceseller@X.Y.Z → Version-Tracking                      │
+│                                                                          │
+│  DATENFLUSS:                                                            │
+│  Browser → beforeSend (Scrubbing) → Sentry Cloud                        │
+│         └── Source Maps (versteckt) ────────┘                           │
+│                                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Zusammenfassung der Änderungen
+## Erwartete Verbesserungen
 
-| Aktion | Datei | LOC |
-|--------|-------|-----|
-| **NEU** | `src/pages/Order/components/AutoSaveIndicator.tsx` | ~40 |
-| **NEU** | `src/pages/Order/components/OrderStepRouter.tsx` | ~120 |
-| **NEU** | `src/pages/Order/components/OrderNavigationBar.tsx` | ~80 |
-| **EDIT** | `src/pages/Order/OrderWizard.tsx` | 424 → ~150 |
-
----
-
-## Metriken
-
-| Metrik | Vorher | Nachher | Verbesserung |
-|--------|--------|---------|--------------|
-| OrderWizard LOC | 424 | ~150 | **-65%** |
-| Verschachtelte Bedingungen | 7 | 0 | -100% |
-| Duplizierter Code (Auto-Save) | 2x | 1x | -50% |
-| Cyclomatic Complexity | Hoch | Niedrig | Signifikant |
-| Testbarkeit | Schwierig | Einfach | Verbessert |
-
----
-
-## Technische Details
-
-### OrderStepRouter Logik
-
-```typescript
-// Vereinfachte Step-Routing-Logik
-const renderStep = () => {
-  const { step, selectedCategory } = orderState;
-
-  // Step 1: Location (always)
-  if (step === 1) return <LocationCheckStep ... />;
-
-  // Step 2: Category Selection (always)
-  if (step === 2) return <CategorySelectionStep ... />;
-
-  // Photography Flow (steps 3-6)
-  if (selectedCategory === 'onsite') {
-    switch (step) {
-      case 3: return <PhotographyPackageSelectionStep ... />;
-      case 4: return <PhotographyAddOnsStep ... />;
-      case 5: return <PhotographySchedulingStep ... />;
-      case 6: return <PhotographySummaryStep ... />;
-    }
-  }
-
-  // Other Categories (step 3 only)
-  return (
-    <TwoColumnLayout>
-      <ProductConfigurationStep ... />
-      <OrderSummarySidebar ... />
-    </TwoColumnLayout>
-  );
-};
-```
-
-### OrderNavigationBar Validierung
-
-```typescript
-// Zentralisierte Validierungslogik
-const getNavigationState = () => {
-  const { step, selectedCategory } = orderState;
-
-  return {
-    showBackButton: step > 1,
-    showNextButton: shouldShowNextButton(step, selectedCategory),
-    showSubmitButton: shouldShowSubmitButton(step, selectedCategory),
-    nextDisabled: !canProceedToNextStep(orderState),
-    submitDisabled: !orderValidationService.canSubmitOrder(orderState)
-  };
-};
-```
-
----
-
-## Vorteile
-
-### 1. Lesbarkeit
-- OrderWizard zeigt nur noch die Orchestrierung
-- Step-Logik in dediziertem Router
-- Keine verschachtelten ternären Operatoren mehr
-
-### 2. Testbarkeit
-- `OrderStepRouter` isoliert testbar
-- `OrderNavigationBar` Validierung testbar
-- Klare Prop-Interfaces
-
-### 3. Wartbarkeit
-- Neue Steps nur im Router hinzufügen
-- Navigation-Logik zentral änderbar
-- Auto-Save nur einmal implementiert
-
-### 4. Konsistenz
-- Einheitliches Pattern für alle Flows
-- Wiederverwendbare Sub-Komponenten
+| Metrik | Vorher | Nachher |
+|--------|--------|---------|
+| React Render-Fehler erfasst | Nein | Ja (via ErrorBoundary) |
+| Route-Context in Fehlern | Manuell | Automatisch |
+| Stack Traces lesbar | Nur Dev | Auch Produktion |
+| Session Replay bei Errors | Nein | Ja (100% Errors) |
+| Release-Tracking | Nein | Ja (aus package.json) |
+| Fehler pro App-Version | Nicht möglich | Automatisch |
