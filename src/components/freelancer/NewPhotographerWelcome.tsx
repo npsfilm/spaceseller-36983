@@ -1,8 +1,10 @@
+import { Camera, MapPin, Calendar, CreditCard, Award } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Camera, CheckCircle, Circle, MapPin, Calendar, CreditCard, Award } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
+import { ChecklistItem, ProgressBar } from '@/components/shared';
+import type { ChecklistItemData } from '@/components/shared';
 
 interface NewPhotographerWelcomeProps {
   missingFields: string[];
@@ -12,36 +14,34 @@ interface NewPhotographerWelcomeProps {
 export const NewPhotographerWelcome = ({ missingFields, completionPercentage }: NewPhotographerWelcomeProps) => {
   const navigate = useNavigate();
 
-  const checklistItems = [
+  const checklistItems: ChecklistItemData[] = [
     {
-      key: 'profile',
+      id: 'profile',
       label: 'Profil vervollständigen',
       icon: Award,
-      fields: ['vorname', 'nachname', 'telefon'],
       completed: !missingFields.some(f => ['vorname', 'nachname', 'telefon'].includes(f))
     },
     {
-      key: 'location',
+      id: 'location',
       label: 'Standort & Serviceradius festlegen',
       icon: MapPin,
-      fields: ['location_lat', 'location_lng', 'service_radius_km'],
       completed: !missingFields.some(f => ['location_lat', 'location_lng', 'service_radius_km'].includes(f))
     },
     {
-      key: 'availability',
+      id: 'availability',
       label: 'Verfügbarkeit einstellen',
       icon: Calendar,
-      fields: ['available_weekdays'],
       completed: !missingFields.includes('available_weekdays')
     },
     {
-      key: 'banking',
+      id: 'banking',
       label: 'Bankverbindung hinzufügen',
       icon: CreditCard,
-      fields: ['iban', 'bic', 'kontoinhaber'],
       completed: !missingFields.some(f => ['iban', 'bic', 'kontoinhaber'].includes(f))
     }
   ];
+
+  const completedCount = checklistItems.filter(item => item.completed).length;
 
   return (
     <motion.div
@@ -74,32 +74,19 @@ export const NewPhotographerWelcome = ({ missingFields, completionPercentage }: 
             <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
               Setup-Checkliste
             </h3>
-            {checklistItems.map((item, index) => {
-              const Icon = item.icon;
-              return (
-                <motion.div
-                  key={item.key}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.1 * index }}
-                  className={`flex items-center gap-3 p-3 rounded-lg border ${
-                    item.completed 
-                      ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900' 
-                      : 'bg-muted/50 border-border'
-                  }`}
-                >
-                  {item.completed ? (
-                    <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0" />
-                  ) : (
-                    <Circle className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                  )}
-                  <Icon className={`h-4 w-4 ${item.completed ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`} />
-                  <span className={`text-sm ${item.completed ? 'font-medium' : ''}`}>
-                    {item.label}
-                  </span>
-                </motion.div>
-              );
-            })}
+            <ProgressBar 
+              current={completedCount} 
+              total={checklistItems.length} 
+              showLabel={false}
+            />
+            {checklistItems.map((item, index) => (
+              <ChecklistItem
+                key={item.id}
+                {...item}
+                index={index}
+                variant="freelancer"
+              />
+            ))}
           </div>
 
           <div className="bg-muted/50 rounded-lg p-4 space-y-2">
