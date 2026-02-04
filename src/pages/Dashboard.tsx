@@ -1,8 +1,11 @@
 import { motion } from "framer-motion";
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useUserStatus } from "@/lib/hooks/useDashboardData";
+import { QUERY_KEYS, STALE_TIMES } from "@/lib/queryConfig";
+import { supabase } from "@/integrations/supabase/client";
 
 // Lazy load components
 const DashboardStats = lazy(() => import("@/components/dashboard/DashboardStats"));
@@ -28,6 +31,37 @@ const fadeInUp = {
 
 const DashboardContent = () => {
   const { hasNoOrders, isNewUser, isLoading } = useUserStatus();
+  const queryClient = useQueryClient();
+
+  // Prefetch Order Wizard data when dashboard mounts
+  // This speeds up navigation to /order
+  useEffect(() => {
+    // Prefetch services data for Order Wizard
+    queryClient.prefetchQuery({
+      queryKey: QUERY_KEYS.services(),
+      queryFn: async () => {
+        const { data } = await supabase
+          .from('services')
+          .select('*')
+          .eq('is_active', true);
+        return data ?? [];
+      },
+      staleTime: STALE_TIMES.services,
+    });
+
+    // Prefetch upgrades data
+    queryClient.prefetchQuery({
+      queryKey: QUERY_KEYS.upgrades(),
+      queryFn: async () => {
+        const { data } = await supabase
+          .from('upgrades')
+          .select('*')
+          .eq('is_active', true);
+        return data ?? [];
+      },
+      staleTime: STALE_TIMES.services,
+    });
+  }, [queryClient]);
 
   if (isLoading) {
     return (

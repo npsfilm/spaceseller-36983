@@ -1,9 +1,10 @@
 import { motion } from 'framer-motion';
 import { Camera, Sparkles, Home, FileText } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CategoryCard } from '../components/CategoryCard';
 import type { Service } from '../OrderWizard';
+
+// Images imported for CategoryCard (passed as props, lazy loaded by CategoryCard)
 import augsburgHouseExterior from '@/assets/augsburg-house-exterior.jpg';
 import vsLivingAfter from '@/assets/vs-living-after.jpg';
 import heroProperty from '@/assets/hero-property.jpg';
