@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { User, Session } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
 import { authService, AuthResult } from '@/lib/services/AuthService';
+import { errorTracker } from '@/lib/errorTracking';
 
 interface AuthContextType {
   user: User | null;
@@ -26,6 +27,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      
+      // Set Sentry user context for error tracking
+      if (session?.user) {
+        errorTracker.setUser(session.user.id, session.user.email);
+      } else {
+        errorTracker.clearUser();
+      }
     });
 
     // THEN check for existing session - delegates to AuthService
@@ -33,6 +41,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      
+      // Set initial user context
+      if (session?.user) {
+        errorTracker.setUser(session.user.id, session.user.email);
+      }
     });
 
     return unsubscribe;
